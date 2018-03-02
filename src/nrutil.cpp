@@ -133,6 +133,12 @@ float **matrix(long nrl, long nrh, long ncl, long nch)
     }
   return NULL;
 }
+void copy_dvector(double *source, double *dest, long nrl, long nrh)
+/* copy content of vector source into vector dest */
+{
+  for (int i = nrl; i <= nrh; i++)
+    dest[i] = source[i];
+}
 void copy_dmatrix(double **source, double **dest, long nrl, long nrh,
                   long ncl, long nch)
 /* copy content of matrix source into matrix dest */

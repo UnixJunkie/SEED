@@ -16,6 +16,7 @@
 *    You should have received a copy of the GNU General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include "nrutil.h"
 
 int FragSolvEn_Rbound(int FrAtNu,double **FrCoor,double *FrPaCh,
                double *FrVdWR, double *FrEffRad_bound, double *FrRadOut,
@@ -36,6 +37,7 @@ double *FrPaCh ----------- Frag partial charges
 double *FrVdWR ----------- Frag vdW radii
 double *FrRadOut -------- Frag charge radii + WaMoRa
 double *FrRadOut2 ------- (Frag charge radii + WaMoRa)^2
+double *FrEffRad_bound --- lower bound on effective Born radius
 double **Frdist2 --------- Squared interatomic frag distances
 int Nsurfpt_fr ---------- Tot # of points over the frag SAS1
 struct point *surfpt_fr_orig - Coor of points over frag SAS1 (obtained from
@@ -119,6 +121,8 @@ char ***FrGridMat ------- Matrix telling if a grid point is occupied by the
                       XGrid,YGrid,ZGrid,UnitVol,Ksolv,pi4,FrGridMat,
                       1,1,1,NGridx,NGridy,NGridz,FrSelfVol,FrEffRad,&FrSelfEn,
 		                  FrSelfVol_corrB,EmpCorrB,FPaOut);
+  /* Set the calculated FrEffRad as a lower bound of Effective Born radius */
+  copy_dvector(FrEffRad, FrEffRad_bound, 1, FrAtNu);
 
   /*for (int jj=1;jj<=FrAtNu;jj++){
     std::cout << "FrSelfVol_corrB[" << jj << "]= " << FrSelfVol_corrB[jj] << '\n';

@@ -72,6 +72,7 @@ unsigned long *lvector(long nl, long nh);
 double *dvector(long nl, long nh);
 float **matrix(long nrl, long nrh, long ncl, long nch);
 double **dmatrix(double **s, long nrl, long nrh, long ncl, long nch);
+void copy_dvector(double *source, double *dest, long nrl, long nrh);
 void copy_dmatrix(double **source, double **dest, long nrl, long nrh,
                   long ncl, long nch);
 double **dmatrix(long nrl, long nrh, long ncl, long nch);
