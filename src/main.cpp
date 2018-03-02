@@ -290,6 +290,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   int HeAtCo = 0; // HeAtCo = Heavy Atom Count clangini
   double *AtWei; // list of atomic weights clangini
   double MolWei = 0.0; // Molecular Weight clangini
+  double *FrEffRad_bound; // Lower bound for the Born Effective radius
   int *CluIndex_sort; // Array Clu index number -> sorted Clu index number clangini
   std::string AlTySp;
   std::string FragNa_str; //C++ string equivalent to FragNa
@@ -1613,6 +1614,8 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
            together with the receptor neighbour atoms ("extended fragment")
            It will be used in ElecFrag */
         surfpt_ex=structpointvect(1,NPtSphere * (ReAtNu+FrAtNu));
+
+        // TODO also add computation of FrEffRad_bound here
 
         /* Calculate the solvation energy of the fragment without the receptor
            Use a very fine grid spacing (0.1) */
@@ -4483,6 +4486,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           FrRadOut=dvector(1,FrAtNu);
           FrRadOut2=dvector(1,FrAtNu);
           Frdist2=dmatrix(1,FrAtNu,1,FrAtNu);
+          FrEffRad_bound = dvector(1, FrAtNu);
           nn = get_Ch_Rad_Fr(FrAtNu,FrCoor,FrVdWR,WaMoRa,FrRad,FrRad2,FrRadOut,
               FrRadOut2,Frdist2,&Rmin,&FrRmax);
 
@@ -4519,9 +4523,10 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
 
           /* Calculate the solvation energy of the fragment without the receptor
              Use a very fine grid spacing (0.1) */
-          nn = FragSolvEn(FrAtNu,FrCoor,FrPaCh,FrVdWR, FrRadOut,
-              FrRadOut2,Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.02, // originally 0.1
-              Ksolv,pi4,&FrSolvEn,EmpCorrB,FPaOut);
+          nn = FragSolvEn_Rbound(FrAtNu,FrCoor,FrPaCh,FrVdWR,FrEffRad_bound,
+                                 FrRadOut,FrRadOut2,Frdist2,
+                                 Nsurfpt_fr,surfpt_fr,WaMoRa,0.02, // originally 0.1
+                                 Ksolv,pi4,&FrSolvEn,EmpCorrB,FPaOut);
           /*fprintf(FPaOut,"Dielectric value = %4.1f -> %4.1f transfer energy for the fragment (%s) : ",
               DielRe,DielWa,&FrFiNa_out[CurFra][1]);*/
           fprintf(FPaOut,"Dielectric value = %4.1f -> %4.1f transfer energy for the fragment (%s) : ",
@@ -4839,6 +4844,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           free_dmatrix(ChFrRe_ps_elec,1,FrAtNu,1,ReAtNu);
           free_structpointvect(surfpt_ex,1,NPtSphere * (ReAtNu+FrAtNu));
           free_dmatrix(Frdist2,1,FrAtNu,1,FrAtNu);
+          free_dvector(FrEffRad_bound, 1, FrAtNu);
           free_dvector(FrRadOut2,1,FrAtNu);
           free_dvector(FrRadOut,1,FrAtNu);
           free_dvector(FrRad2,1,FrAtNu);
