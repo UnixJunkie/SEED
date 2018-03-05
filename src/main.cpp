@@ -4596,11 +4596,11 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
 
               /* Compute receptor desolvation, fragment desolvation and receptor-fragment
                  interaction (with screening effect) energies (slow method) */
-              ElecFrag(ReAtNu,ReCoor,RePaCh,ChFrRe_ps_elec,
+              ElecFrag_Rbound(ReAtNu,ReCoor,RePaCh,ChFrRe_ps_elec,
                   ReRad,ReRad2,ReRadOut,
                   ReRadOut2,surfpt_re,nsurf_re,
                   pointsrf_re,ReSelfVol,FrAtNu,RoSFCo,FrCoor,
-                  FrPaCh,FrRad,FrRad2,FrRadOut,FrRadOut2,
+                  FrPaCh,FrRad,FrRad2,FrRadOut,FrRadOut2,FrEffRad_bound,
                   Frdist2,SDFrRe_ps_elec,FrMinC,FrMaxC,&FrSolvEn,
                   Nsurfpt_fr,surfpt_fr,
                   nsurf_fr,pointsrf_fr,surfpt_ex,Tr,U1,U2,WaMoRa,
@@ -4735,11 +4735,11 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                       SDFrRe_ps_elec,ChFrRe_ps_elec);
                   PsSpEE(FrAtNu,ReAtNu,ReVdWE_sr,FrVdWE_sr,
                          ReVdWR,FrVdWR,&VWEnEv_ps,SDFrRe_ps);
-                  ElecFrag(ReAtNu,ReCoor,RePaCh,ChFrRe_ps_elec,
+                  ElecFrag_Rbound(ReAtNu,ReCoor,RePaCh,ChFrRe_ps_elec,
                       ReRad,ReRad2,ReRadOut,
                       ReRadOut2,surfpt_re,nsurf_re,
                       pointsrf_re,ReSelfVol,FrAtNu,RoSFCo,FrCoor,
-                      FrPaCh,FrRad,FrRad2,FrRadOut,FrRadOut2,
+                      FrPaCh,FrRad,FrRad2,FrRadOut,FrRadOut2, FrEffRad_bound,
                       Frdist2,SDFrRe_ps_elec,FrMinC,FrMaxC,&FrSolvEn,
                       Nsurfpt_fr,surfpt_fr,
                       nsurf_fr,pointsrf_fr,surfpt_ex,Tr,U1,U2,WaMoRa,
