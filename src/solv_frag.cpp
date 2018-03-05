@@ -524,13 +524,7 @@ struct point *surfpt_fr - Coor of points over frag SAS1 (relative to RoSFCo)
 	      ReEffRad[NeighList3[iat]] = 1. / ( 1./ReRadOut[NeighList3[iat]] -
 					     (ReSelfVol[NeighList3[iat]]+ReSelfVol_add[NeighList3[iat]])/pi4 );
       }
-
-
-
-
     }
-
-
   }
 
 /* Receptor desolvation calculated with GB (it could be useful one day...)
@@ -1098,25 +1092,25 @@ struct point *surfpt_fr - Coor of points over frag SAS1 (relative to RoSFCo)
 	    to "nan" values or the effective born radius is smaller than 0
 
 	  */
-	      if(FrEffRad[iat]<= 0 || isnan(FrEffRad[iat])) { // print warning
+	      if(FrEffRad[iat]<= 0 || isnan(FrEffRad[iat])) { // only print warning
 #ifndef NOWARN
 	        fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of fragment atom %d, using standard approach\n",iat);
 #endif
-          std::cout << "========== atom " << iat << "\n";
+          /*std::cout << "========== atom " << iat << "\n";
           std::cout << "1/2R^2 = " << 1./(2.*FrRadOut2[iat]) << "  FrSelfVol_corrB[iat]/pi4 = " << (FrSelfVol_corrB[iat]/pi4) << std::endl;
           std::cout << "G0 = " << 1./FrRadOut[iat] - FrSelfVol[iat]/pi4 << std::endl;
           std::cout << "G1 = " << 3.0*sqrt( (1./(2.*FrRadOut[iat]*FrRadOut[iat])) - (FrSelfVol_corrB[iat]/pi4) ) << "\n";
           std::cout << "FrEffRad_corrB[" << iat << "] = " << FrEffRad[iat] << std::endl;
           std::cout << "1/R = " << 1./FrRadOut[iat] << "  FrSelfVol[iat]/pi4 = " << FrSelfVol[iat]/pi4 << std::endl;
           std::cout << "FrEffRad[" << iat << "] = " << 1. / ( 1./FrRadOut[iat] - FrSelfVol[iat]/pi4 ) << std::endl;
-          std::cout << "Lower bound (Born radius) = " << FrRadOut[iat] - 1.4 << std::endl;
+          std::cout << "Lower bound (Born radius) = " << FrRadOut[iat] - 1.4 << std::endl;*/
 
           //FrEffRad[iat] = 1. / ( 1./FrRadOut[iat] - FrSelfVol[iat]/pi4 );
 	      }
 
         // Override with lower bound on Born Effective radius
         if (isnan(FrEffRad[iat]) || FrEffRad[iat] < FrEffRad_bound[iat]){
-          std::cout << "FrEffRad[" << iat << "] = "<< FrEffRad[iat] << " overridden to lower bound " << FrEffRad_bound[iat] << std::endl;
+          /* std::cout << "FrEffRad[" << iat << "] = "<< FrEffRad[iat] << " overridden to lower bound " << FrEffRad_bound[iat] << std::endl; */
           FrEffRad[iat] = FrEffRad_bound[iat];
         }
       } // end of else
@@ -1133,16 +1127,13 @@ struct point *surfpt_fr - Coor of points over frag SAS1 (relative to RoSFCo)
   printf("\n\tElectrostatic intra-ligand interactions...\n"); */
   nn = GB_int_fr(FrAtNu,Frdist2,FrPaCh,FrEffRad,Ksolv,&FrIntEn);
 
-  // clangini debug
-  std::cout << "FrSelfEn = " << FrSelfEn << " FrIntEn = " << FrIntEn;
-
-  // clangini debug end
+  /* std::cout << "FrSelfEn = " << FrSelfEn << " FrIntEn = " << FrIntEn; */
 
   *PFrDesoElec = FrSelfEn + FrIntEn;
   *PFrDesoElec -= *PFrSolvEn;
   *PFrDesoElec *= corr_fr_deso;
 
-  std::cout << "  Corr frg. desolv:  " << *PFrDesoElec << "\n";
+  /* std::cout << "  Corr frg. desolv:  " << *PFrDesoElec << "\n"; */
 
   free_dmatrix(dist,1,FrAtNu,1,ReAtNu);
   free_dvector(FrSelfVol,1,FrAtNu); /* dey memory leak */
@@ -2963,10 +2954,10 @@ char ***FrGridMat ------- Matrix telling if a grid point is occupied by the
                  1,1,1,NGridx,NGridy,NGridz,UnitVol,
                  FrGridMat,Nsurfpt_fr,surfpt_fr_orig,FrSelfVol,FrSelfVol_corrB,
 		             EmpCorrB);
-  for (int jj=1;jj<=FrAtNu;jj++){
+  /* for (int jj=1;jj<=FrAtNu;jj++){
     std::cout << "FrSelfVol_corrB[" << jj << "]= " << FrSelfVol_corrB[jj] << '\n';
     std::cout << "FrSelfVol[" << jj << "]= " << FrSelfVol[jj] << '\n';
-  }
+  } */
 /* Calculate the frag self energy */
   nn = Get_Self_En_Fr(FrAtNu,FrCoor,FrPaCh,FrRadOut,FrRadOut2,
                       XGrid,YGrid,ZGrid,UnitVol,Ksolv,pi4,FrGridMat,
@@ -3096,14 +3087,14 @@ double *PFrSelfEn ------- Tot frag self-energy
     			       + 3.0*sqrt( (1./(2.*FrRadOut[iat]*FrRadOut[iat])) - (FrSelfVol_corrB[iat]/pi4) ) )
     	           + 0.215;
 
-        std::cout << "=====" << "\n";
+        /* std::cout << "=====" << "\n";
         std::cout << "1/2R^2 = " << 1./(2.*FrRadOut2[iat]) << " FrSelfVol_corrB[iat]/pi4 " << (FrSelfVol_corrB[iat]/pi4) << std::endl;
         std::cout << "G0 = " << 1./FrRadOut[iat] - FrSelfVol[iat]/pi4 << std::endl;
         std::cout << "G1 = " << 3.0*sqrt( (1./(2.*FrRadOut[iat]*FrRadOut[iat])) - (FrSelfVol_corrB[iat]/pi4) ) << "\n";
         std::cout << "FrEffRad_corrB[" << iat << "] = " << FrEffRad[iat] << std::endl;
         std::cout << "1/R = " << 1./FrRadOut[iat] << "  FrSelfVol[iat]/pi4 = " << FrSelfVol[iat]/pi4 << std::endl;
         std::cout << "FrEffRad[" << iat << "] = " << 1. / ( 1./FrRadOut[iat] - FrSelfVol[iat]/pi4 ) << std::endl;
-        std::cout << "Lower bound (Born radius) = " << FrRadOut[iat] - 1.4 << std::endl;
+        std::cout << "Lower bound (Born radius) = " << FrRadOut[iat] - 1.4 << std::endl; */
 
     	  /*
     	    Dey exception handling :

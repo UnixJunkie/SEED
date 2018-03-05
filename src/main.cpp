@@ -4756,7 +4756,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                   accept_prob = exp(-1/(R_constant*sa_temp) * (new_mc_en - old_mc_en));
                   if (rnd_gen::get_uniform(0, 1) <= accept_prob){
 
-                    fprintf(FPaOut, "ACCEPT %d with fr_desolv jump to %f\n", cyc_out + 1, SFDeso_fr*FrDesoElec);
+                    /* fprintf(FPaOut, "ACCEPT %d with fr_desolv jump to %f\n", cyc_out + 1, SFDeso_fr*FrDesoElec); */
                     old_mc_en = new_mc_en;
                     copy_dmatrix(RoSFCo, old_mc_FrCoor, 1, FrAtNu, 1, 3);
                     /* Update energies */
@@ -4836,7 +4836,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
 
             }
 
-          } // end of: for (i1=1;i1<=SFWrNu;i1++)
+          } // end for (i1=1;i1<=SFWrNu;i1++)
 
           free_dmatrix(RoSFCo,1,FrAtNu,1,3);
           free_dmatrix(SDFrRe_ps,1,FrAtNu,1,ReAtNu);
@@ -4859,7 +4859,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           free_dvector(FrVdWR_p3,1,FrAtNu);
           free_ivector(FrAtoTyp_nu,1,FrAtNu);
 
-        } /* End of for (Ind_num_cn=1;Ind_num_cn<=FrCoNu;Ind_num_cn++) clangini*/
+        } /* End for (Ind_num_cn=1;Ind_num_cn<=FrCoNu;Ind_num_cn++) clangini*/
 
         /* times(&timevar); */
         /* time_12=timevar.tms_utime+timevar.tms_stime; */
