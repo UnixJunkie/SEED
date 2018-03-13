@@ -1,0 +1,23 @@
+# Specify the docker image to use (only used if using docker runners)
+# See: http://doc.gitlab.com/ee/ci/docker/using_docker_images.html
+image: ubuntu:16.04
+
+
+# Define commands that run before each job's script
+before_script:
+  - apt-get update
+
+#  - apt-get install -y automake
+#  - apt-get install -y gfortran
+#  - apt-get install -y libnetcdff6
+
+# Try to compile our sample hello world app
+compile:
+  script:
+  - pwd; cd ./src;
+  - make seed
+  # run it
+  artifacts:
+    paths:
+    - ./seed_4.0.0 seed.inp >& log
+
