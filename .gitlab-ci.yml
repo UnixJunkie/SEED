@@ -19,5 +19,5 @@ compile:
   # run it
   artifacts:
     paths:
-    - ./seed_4.0.0 seed.inp >& log
+    - bin/seed_4.0.0 seed.inp >& log
 
