@@ -1,12 +1,27 @@
-Date and time: Thu Jun 29 11:46:37 2017
+Date and time: Tue Mar 13 18:20:54 2018
 
-         ----------------------------------------------------------             
+    ---------------------------------------------------------------------       
                Solvation Energy for Exhaustive Docking (SEED)                   
           N. Majeux, M. Scarsi, F. Dey, C. Langini and A. Caflisch              
                         Department of Biochemistry                              
                            University of Zurich                                 
-                         Jun 19 2017  (SEED 4.0.0)                                       
-         ----------------------------------------------------------             
+                         Mar 13 2018  (SEED 4.0.0)                                       
+
+    Copyright (C) 2017, Caflisch Lab, University of Zurich               
+                                                                           
+    SEED is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    SEED is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    ---------------------------------------------------------------------       
 
 
 
@@ -1401,7 +1416,7 @@ Total number of generated fragments of type 1 (4g2f_lig.pdb) : 818712
 Fragments that passed the bump checking : 63
 Fragments that passed the vdW energy cutoff : 13
 Fragments that passed the total energy cutoff : 8
-CPU time in sec. for the seeding of 4g2f_lig.pdb : 1.31
+CPU time in sec. for the seeding of 4g2f_lig.pdb : 1.46
 
 Number of positions conserved for clustering : 8
 
@@ -1454,10 +1469,11 @@ Best postprocessed poses for fragment type 1 (4g2f_lig.pdb) :
 
      1     1        1     1       -15.72     -11.13         8.29       4.15       -14.41
 
-CPU time in sec. for the postprocessing (energy with slow method) : 0.30
+The poses 2, will not be written to the output files as they have a total slow energy > 0.000000
+CPU time in sec. for the postprocessing (energy with slow method) : 0.38
 CPU time in sec. for the sorting of the postprocessed positions : 0.00
 
-Total CPU time in sec. for the seeding of fragment 1 (4g2f_lig.pdb) : 1.62
+Total CPU time in sec. for the seeding of fragment 1 (4g2f_lig.pdb) : 1.84
 -------------------------------------------------
 
 Data for the fragment type 2 :
@@ -1480,7 +1496,7 @@ Total number of generated fragments of type 2 (4gk3_lig.pdb) : 858744
 Fragments that passed the bump checking : 142
 Fragments that passed the vdW energy cutoff : 54
 Fragments that passed the total energy cutoff : 33
-CPU time in sec. for the seeding of 4gk3_lig.pdb : 1.57
+CPU time in sec. for the seeding of 4gk3_lig.pdb : 1.78
 
 Number of positions conserved for clustering : 20
 
@@ -1571,10 +1587,11 @@ Best postprocessed poses for fragment type 2 (4gk3_lig.pdb) :
 
      1     1        2     1       -31.44      -2.84        13.72       9.64       -10.92
 
-CPU time in sec. for the postprocessing (energy with slow method) : 0.57
+The poses 18, 17, 6, 11, 1, 13, will not be written to the output files as they have a total slow energy > 0.000000
+CPU time in sec. for the postprocessing (energy with slow method) : 0.71
 CPU time in sec. for the sorting of the postprocessed positions : 0.00
 
-Total CPU time in sec. for the seeding of fragment 2 (4gk3_lig.pdb) : 2.14
+Total CPU time in sec. for the seeding of fragment 2 (4gk3_lig.pdb) : 2.50
 -------------------------------------------------
 
 Data for the fragment type 3 :
@@ -1599,7 +1616,7 @@ Total number of generated fragments of type 3 (4gk4_lig.pdb) : 903312
 Fragments that passed the bump checking : 88
 Fragments that passed the vdW energy cutoff : 24
 Fragments that passed the total energy cutoff : 10
-CPU time in sec. for the seeding of 4gk4_lig.pdb : 1.75
+CPU time in sec. for the seeding of 4gk4_lig.pdb : 2.61
 
 Number of positions conserved for clustering : 10
 
@@ -1664,10 +1681,11 @@ Best postprocessed poses for fragment type 3 (4gk4_lig.pdb) :
 
      1     1        1     1       -26.73      -6.82        13.79      15.16        -4.60
 
-CPU time in sec. for the postprocessing (energy with slow method) : 0.46
+The poses 2, 6, 10, 9, will not be written to the output files as they have a total slow energy > 0.000000
+CPU time in sec. for the postprocessing (energy with slow method) : 0.60
 CPU time in sec. for the sorting of the postprocessed positions : 0.00
 
-Total CPU time in sec. for the seeding of fragment 3 (4gk4_lig.pdb) : 2.20
+Total CPU time in sec. for the seeding of fragment 3 (4gk4_lig.pdb) : 3.21
 -------------------------------------------------
 
 Data for the fragment type 4 :
@@ -1692,7 +1710,7 @@ Total number of generated fragments of type 4 (4p4c_lig.pdb) : 913680
 Fragments that passed the bump checking : 256
 Fragments that passed the vdW energy cutoff : 110
 Fragments that passed the total energy cutoff : 86
-CPU time in sec. for the seeding of 4p4c_lig.pdb : 1.41
+CPU time in sec. for the seeding of 4p4c_lig.pdb : 1.86
 
 Number of positions conserved for clustering : 20
 
@@ -1781,10 +1799,10 @@ Best postprocessed poses for fragment type 4 (4p4c_lig.pdb) :
 
      1     1        3     1       -31.96      -2.03         9.10       4.34       -20.55
 
-CPU time in sec. for the postprocessing (energy with slow method) : 0.48
+CPU time in sec. for the postprocessing (energy with slow method) : 0.59
 CPU time in sec. for the sorting of the postprocessed positions : 0.00
 
-Total CPU time in sec. for the seeding of fragment 4 (4p4c_lig.pdb) : 1.89
+Total CPU time in sec. for the seeding of fragment 4 (4p4c_lig.pdb) : 2.45
 -------------------------------------------------
 
 Data for the fragment type 5 :
@@ -1807,7 +1825,7 @@ Total number of generated fragments of type 5 (xanthine_scaffold) : 645624
 Fragments that passed the bump checking : 3205
 Fragments that passed the vdW energy cutoff : 2077
 Fragments that passed the total energy cutoff : 1392
-CPU time in sec. for the seeding of xanthine_scaffold : 0.82
+CPU time in sec. for the seeding of xanthine_scaffold : 0.96
 
 Number of positions conserved for clustering : 20
 
@@ -1886,13 +1904,13 @@ Best postprocessed poses for fragment type 5 (xanthine_scaffold) :
 
      1     1     1159     1       -25.08      -3.84         7.19       9.85       -11.88
 
-CPU time in sec. for the postprocessing (energy with slow method) : 0.24
+CPU time in sec. for the postprocessing (energy with slow method) : 0.28
 CPU time in sec. for the sorting of the postprocessed positions : 0.00
 
-Total CPU time in sec. for the seeding of fragment 5 (xanthine_scaffold) : 1.07
+Total CPU time in sec. for the seeding of fragment 5 (xanthine_scaffold) : 1.25
 -------------------------------------------------
 
-CPU time in sec. for creating/reading Coulombic grid : 7.21
-CPU time in sec. for creating/reading van der Waals grid : 12.98
-CPU time in sec. up to the loop over the fragments : 24.55
-Total CPU time in sec. : 33.47
+CPU time in sec. for creating/reading Coulombic grid : 16.41
+CPU time in sec. for creating/reading van der Waals grid : 14.24
+CPU time in sec. up to the loop over the fragments : 36.43
+Total CPU time in sec. : 47.67

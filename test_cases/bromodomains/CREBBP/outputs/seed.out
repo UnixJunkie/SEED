@@ -1,12 +1,27 @@
-Date and time: Wed Jun 28 19:19:48 2017
+Date and time: Tue Mar 13 18:17:40 2018
 
-         ----------------------------------------------------------             
+    ---------------------------------------------------------------------       
                Solvation Energy for Exhaustive Docking (SEED)                   
           N. Majeux, M. Scarsi, F. Dey, C. Langini and A. Caflisch              
                         Department of Biochemistry                              
                            University of Zurich                                 
-                         Jun 19 2017  (SEED 4.0.0)                                       
-         ----------------------------------------------------------             
+                         Mar 13 2018  (SEED 4.0.0)                                       
+
+    Copyright (C) 2017, Caflisch Lab, University of Zurich               
+                                                                           
+    SEED is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    SEED is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    ---------------------------------------------------------------------       
 
 
 
@@ -1267,7 +1282,7 @@ Total number of generated fragments of type 1 (xr_5mgj_baz2) : 389232
 Fragments that passed the bump checking : 34169
 Fragments that passed the vdW energy cutoff : 2961
 Fragments that passed the total energy cutoff : 1628
-CPU time in sec. for the seeding of xr_5mgj_baz2 : 0.58
+CPU time in sec. for the seeding of xr_5mgj_baz2 : 0.67
 
 Number of positions conserved for clustering : 20
 
@@ -1348,10 +1363,10 @@ Best postprocessed poses for fragment type 1 (xr_5mgj_baz2) :
 
      1     1      104     1       -18.20      -8.13         7.84       6.62       -11.86
 
-CPU time in sec. for the postprocessing (energy with slow method) : 0.20
+CPU time in sec. for the postprocessing (energy with slow method) : 0.22
 CPU time in sec. for the sorting of the postprocessed positions : 0.00
 
-Total CPU time in sec. for the seeding of fragment 1 (xr_5mgj_baz2) : 0.78
+Total CPU time in sec. for the seeding of fragment 1 (xr_5mgj_baz2) : 0.89
 -------------------------------------------------
 
 Data for the fragment type 2 :
@@ -1373,7 +1388,7 @@ Total number of generated fragments of type 2 (xr_5mqe) : 276912
 Fragments that passed the bump checking : 44351
 Fragments that passed the vdW energy cutoff : 12737
 Fragments that passed the total energy cutoff : 7095
-CPU time in sec. for the seeding of xr_5mqe : 0.98
+CPU time in sec. for the seeding of xr_5mqe : 1.14
 
 Number of positions conserved for clustering : 20
 
@@ -1444,10 +1459,10 @@ Best postprocessed poses for fragment type 2 (xr_5mqe) :
 
      1     1      626     1       -17.85      -4.76         3.87       4.17       -14.57
 
-CPU time in sec. for the postprocessing (energy with slow method) : 0.12
+CPU time in sec. for the postprocessing (energy with slow method) : 0.13
 CPU time in sec. for the sorting of the postprocessed positions : 0.00
 
-Total CPU time in sec. for the seeding of fragment 2 (xr_5mqe) : 1.10
+Total CPU time in sec. for the seeding of fragment 2 (xr_5mqe) : 1.27
 -------------------------------------------------
 
 Data for the fragment type 3 :
@@ -1471,7 +1486,7 @@ Total number of generated fragments of type 3 (xr_5mpz) : 394128
 Fragments that passed the bump checking : 42589
 Fragments that passed the vdW energy cutoff : 8025
 Fragments that passed the total energy cutoff : 3467
-CPU time in sec. for the seeding of xr_5mpz : 0.84
+CPU time in sec. for the seeding of xr_5mpz : 0.98
 
 Number of positions conserved for clustering : 20
 
@@ -1534,10 +1549,10 @@ Best postprocessed poses for fragment type 3 (xr_5mpz) :
 
      1     1      340     1       -19.20      -4.77         4.52       2.83       -16.62
 
-CPU time in sec. for the postprocessing (energy with slow method) : 0.13
+CPU time in sec. for the postprocessing (energy with slow method) : 0.14
 CPU time in sec. for the sorting of the postprocessed positions : 0.00
 
-Total CPU time in sec. for the seeding of fragment 3 (xr_5mpz) : 0.98
+Total CPU time in sec. for the seeding of fragment 3 (xr_5mpz) : 1.13
 -------------------------------------------------
 
 Data for the fragment type 4 :
@@ -1559,7 +1574,7 @@ Total number of generated fragments of type 4 (xr_5mqg_a) : 328176
 Fragments that passed the bump checking : 39124
 Fragments that passed the vdW energy cutoff : 3565
 Fragments that passed the total energy cutoff : 2816
-CPU time in sec. for the seeding of xr_5mqg_a : 0.54
+CPU time in sec. for the seeding of xr_5mqg_a : 0.64
 
 Number of positions conserved for clustering : 20
 
@@ -1632,10 +1647,10 @@ Best postprocessed poses for fragment type 4 (xr_5mqg_a) :
 
      1     1      648     1       -13.84      -7.43         4.85       2.76       -13.66
 
-CPU time in sec. for the postprocessing (energy with slow method) : 0.17
+CPU time in sec. for the postprocessing (energy with slow method) : 0.18
 CPU time in sec. for the sorting of the postprocessed positions : 0.00
 
-Total CPU time in sec. for the seeding of fragment 4 (xr_5mqg_a) : 0.71
+Total CPU time in sec. for the seeding of fragment 4 (xr_5mqg_a) : 0.81
 -------------------------------------------------
 
 Data for the fragment type 5 :
@@ -1655,7 +1670,7 @@ Total number of generated fragments of type 5 (xr_5mqk) : 267264
 Fragments that passed the bump checking : 35502
 Fragments that passed the vdW energy cutoff : 3884
 Fragments that passed the total energy cutoff : 2947
-CPU time in sec. for the seeding of xr_5mqk : 0.49
+CPU time in sec. for the seeding of xr_5mqk : 0.57
 
 Number of positions conserved for clustering : 20
 
@@ -1720,10 +1735,10 @@ Best postprocessed poses for fragment type 5 (xr_5mqk) :
 
      1     1        2     1       -16.80      -6.17         5.58       3.52       -13.87
 
-CPU time in sec. for the postprocessing (energy with slow method) : 0.15
+CPU time in sec. for the postprocessing (energy with slow method) : 0.17
 CPU time in sec. for the sorting of the postprocessed positions : 0.00
 
-Total CPU time in sec. for the seeding of fragment 5 (xr_5mqk) : 0.65
+Total CPU time in sec. for the seeding of fragment 5 (xr_5mqk) : 0.75
 -------------------------------------------------
 
 Data for the fragment type 6 :
@@ -1747,7 +1762,7 @@ Total number of generated fragments of type 6 (5QR_5ep7) : 498240
 Fragments that passed the bump checking : 31673
 Fragments that passed the vdW energy cutoff : 1657
 Fragments that passed the total energy cutoff : 453
-CPU time in sec. for the seeding of 5QR_5ep7 : 0.73
+CPU time in sec. for the seeding of 5QR_5ep7 : 0.88
 
 Number of positions conserved for clustering : 20
 
@@ -1831,10 +1846,10 @@ Best postprocessed poses for fragment type 6 (5QR_5ep7) :
 
      1     1      103     1       -20.89     -17.10        10.57      11.59       -15.83
 
-CPU time in sec. for the postprocessing (energy with slow method) : 0.32
+CPU time in sec. for the postprocessing (energy with slow method) : 0.35
 CPU time in sec. for the sorting of the postprocessed positions : 0.00
 
-Total CPU time in sec. for the seeding of fragment 6 (5QR_5ep7) : 1.05
+Total CPU time in sec. for the seeding of fragment 6 (5QR_5ep7) : 1.23
 -------------------------------------------------
 
 Data for the fragment type 7 :
@@ -1856,7 +1871,7 @@ Total number of generated fragments of type 7 (acetofenone) : 354816
 Fragments that passed the bump checking : 36511
 Fragments that passed the vdW energy cutoff : 1842
 Fragments that passed the total energy cutoff : 1192
-CPU time in sec. for the seeding of acetofenone : 0.50
+CPU time in sec. for the seeding of acetofenone : 0.58
 
 Number of positions conserved for clustering : 20
 
@@ -1926,10 +1941,10 @@ Best postprocessed poses for fragment type 7 (acetofenone) :
 
      1     1       68     1       -16.46      -5.27         5.68       3.59       -12.46
 
-CPU time in sec. for the postprocessing (energy with slow method) : 0.19
+CPU time in sec. for the postprocessing (energy with slow method) : 0.21
 CPU time in sec. for the sorting of the postprocessed positions : 0.00
 
-Total CPU time in sec. for the seeding of fragment 7 (acetofenone) : 0.68
+Total CPU time in sec. for the seeding of fragment 7 (acetofenone) : 0.79
 -------------------------------------------------
 
 Data for the fragment type 8 :
@@ -1951,7 +1966,7 @@ Total number of generated fragments of type 8 (benzotriazolo) : 280512
 Fragments that passed the bump checking : 46840
 Fragments that passed the vdW energy cutoff : 14833
 Fragments that passed the total energy cutoff : 7583
-CPU time in sec. for the seeding of benzotriazolo : 1.14
+CPU time in sec. for the seeding of benzotriazolo : 1.33
 
 Number of positions conserved for clustering : 20
 
@@ -2012,10 +2027,10 @@ Best postprocessed poses for fragment type 8 (benzotriazolo) :
 
      1     1     1217     1       -16.33      -9.55         4.46       6.55       -14.87
 
-CPU time in sec. for the postprocessing (energy with slow method) : 0.11
+CPU time in sec. for the postprocessing (energy with slow method) : 0.12
 CPU time in sec. for the sorting of the postprocessed positions : 0.00
 
-Total CPU time in sec. for the seeding of fragment 8 (benzotriazolo) : 1.26
+Total CPU time in sec. for the seeding of fragment 8 (benzotriazolo) : 1.45
 -------------------------------------------------
 
 Data for the fragment type 9 :
@@ -2037,7 +2052,7 @@ Total number of generated fragments of type 9 (cinnoline) : 291312
 Fragments that passed the bump checking : 42381
 Fragments that passed the vdW energy cutoff : 6491
 Fragments that passed the total energy cutoff : 3471
-CPU time in sec. for the seeding of cinnoline : 0.68
+CPU time in sec. for the seeding of cinnoline : 0.79
 
 Number of positions conserved for clustering : 20
 
@@ -2105,13 +2120,13 @@ Best postprocessed poses for fragment type 9 (cinnoline) :
 
      1     1      536     1       -16.89      -8.10         4.39       5.83       -14.76
 
-CPU time in sec. for the postprocessing (energy with slow method) : 0.15
+CPU time in sec. for the postprocessing (energy with slow method) : 0.16
 CPU time in sec. for the sorting of the postprocessed positions : 0.00
 
-Total CPU time in sec. for the seeding of fragment 9 (cinnoline) : 0.83
+Total CPU time in sec. for the seeding of fragment 9 (cinnoline) : 0.94
 -------------------------------------------------
 
-CPU time in sec. for creating/reading Coulombic grid : 2.74
-CPU time in sec. for creating/reading van der Waals grid : 7.70
-CPU time in sec. up to the loop over the fragments : 12.64
-Total CPU time in sec. : 20.67
+CPU time in sec. for creating/reading Coulombic grid : 6.09
+CPU time in sec. for creating/reading van der Waals grid : 8.14
+CPU time in sec. up to the loop over the fragments : 16.71
+Total CPU time in sec. : 25.98

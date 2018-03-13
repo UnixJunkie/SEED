@@ -19,5 +19,10 @@ compile:
   # run it
   artifacts:
     paths:
-    - bin/seed_4.0.0 seed.inp >& log
+    - cd test_cases/bromodomains/BRD4
+    - ../../../bin/seed_4 seed.inp >& log
+    - cd test_cases/bromodomains/CREBBP
+    - ../../../bin/seed_4 seed.inp >& log
+    - cd test_cases/kinase/epha3
+    - ../../../bin/seed_4 seed.inp >& log
 

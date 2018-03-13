@@ -1,12 +1,27 @@
-Date and time: Thu Jun 29 09:19:38 2017
+Date and time: Tue Mar 13 17:11:42 2018
 
-         ----------------------------------------------------------             
+    ---------------------------------------------------------------------       
                Solvation Energy for Exhaustive Docking (SEED)                   
           N. Majeux, M. Scarsi, F. Dey, C. Langini and A. Caflisch              
                         Department of Biochemistry                              
                            University of Zurich                                 
-                         Jun 19 2017  (SEED 4.0.0)                                       
-         ----------------------------------------------------------             
+                         Mar 13 2018  (SEED 4.0.0)                                       
+
+    Copyright (C) 2017, Caflisch Lab, University of Zurich               
+                                                                           
+    SEED is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    SEED is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    ---------------------------------------------------------------------       
 
 
 
@@ -1261,7 +1276,7 @@ Total number of generated fragments of type 1 (4pci_ligand) : 1604520
 Fragments that passed the bump checking : 167623
 Fragments that passed the vdW energy cutoff : 1988
 Fragments that passed the total energy cutoff : 1937
-CPU time in sec. for the seeding of 4pci_ligand : 2.15
+CPU time in sec. for the seeding of 4pci_ligand : 2.52
 
 Number of positions conserved for clustering : 20
 
@@ -1331,10 +1346,10 @@ Best postprocessed poses for fragment type 1 (4pci_ligand) :
 
      1     1      111     1       -25.86      -9.58         5.16       4.31       -25.97
 
-CPU time in sec. for the postprocessing (energy with slow method) : 0.29
+CPU time in sec. for the postprocessing (energy with slow method) : 0.32
 CPU time in sec. for the sorting of the postprocessed positions : 0.00
 
-Total CPU time in sec. for the seeding of fragment 1 (4pci_ligand) : 2.43
+Total CPU time in sec. for the seeding of fragment 1 (4pci_ligand) : 2.84
 -------------------------------------------------
 
 Data for the fragment type 2 :
@@ -1355,7 +1370,7 @@ Total number of generated fragments of type 2 (4pci_ligand_inverted) : 1587600
 Fragments that passed the bump checking : 172048
 Fragments that passed the vdW energy cutoff : 2274
 Fragments that passed the total energy cutoff : 2323
-CPU time in sec. for the seeding of 4pci_ligand_inverted : 2.26
+CPU time in sec. for the seeding of 4pci_ligand_inverted : 2.53
 
 Number of positions conserved for clustering : 20
 
@@ -1435,13 +1450,13 @@ Best postprocessed poses for fragment type 2 (4pci_ligand_inverted) :
 
      1     1      117     1       -16.46      -0.91         2.94       0.43       -14.01
 
-CPU time in sec. for the postprocessing (energy with slow method) : 0.32
+CPU time in sec. for the postprocessing (energy with slow method) : 0.36
 CPU time in sec. for the sorting of the postprocessed positions : 0.00
 
-Total CPU time in sec. for the seeding of fragment 2 (4pci_ligand_inverted) : 2.57
+Total CPU time in sec. for the seeding of fragment 2 (4pci_ligand_inverted) : 2.88
 -------------------------------------------------
 
-CPU time in sec. for creating/reading Coulombic grid : 3.88
-CPU time in sec. for creating/reading van der Waals grid : 9.92
-CPU time in sec. up to the loop over the fragments : 16.34
-Total CPU time in sec. : 21.35
+CPU time in sec. for creating/reading Coulombic grid : 8.63
+CPU time in sec. for creating/reading van der Waals grid : 9.99
+CPU time in sec. up to the loop over the fragments : 21.50
+Total CPU time in sec. : 27.22
