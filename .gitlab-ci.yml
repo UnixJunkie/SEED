@@ -2,17 +2,6 @@
 # See: http://doc.gitlab.com/ee/ci/docker/using_docker_images.html
 image: ubuntu:16.04
 
-
-# Define commands that run before each job's script
-# before_script:
-#   - apt-get update
-#   - apt-get install -y make
-#   - apt-get install -y build-essential
-#   - apt-get install -y automake
-#  - apt-get install -y automake
-#  - apt-get install -y gfortran
-#  - apt-get install -y libnetcdff6
-
 stages:
   - build
   - test
@@ -32,7 +21,7 @@ build_job:
     - bin/
     expire_in: 20 minutes
 
-test_job:
+test_cases:
   stage: test
   script:
     - cd test_cases/bromodomains/BRD4
@@ -41,9 +30,14 @@ test_job:
     - cd test_cases/bromodomains/CREBBP
     - ../../../bin/seed_4 seed.inp >& log
     - cd ../../..
-# - cd test_cases/kinase/epha3
-# - ../../../bin/seed_4 seed.inp >& log
+    - cd test_cases/kinase/epha3
+    - ../../../bin/seed_4 seed.inp >& log
+    - cd ../../..
   artifacts:
     paths:
     - test_cases/bromodomains/BRD4/log
     - test_cases/bromodomains/BRD4/outputs
+    - test_cases/bromodomains/CREBBP/log
+    - test_cases/bromodomains/CREBBP/outputs
+    - test_cases/kinase/epha3/log
+    - test_cases/kinase/epha3/outputs
