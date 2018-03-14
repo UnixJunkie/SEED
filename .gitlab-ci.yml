@@ -13,19 +13,24 @@ before_script:
 #  - apt-get install -y gfortran
 #  - apt-get install -y libnetcdff6
 
-# Try to compile our sample hello world app
-compile:
+stages:
+  - build
+  - test
+
+build_job:
+  stage: build
   script:
   - pwd; cd ./src;
   - make seed
-  # run it
-  artifacts:
-    paths:
-    - cd ..
-    - cd test_cases/bromodomains/BRD4
-    - ../../../bin/seed_4 seed.inp >& log
-    - cd test_cases/bromodomains/CREBBP
-    - ../../../bin/seed_4 seed.inp >& log
-    - cd test_cases/kinase/epha3
-    - ../../../bin/seed_4 seed.inp >& log
+
+test_job:
+  stage: test
+  script:
+  - cd ..
+  - cd test_cases/bromodomains/BRD4
+  - ../../../bin/seed_4 seed.inp >& log
+  - cd test_cases/bromodomains/CREBBP
+  - ../../../bin/seed_4 seed.inp >& log
+  - cd test_cases/kinase/epha3
+  - ../../../bin/seed_4 seed.inp >& log
 
