@@ -34,6 +34,7 @@ ECHO = @echo
 seed: $(TARGET_EXEC)
 
 $(TARGET_EXEC): $(OBJS)
+	$(MKDIR_P) $(BIN_DIR)
 	$(CXX) $(OBJS) $(LDFLAGS) -o $@
 
 $(BUILD_DIR)/%.o: %.cpp
