@@ -35,9 +35,15 @@ build_job:
 test_job:
   stage: test
   script:
-  - cd test_cases/bromodomains/BRD4
-  - ../../../bin/seed_4 seed.inp >& log
-  - cd test_cases/bromodomains/CREBBP
-  - ../../../bin/seed_4 seed.inp >& log
-  - cd test_cases/kinase/epha3
-  - ../../../bin/seed_4 seed.inp >& log
+    - cd test_cases/bromodomains/BRD4
+    - ../../../bin/seed_4 seed.inp >& log
+    - cd ../../..
+    - cd test_cases/bromodomains/CREBBP
+    - ../../../bin/seed_4 seed.inp >& log
+    - cd ../../..
+# - cd test_cases/kinase/epha3
+# - ../../../bin/seed_4 seed.inp >& log
+  artifacts:
+    paths:
+    - test_cases/bromodomains/BRD4/log
+    - test_cases/bromodomains/BRD4/outputs
