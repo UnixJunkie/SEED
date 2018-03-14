@@ -26,7 +26,6 @@ build_job:
 test_job:
   stage: test
   script:
-  - cd ..
   - cd test_cases/bromodomains/BRD4
   - ../../../bin/seed_4 seed.inp >& log
   - cd test_cases/bromodomains/CREBBP
