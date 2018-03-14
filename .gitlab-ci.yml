@@ -4,11 +4,11 @@ image: ubuntu:16.04
 
 
 # Define commands that run before each job's script
-before_script:
-  - apt-get update
-  - apt-get install -y make
-  - apt-get install -y build-essential
-  - apt-get install -y automake
+# before_script:
+#   - apt-get update
+#   - apt-get install -y make
+#   - apt-get install -y build-essential
+#   - apt-get install -y automake
 #  - apt-get install -y automake
 #  - apt-get install -y gfortran
 #  - apt-get install -y libnetcdff6
@@ -19,9 +19,18 @@ stages:
 
 build_job:
   stage: build
+  before_script:
+    - apt-get update
+    - apt-get install -y make
+    - apt-get install -y build-essential
+    - apt-get install -y automake
   script:
   - pwd; cd ./src;
   - make seed
+  artifacts:
+    paths:
+    - bin/
+    expire_in: 20 minutes
 
 test_job:
   stage: test
@@ -32,4 +41,3 @@ test_job:
   - ../../../bin/seed_4 seed.inp >& log
   - cd test_cases/kinase/epha3
   - ../../../bin/seed_4 seed.inp >& log
-
