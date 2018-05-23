@@ -7,7 +7,9 @@ BIN_DIR = ../bin
 BUILD_DIR = build
 
 BUILD_DIR_MPI = build/mpi
+BUILD_DIR_DEBUG = build/dbg
 TARGET_EXEC = $(BIN_DIR)/seed_4
+TARGET_EXEC_DEBUG = $(BIN_DIR)/seed_4_debug
 TARGET_EXEC_MPI = $(BIN_DIR)/seed_4_mpi
 
 # Flags:
@@ -22,6 +24,8 @@ MPICXX = mpic++
 MPICXXFLAGS = -std=c++11 -O3 -pedantic -Wall -march=native
 MPILDFLAGS = -lm -O3
 
+DBGCXXFLAGS = -g3 -std=c++11 -O3 -pedantic -Wall -march=native
+
 include Makefile.local
 
 DEP_FLAGS = $(INC_FLAGS) -MMD -MP
@@ -30,8 +34,10 @@ PRESRCLIST = align_frag assire checkresn cofren cogrep conubu convert2pp count_h
 SRCLIST = $(PRESRCLIST:%=%.cpp)
 SRCS = $(SRCLIST)
 OBJS = $(SRCLIST:%.cpp=$(BUILD_DIR)/%.o)
+OBJS_DEBUG = $(SRCLIST:%.cpp=$(BUILD_DIR_DEBUG)/%.o)
 OBJS_MPI = $(SRCLIST:%.cpp=$(BUILD_DIR_MPI)/%.o)
 DEPS = $(OBJS:%.o=%.d)
+DEPS_DEBUG = $(OBJS_DEBUG:%.o=%.d)
 DEPS_MPI = $(OBJS_MPI:%.o=%.d)
 
 # Commands:
@@ -44,11 +50,17 @@ ECHO = @echo
 .PHONY: seed
 seed: $(TARGET_EXEC)
 
+.PHONY: seed_debug
+seed_debug: $(TARGET_EXEC_DEBUG)
+
 .PHONY: seed_mpi
 seed_mpi: $(TARGET_EXEC_MPI)
 
 $(TARGET_EXEC): $(OBJS)
 	$(CXX) $(OBJS) $(LDFLAGS) -o $@
+
+$(TARGET_EXEC_DEBUG): $(OBJS_DEBUG)
+	$(CXX) $(OBJS_DEBUG) $(LDFLAGS) -o $@
 
 $(TARGET_EXEC_MPI): $(OBJS_MPI)
 	$(MPICXX) $(OBJS_MPI) $(MPILDFLAGS) -o $@
@@ -57,16 +69,23 @@ $(TARGET_EXEC_MPI): $(OBJS_MPI)
 $(BUILD_DIR)/%.o: %.cpp | $(BUILD_DIR)
 	$(CXX) -c $(CXXFLAGS) $(DEP_FLAGS) $< -o $@
 
+$(BUILD_DIR_DEBUG)/%.o: %.cpp | $(BUILD_DIR_DEBUG)
+	$(CXX) -c $(DBGCXXFLAGS) $(DEP_FLAGS) $< -o $@
+
 $(BUILD_DIR_MPI)/%.o: %.cpp | $(BUILD_DIR_MPI)
 	$(MPICXX) -c $(MPICXXFLAGS) -DENABLE_MPI $(DEP_FLAGS) $< -o $@
 
 $(BUILD_DIR):
 	$(MKDIR_P) $@
 
+$(BUILD_DIR_DEBUG):
+	$(MKDIR_P) $@
+
 $(BUILD_DIR_MPI): $(BUILD_DIR)
 	$(MKDIR_P) $@
 
 -include $(DEPS)
+-include $(DEPS_DEBUG)
 -include $(DEPS_MPI)
 
 .PHONY: print
@@ -81,12 +100,16 @@ print:
 objclean:
 	for i in $(OBJS_MPI); do (if [ -e $${i} ]; then $(RM) $${i}; fi;) done
 	for i in $(DEPS_MPI); do (if [ -e $${i} ]; then $(RM) $${i}; fi;) done
+	for i in $(OBJS_DEBUG); do (if [ -e $${i} ]; then $(RM) $${i}; fi;) done
+	for i in $(DEPS_DEBUG); do (if [ -e $${i} ]; then $(RM) $${i}; fi;) done
 	for i in $(OBJS); do (if [ -e $${i} ]; then $(RM) $${i}; fi;) done
 	for i in $(DEPS); do (if [ -e $${i} ]; then $(RM) $${i}; fi;) done
 	if [ -d $(BUILD_DIR_MPI) ]; then $(RMDIR) $(BUILD_DIR_MPI); fi
+	if [ -d $(BUILD_DIR_DEBUG) ]; then $(RMDIR) $(BUILD_DIR_DEBUG); fi
 	if [ -d $(BUILD_DIR) ]; then $(RMDIR) $(BUILD_DIR); fi
 
 .PHONY: clean
 clean: objclean
 	if [ -e $(TARGET_EXEC) ]; then $(RM) $(TARGET_EXEC); fi
+	if [ -e $(TARGET_EXEC_DEBUG) ]; then $(RM) $(TARGET_EXEC_DEBUG); fi
 	if [ -e $(TARGET_EXEC_MPI) ]; then $(RM) $(TARGET_EXEC_MPI); fi
