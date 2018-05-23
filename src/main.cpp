@@ -4614,7 +4614,6 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
         /* Compute NuSdClKe and NuPosSdCl */
         NuSdClKe=0;
         NuPosSdCl=0;
-        std::cout << "SFWrNu = " << SFWrNu << std::endl; //clangini
         for (j=1;j<=SFWrNu;j++) {
           //std::cout << "j = " << j << " ClusLi_sd_pproc[j] = " <<ClusLi_sd_pproc[j]<< std::endl; //clangini
           if (ClusLi_sd_pproc[j]==2) { // if it is a first cluster representative
@@ -4624,8 +4623,6 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           if (ClusLi_sd_pproc[j]==1) // if it is a second cluster representative (reduced number)
             NuPosSdCl=NuPosSdCl+1;
         }
-        std::cout << "NuSdClKe = " << NuSdClKe << std::endl; //clangini
-        std::cout << "NuPosSdCl = " << NuPosSdCl << std::endl; //clangini
 
         /* Prepare lists of kept positions in second clusters for sorting
            IntVar1 numbering on kept positions
