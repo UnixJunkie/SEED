@@ -243,6 +243,7 @@ void ReReFi_mol2(char *RecFil,int *ReAtNu,int *ReBdNu,int *ReReNu,
   *ReReNu = ReReNu_count;
   cout << "\n\tNumber of Residues in receptor: " << (*ReReNu) << endl;
 
+
   while (!inStream.eof() && StrLin != "@<TRIPOS>BOND"){
     std::getline(inStream,StrLin);
     boost::trim(StrLin);
@@ -251,6 +252,7 @@ void ReReFi_mol2(char *RecFil,int *ReAtNu,int *ReBdNu,int *ReReNu,
     std::cerr << "No Bonds in receptor found.\nProgram exits!\n" << std::endl;
     exit(13);
   }
+
   // Read bond section
   *ReBdAr=imatrix(1,*ReBdNu,1,2);
   for (i = 1; i <= *ReBdNu; i++) {
@@ -262,7 +264,6 @@ void ReReFi_mol2(char *RecFil,int *ReAtNu,int *ReBdNu,int *ReReNu,
     ++itItem;
     (*ReBdAr)[i][2] = boost::lexical_cast<int>(*itItem);
   }
-  //cout << "Receptor bonds read" << endl;
 
   // Move to ALT_TYPE section
   while (!inStream.eof() && StrLin != "@<TRIPOS>ALT_TYPE"){
