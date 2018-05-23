@@ -58,6 +58,8 @@
  */
 #define _ALLOCSIZE 100000
 
+using namespace std;
+
 int main(int argc,char *argv[])
   /* Main part of the program :
      FPaOut  pointer for the output file
@@ -4379,6 +4381,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
       /* (time_10-time_9)*0.01); */
       fclose(FPaOut);
 
+
       if (Solv_typ[0]!='p')     /* Modification NM 26-05-2004 */ /* This has to be modified. clangini */
       {
         /*for (i1=1;i1<=((SFWrNu<FiNuMa)?SFWrNu:FiNuMa);i1++) {
@@ -4611,7 +4614,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
         /* Compute NuSdClKe and NuPosSdCl */
         NuSdClKe=0;
         NuPosSdCl=0;
-        //std::cout << "SFWrNu = " << SFWrNu << std::endl; //clangini
+        std::cout << "SFWrNu = " << SFWrNu << std::endl; //clangini
         for (j=1;j<=SFWrNu;j++) {
           //std::cout << "j = " << j << " ClusLi_sd_pproc[j] = " <<ClusLi_sd_pproc[j]<< std::endl; //clangini
           if (ClusLi_sd_pproc[j]==2) { // if it is a first cluster representative
@@ -4621,6 +4624,8 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           if (ClusLi_sd_pproc[j]==1) // if it is a second cluster representative (reduced number)
             NuPosSdCl=NuPosSdCl+1;
         }
+        std::cout << "NuSdClKe = " << NuSdClKe << std::endl; //clangini
+        std::cout << "NuPosSdCl = " << NuPosSdCl << std::endl; //clangini
 
         /* Prepare lists of kept positions in second clusters for sorting
            IntVar1 numbering on kept positions
@@ -4632,6 +4637,8 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
         IntVar1=0;
         IntVar2=0;
         for (j=1;j<=SFWrNu;j++) {
+          // cout << "j= " << j << endl;
+          // cout << "ClusLi_sd_pproc[j] " << ClusLi_sd_pproc[j] << endl;
           if (ClusLi_sd_pproc[j]==2) { // if representative of first clustering
                                        //(and hence of second as well) clangini
             IntVar1=IntVar1+1;
@@ -4667,6 +4674,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
         // Sort is sorting all the kept positions, here we split the ordered poses
         // into the clusters they belong to. clangini
         CluIndex_sort=ivector(1,NuSdClKe);// clangini
+
         for (j=1;j<= NuSdClKe;j++){
           CluIndex_sort[j] = j; // clangini
         }
@@ -4807,7 +4815,6 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           fprintf(FPaOut, "will not be written to the output files as they have a total slow energy > %lf\n", FrMaEn);
         }
         PosToRem.clear();
-
 
         /* Append lines to summary table. START clangini */
         /* Calculate HAC (Heavy Atom Count) and MW (Molecular Weight)*/
@@ -4953,28 +4960,32 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
         }
         // clangini 18/01/17 END
 
-        ReprSdClAr=ivector(1,NuSdClKe);
-        IntVar1=1;
-        ReprSdClAr[IntVar1]=FrPosAr_sort[1];
-        for (j=1;j<=NuPosSdCl;j++) {
-          if (SdClusAr_sort[j]!=IntVar1) {
-            IntVar1=SdClusAr_sort[j];
-            ReprSdClAr[IntVar1]=FrPosAr_sort[j];
-          }
-        }
-        if (write_pproc_opt[0]=='y'&& write_pproc_chm_opt[0]=='y') {
-
-          /*write_chm_clus_pprocr(CurFra,NuSdClKe,FrAtNu,FrAtTy,FrCoPo,ResN_fr,
-              FrFiNa_out,ReprSdClAr); no longer used clangini*/ /*Needs to be removed clangini*/
-        }
-        if (gc_opt[0]=='y')
-        {
-          /*GeomCenter_FFLD(CurFra,FrFiNa_out,FrAtNu,FrAtEl_nu,NuSdClKe,ReprSdClAr,
-              To_s_ro,FrCoPo,ResN_fr,FragNa,gc_reprke,gc_cutclus,
-              gc_endifclus,gc_weighneg,gc_weighpos,gc_maxwrite);
-              Do we want to keep support for FFLD? clangini */
-        }
-        free_ivector(ReprSdClAr,1,NuSdClKe);
+        // // clangini 23/05/2018 START
+        // // The following section of code appears to be no longer used -> commented
+        // ReprSdClAr=ivector(1,NuSdClKe);
+        // IntVar1=1;
+        // ReprSdClAr[IntVar1]=FrPosAr_sort[1];
+        //
+        // for (j=1;j<=NuPosSdCl;j++) {
+        //   if (SdClusAr_sort[j]!=IntVar1) {
+        //     IntVar1=SdClusAr_sort[j];
+        //     ReprSdClAr[IntVar1]=FrPosAr_sort[j];
+        //   }
+        // }
+        // if (write_pproc_opt[0]=='y'&& write_pproc_chm_opt[0]=='y') {
+        //
+        //   /*write_chm_clus_pprocr(CurFra,NuSdClKe,FrAtNu,FrAtTy,FrCoPo,ResN_fr,
+        //       FrFiNa_out,ReprSdClAr); no longer used clangini*/ /*Needs to be removed clangini*/
+        // }
+        // if (gc_opt[0]=='y')
+        // {
+        //   /*GeomCenter_FFLD(CurFra,FrFiNa_out,FrAtNu,FrAtEl_nu,NuSdClKe,ReprSdClAr,
+        //       To_s_ro,FrCoPo,ResN_fr,FragNa,gc_reprke,gc_cutclus,
+        //       gc_endifclus,gc_weighneg,gc_weighpos,gc_maxwrite);
+        //       Do we want to keep support for FFLD? clangini */
+        // }
+        // free_ivector(ReprSdClAr,1,NuSdClKe);
+        // // clangini 23/05/2018 END of commented part
 
 
         /* times(&timevar); */
