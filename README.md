@@ -29,6 +29,10 @@ Kindly reference the original paper if you use SEED:
 molecular fragments on protein binding sites with electrostatic solvation.
 Proteins: Structure, Function and Genetics, 37:88-105, 1999.
 
+Review of applications of SEED 1999-2018:
+ * J.-R. Marchand, and A. Caflisch. In silico fragment-based drug design with SEED.
+European Journal of Medicinal Chemistry, 156:907-917, 2018.
+
 The description of the fast energy evaluation is in the second SEED paper:
  * N. Majeux, M. Scarsi, and A. Caflisch. Efficient electrostatic solvation model for protein-
 fragment docking.
