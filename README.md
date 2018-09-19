@@ -29,7 +29,7 @@ Kindly reference the original paper if you use SEED:
 molecular fragments on protein binding sites with electrostatic solvation.
 Proteins: Structure, Function and Genetics, 37:88-105, 1999.
 
-Review of applications of SEED 1999-2018:
+Review of the applications of SEED in the period 1999-2018, includes a discussion on its strenghts/weaknesses in light of our experience:
  * J.-R. Marchand, and A. Caflisch. In silico fragment-based drug design with SEED.
 European Journal of Medicinal Chemistry, 156:907-917, 2018.
 
