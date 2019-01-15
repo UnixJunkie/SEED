@@ -37,7 +37,7 @@ does not fit into the binding site.
     }, false );
     // Load PDB entry 1CRN
     //stage.loadFile( "rcsb://1crn", { defaultRepresentation: true } );
-    stage.loadFile("../_static/5wbj.pdb").then(function (o) {
+    stage.loadFile("../_static/brd4_4pci_seed.mol2").then(function (o) {
       // add a "cartoon" representation to the structure component
       o.addRepresentation("cartoon", { color: "atomindex" });
       // provide a "good" view of the structure
