@@ -43,6 +43,10 @@ does not fit into the binding site.
       // provide a "good" view of the structure
       o.autoView();
     });
+    stage.loadFile("../_static/4pci_brd4_ligand_and_mirror_image_best.mol2").then(function (o) {
+      // add a "cartoon" representation to the structure component
+      o.addRepresentation("ball+sticks", { color: "element" });
+    });
   });
   </script>
   
