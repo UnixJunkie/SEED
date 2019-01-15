@@ -50,7 +50,7 @@ does not fit into the binding site.
   });
   </script>
   
-  <div id="viewport" style="width:400px; height:300px;"></div>
+  <div id="viewport" style="width:600px; height:400px;"></div>
 
 Note also the gap in energy between the top pose of the correct enantiomer and all other poses.
 

@@ -86,48 +86,134 @@ Here we define all the parameters of the ``seed.par`` file.
   write (w) or read (r) receptor desolvation grid / grid filename 
 
 **p10**
+  | Bump checking: used only for slow energy evaluation (three values)
+  | n x atoms = maximum tolerated bumps / 
+  | scaling factor for interatomic distance /
+  | severe overlap factor (beta factor in PROTEINS paper)
 
 **p11**
+  van der Waals energy cutoff (kcal/mol): 
+  this is used as bump checking for the fast energy model.
 
 **p12**
+  Angle (deg) and number of points on the sphere around the ideal 
+  hydrogen bonding vector direction.
 
 **p13**
+  Number of fragment rotations around each axis.
 
 **p14**
+  Settings for the reduction of the seeding vectors (four values).
+  
+  * angle_rmin  if distance <= (multipl_fact_rmin\*minDist)
+  * angle_rmax  if distance >= (multipl_fact_rmax\*maxDist)
+  * linear dependence (range between angle_rmin and angle_rmax)
+    for other distances
 
 **p15**
+  Van der Waals probe radius for removal of the receptor polar vectors.
 
 **p16**
+  | Settings for the Coulombic term in the fast energy model (three values).
+  | ``1`` = distance dependent dielectric / grid margin / grid spacing
 
 **p17**
+  | Settings for the van der Waals term in the fast energy model (two values). 
+  | grid margin / grid spacing
 
 **p18**
+  | Settings for the van der Waals accurate energy model (two values).
+  | nonbonding cutoff / grid spacing 
+  
+  | Note that the Coulombic cutoff for formal charges is automatically
+    set to 1.3 x van_der_Waals_cutoff
 
 **p19**
+  | Multiplicative factor (k) for apolar docking to skip evaluation of 
+    electrostatics. The van der Waals energy cutoff is:
+  |  k x Number of fragment atoms, including hydrogen atoms
 
 **p20**
+  | Settings for the solvation grid (two values): 
+  | grid margin / grid spacing
 
 **p21**
+  | Settings for the solvation term evaluation (three values):
+  | water radius for solvation / number of points per sphere to generate SAS / 
+    solvent dielectric constant
 
 **p22**
+  | Setting for the Hydrophobicity maps (five values): 
+  | point densities (A^-2) on the SAS for apolar vectors on the receptor / on the fragment /
+    probe radius to generate SAS for apolar vectors /
+    scaling factor for desolvation and / van der Waals interactions
 
 **p23**
+  Scaling factors for fast and also accurate energy evaluation (four values):
+  van der Waals / electrostatic interaction / receptor desolvation /
+  fragment desolvation
+
+*********************
+Clustering parameters
+*********************
+
+The clustering with GSEAL proceeds in two steps: the
+first clustering yields large clusters which contain almost 
+overlapping as well as more distant fragments; the second
+clustering is done on each cluster found in the first clustering
+to eliminate fragments which are very close in space.
 
 **p24**
+  | Non-default similarity weight factors (150 atom elements) for GSEAL: 
+  | First line: 0 or number of non-default elements
+  | Following lines: list (first element number / second element number / value )
 
 **p25**
+  | Parameters for first clustering (overall clustering):
+  | GSEAL similarity exponential factor / cutoff factor
 
 **p26**
+  | Parameters for second clustering (to discard redundant positions):
+  | GSEAL similarity exponential factor / cutoff factor
 
 **p27**
+  Maximal number of poses to be clustered
 
 **p28**
+  | Setting for the amount of information to be written to the output ``seed.out``:
+  | Maximum number of lines to be written in the output file for the sorted 
+    energies and the two clustering procedures / 
+  | print level (``0`` = lean, ``1`` = adds sorting before postprocessing, 
+    ``2`` = adds 2nd clustering).
+  
+**********************
+Force field parameters
+**********************
 
 **p29**
+  | Van der Waals radius and energy minimum (absolute value).
+  | First line: number of records
+  | Following lines: each record contains five values:
+  | sequential index / atom type / element number / van der Waals radius / 
+    van der Waals energy minimum
 
 **p30**
+  | Hydrogen bond distances between donor and acceptor.
+  | First  line: Default distance for all atom and element types.
+  | First block:
+  
+  * First line: number of records
+  * Following lines: element number i / element number j / donor-acceptor distance 
+  
+  | Second block:
+  
+  * First line: number of records
+  * Following lines: atom type i / atom type j / donor-acceptor distance
 
 **p31**
+  | List of relative atomic weights.
+  | First line: number of elements (without element 0)
+  | element name / element number / atomic weight
 
 .. _par_generator:
 
