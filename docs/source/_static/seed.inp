@@ -1,14 +1,12 @@
 #           Parameter filename
-../../seed4_cgenff4.par
+XXXX
 #           Receptor coordinates (in mol2 format) filename
-brd4_4pci_seed.mol2
+XXXX
 #           Binding site residue list
 #           First line:  number of residues
-4
-41 # Pro of WPF triad
-99 # conserved Asn
-127 # conserved water
-130 # conserved water
+XXXX
+XXXX
+XXXX
 #           Modification of February 2002:
 #           List of points (e.g. ligand heavy atoms of a known ligand-receptor 
 #           complex structure) in the binding site used to select polar and apolar 
@@ -30,5 +28,5 @@ n
 #           apolar docking, polar docking, or both (a,p,b) /
 #           energy cutoff in kcal/mol / 2nd clustering cutoff in kcal/mol
 d
-4pci_brd4_ligand_and_mirror_image.mol2        b     0.0   0.0
+XXXX       b     0.0   0.0
 end

@@ -220,7 +220,7 @@ Force field parameters
 Parameter File Generator
 ========================
 
-The parameter file generator helps you in preparing the input parameter files 
+The parameter file generator helps you preparing the input parameter files 
 for a SEED run (``seed.inp`` and ``seed.par``).
 You can load a template with predefined default values, edit the user-specific 
 information and save it.
@@ -270,8 +270,13 @@ information and save it.
 
 .. raw:: html
 
-  <button id="btn-inp">Load seed.inp</button>
-  <button id="btn-par">Load seed.par</button>
+  <button id="btn-inp">Load default seed.inp</button>
+  <button id="btn-par">Load default seed.par</button>
+  
+  <div>
+    <p>Here you can edit the file with user-specific information. 
+    Fields you necessarily have to edit are marked by XXXX</p>
+  </div>
   
   <textarea id="input-area" cols="100" style="resize:none" rows="20" placeholder="Enter your parameters">
   </textarea>
