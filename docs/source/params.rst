@@ -8,9 +8,7 @@ Parameter File
 Parameter File Generator
 ========================
 
-Here the you can directly edit your own parameter file.
-
-
+Here you can directly edit your own parameter file and download it.
 
   .. <script>
   ..   //var filename = "./_static/seed.inp";
@@ -57,14 +55,30 @@ Here the you can directly edit your own parameter file.
 
 .. raw:: html
 
-  <textarea id="new-projects">
+  <textarea id="input-area" cols="100">
 
   </textarea>
   <!-- change div to textarea if you want to load your file in textarea-->
   <script type="text/javascript">
   jQuery(document).ready(function(){
-    jQuery( "#new-projects" ).load("_static/seed.inp")
+    jQuery( "#input-area" ).load("_static/seed.inp")
   });
   </script>
-
-elabanda
+  
+.. raw:: html 
+  
+  <div>
+    <button onclick="saveTextAsFile()">Save input file</button>
+  </div>
+  
+  <script>
+  function saveTextAsFile() {
+    var text = $("#input-area").val();
+    var filename = "myseed" //$("#input-fileName").val()
+    var blob = new Blob([text], {type: "text/plain;charset=utf-8"});
+    saveAs(blob, filename+".inp");
+  }
+  </script>
+  
+  
+  
