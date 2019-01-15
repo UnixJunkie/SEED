@@ -220,7 +220,10 @@ Force field parameters
 Parameter File Generator
 ========================
 
-Here you can directly edit a default input file and download it.
+The parameter file generator helps you in preparing the input parameter files 
+for a SEED run (``seed.inp`` and ``seed.par``).
+You can load a template with predefined default values, edit the user-specific 
+information and save it.
 
   .. <script>
   ..   //var filename = "./_static/seed.inp";
@@ -267,19 +270,16 @@ Here you can directly edit a default input file and download it.
 
 .. raw:: html
 
-  <textarea id="input-area" cols="100" style="resize:none" rows="20">
-
+  <button id="btn-inp">Load seed.inp</button>
+  <button id="btn-par">Load seed.par</button>
+  
+  <textarea id="input-area" cols="100" style="resize:none" rows="20" placeholder="Enter your parameters">
   </textarea>
-  <!-- change div to textarea if you want to load your file in textarea-->
-  <script type="text/javascript">
-  jQuery(document).ready(function(){
-    jQuery( "#input-area" ).load("_static/seed.inp");
-  });
-  </script>
+  
   
   <div class="form-group">
     <label for="input-fileName">File name</label>
-    <input type="text" class="form-control" id="input-fileName" value="seed.inp" placeholder="Enter file name">
+    <input type="text" class="form-control" id="input-fileName" value="my_seed.txt" placeholder="Enter file name">
   </div>
   
   <div>
@@ -288,6 +288,18 @@ Here you can directly edit a default input file and download it.
   
   <script src="./_static/FileSaver.js"></script>
   <script>
+  
+  jQuery("#btn-inp").click( function() {
+    jQuery( "#input-area" ).load("_static/seed.inp");
+  });
+  jQuery("#btn-par").click( function() {
+    jQuery( "#input-area" ).load("_static/seed4_cgenff4.par");
+  });
+  
+  //jQuery(document).ready(function(){
+  //  jQuery( "#input-area" ).load("_static/seed.inp");
+  //});
+  
   jQuery("#btn-save").click( function(){
     var text = jQuery("#input-area").val();
     var filename = jQuery("#input-fileName").val()
