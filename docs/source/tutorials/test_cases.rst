@@ -22,11 +22,30 @@ does not fit into the binding site.
 
   <script src="../_static/ngl.js"></script>
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      var stage = new NGL.Stage("viewport");
-      stage.loadFile("rcsb://1crn", {defaultRepresentation: true});
+  // old
+  //  document.addEventListener("DOMContentLoaded", function () {
+  //    var stage = new NGL.Stage("viewport");
+  //    stage.loadFile("rcsb://1crn", {defaultRepresentation: true});
+  //  });
+  
+  document.addEventListener("DOMContentLoaded", function () {
+    // Create NGL Stage object
+    var stage = new NGL.Stage( "viewport" );
+    // Handle window resizing
+    window.addEventListener( "resize", function( event ){
+      stage.handleResize();
+    }, false );
+    // Load PDB entry 1CRN
+    //stage.loadFile( "rcsb://1crn", { defaultRepresentation: true } );
+    stage.loadFile("../_static/5wbj.pdb").then(function (o) {
+      // add a "cartoon" representation to the structure component
+      o.addRepresentation("cartoon", { color: "atomindex" });
+      // provide a "good" view of the structure
+      o.autoView();
     });
+  });
   </script>
+  
   <div id="viewport" style="width:400px; height:300px;"></div>
 
 Note also the gap in energy between the top pose of the correct enantiomer and all other poses.
