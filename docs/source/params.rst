@@ -55,29 +55,33 @@ Here you can directly edit your own parameter file and download it.
 
 .. raw:: html
 
-  <textarea id="input-area" cols="100">
+  <textarea id="input-area" cols="100" style="resize:none" rows="20">
 
   </textarea>
   <!-- change div to textarea if you want to load your file in textarea-->
   <script type="text/javascript">
   jQuery(document).ready(function(){
-    jQuery( "#input-area" ).load("_static/seed.inp")
+    jQuery( "#input-area" ).load("_static/seed.inp");
   });
   </script>
   
-.. raw:: html 
-  
-  <div>
-    <button onclick="saveTextAsFile()">Save input file</button>
+  <div class="form-group">
+    <label for="input-fileName">File name</label>
+    <input type="text" class="form-control" id="input-fileName" value="seed.inp" placeholder="Enter file name">
   </div>
   
+  <div>
+    <button id="btn-save">Save input file</button>
+  </div>
+  
+  <script src="./_static/FileSaver.js"></script>
   <script>
-  function saveTextAsFile() {
-    var text = $("#input-area").val();
-    var filename = "myseed" //$("#input-fileName").val()
+  jQuery("#btn-save").click( function(){
+    var text = jQuery("#input-area").val();
+    var filename = jQuery("#input-fileName").val()
     var blob = new Blob([text], {type: "text/plain;charset=utf-8"});
-    saveAs(blob, filename+".inp");
-  }
+    saveAs(blob, filename);
+  });
   </script>
   
   
