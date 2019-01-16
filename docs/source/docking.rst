@@ -1,5 +1,22 @@
-Docking workflow
-================
+Running modes 
+=============
+
+SEED can run in two distinct modes: :ref:`dock-runmode` and :ref:`energy-runmode` 
+that can be enabled by setting the first line of :ref:`i7<i7>` to ``d`` or ``e`` 
+respectively. 
+
+* In the docking running mode each fragment is docked into the receptor in multiple 
+  positions and the best ones (in terms of total binding energy) are returned. This 
+  is the usual setting for prospective docking campaigns.
+  
+* In the energy evaluation mode SEED will evaluate the total binding energy of 
+  a fragment in the position provided by the input coordinates. This is the typical
+  setting for rescoring poses generated beforehand by SEED or other software.
+
+.. _dock-runmode:
+
+Docking running mode 
+--------------------
 
 In order to efficiently speed up the screening of fragments, SEED relies on a two-step docking 
 workflow we will refer to as postprocess scheme.
@@ -17,7 +34,7 @@ are rescored and ranked with the more accurate solvation model (:ref:`rescoring`
 .. _prealign:
 
 Pre-alignment of the fragment
------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Before starting the docking procedure the fragment is pre-aligned 
 to a reference frame. The first atom of the fragment is put in the origin, 
@@ -37,7 +54,7 @@ limited precision of coordinates in usual mol2 files.
 .. _fast-docking:
 
 Fast docking scheme 
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 The fast docking scheme proceeds by applying the following filters sequentially:
 
@@ -69,7 +86,7 @@ The fast docking scheme proceeds by applying the following filters sequentially:
 .. _clustering:
 
 Clustering
-----------
+^^^^^^^^^^
 
 The docking of a given fragment (with energy evaluation as 
 described according to the :ref:`fast-docking`) is followed by sorting and clustering. 
@@ -118,7 +135,7 @@ second step is done only to discard redundant positions.
 .. _rescoring:
 
 Accurate rescoring 
-------------------
+^^^^^^^^^^^^^^^^^^
 
 The :math:`n` best binding modes within each cluster 
 (:math:`n` is set in :ref:`p5<p5>`) are rescored and ranked according to the 
@@ -127,3 +144,13 @@ energy filter during fast docking result in a binding energy above the cutoff
 (set in the 3rd column of :ref:`i7<i7>`) with the accurate model. These poses 
 appears in the docking summary in the ``seed.out`` log, but are not written to 
 any other output files of the postprocess scheme.
+
+.. _energy-runmode:
+
+Energy evaluation mode 
+----------------------
+
+SEED allows the energy of a particular fragment position to be evaluated without 
+generating new poses (as opposed to the :ref:`dock-runmode`). 
+The fragment mol2 file (:ref:`i7<i7>`) must contain the coordinates of the 
+relevant position, for which the binding energy has to be evaluated.

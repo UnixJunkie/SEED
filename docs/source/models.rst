@@ -42,7 +42,8 @@ by the brown box) does not modify the electrostatic energy as this solute
 does not interact with water.
 
 The single terms can be evaluated in SEED according to two different energy models: 
-the accurate model (section :ref:`accu_model`}) and the fast model (section :ref:`fast_model`). 
+the accurate model (section :ref:`accu_model`) and the fast model 
+(section :ref:`fast_model`). 
 The two models are combined together in a two-step docking procedure.
 
 ..  figure:: _static/therm_cycle_reduced.png 

@@ -33,8 +33,9 @@ Contents:
    :maxdepth: 2
 
    getstart
-   models
    docking
+   vectors
+   models
    params
    tutorials
 
