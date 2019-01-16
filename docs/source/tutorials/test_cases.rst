@@ -45,7 +45,10 @@ does not fit into the binding site.
     });
     stage.loadFile("../_static/4pci_brd4_ligand_and_mirror_image_best.mol2").then(function (o) {
       // add a "cartoon" representation to the structure component
-      o.addRepresentation("ball+stick", { color: "element" });
+      o.addRepresentation("licorice", { sele: "LIG and not _C", color: "element" });
+      o.addRepresentation("licorice", { sele: "LIG and _C", color: "white" });
+      o.addRepresentation("licorice", { sele: "MIR and not _C", color: "element" });
+      o.addRepresentation("licorice", { sele: "LIG and _C", color: "red" });
     });
   });
   </script>
