@@ -376,7 +376,7 @@ information and save it.
   
   <div class="form-group">
     <label for="input-fileName">File name</label>
-    <input type="text" class="form-control" id="input-fileName" value="my_seed.txt" placeholder="Enter file name">
+    <input type="text" class="form-control" id="input-fileName" value="" placeholder="Enter file name">
   </div>
   
   <div>
@@ -388,9 +388,11 @@ information and save it.
   
   jQuery("#btn-inp").click( function() {
     jQuery( "#input-area" ).load("_static/seed.inp");
+    jQuery("#input-fileName").val("seed.inp")
   });
   jQuery("#btn-par").click( function() {
     jQuery( "#input-area" ).load("_static/seed4_cgenff4.par");
+    jQuery("#input-fileName").val("seed.par")
   });
   
   //jQuery(document).ready(function(){
