@@ -1,5 +1,21 @@
+Parameters 
+==========
+
+SEED user-modifiable parameters are contained in two main input files.
+| The file ``seed.inp`` contains the most frequently modified :ref:`input_param`
+as they regard a specific SEED run (path and name of structural input files, 
+list of residues forming the binding pocket, 
+switch between polar and apolar docking, ...).
+
+The :ref:`par_param` ``seed.par`` contains 
+less frequently modified input/output options, parameters for docking, 
+energy and clustering. Modification of most of these parameters is recommended only 
+to advanced users who wish to fine tune the energy model.
+
+.. _input_param:
+
 Input Parameters
-================
+----------------
 
 Here we define all the parameters of the ``seed.inp`` file.
 
@@ -57,9 +73,11 @@ As you do not need to modify all the parameters and in most of the cases
 default values will give good results, we recommend not to write an input 
 file from scratch, but to modify a default template. You can do this here through 
 the :ref:`par_generator`.
+
+.. _par_param:
   
 Parameter File
-==============
+--------------
 
 Here we define all the parameters of the ``seed.par`` file.
 
@@ -213,9 +231,8 @@ Here we define all the parameters of the ``seed.par`` file.
   van der Waals / electrostatic interaction / receptor desolvation /
   fragment desolvation
 
-*********************
 Clustering parameters
-*********************
+^^^^^^^^^^^^^^^^^^^^^
 
 The clustering with GSEAL proceeds in two steps: the
 first clustering yields large clusters which contain almost 
@@ -256,9 +273,8 @@ to eliminate fragments which are very close in space.
   | print level (``0`` = lean, ``1`` = adds sorting before postprocessing, 
     ``2`` = adds 2nd clustering).
   
-**********************
 Force field parameters
-**********************
+^^^^^^^^^^^^^^^^^^^^^^
 
 .. _p29:
 
@@ -294,7 +310,7 @@ Force field parameters
 .. _par_generator:
 
 Parameter File Generator
-========================
+------------------------
 
 The parameter file generator helps you preparing the input parameter files 
 for a SEED run (``seed.inp`` and ``seed.par``).

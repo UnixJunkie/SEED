@@ -8,6 +8,13 @@ Tutorials for preparing the inputs.
 
    tutorials/preparation
 
+Analysis of the output of a SEED run.
+
+.. toctree::
+  :maxdepth: 2
+  
+  tutorials/output 
+  
 Test cases on relevant examples from literarure.
 
 .. toctree::

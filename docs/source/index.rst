@@ -34,6 +34,7 @@ Contents:
 
    getstart
    models
+   docking
    params
    tutorials
 
