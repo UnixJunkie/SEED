@@ -46,14 +46,14 @@ the accurate model (section :ref:`accu_model`) and the fast model
 (section :ref:`fast_model`). 
 The two models are combined together in a two-step docking procedure.
 
-..  figure:: _static/therm_cycle_reduced.png 
-    :alt: thermodynamic cycle 
+.. figure:: _static/therm_cycle_reduced.png 
+   :alt: thermodynamic cycle 
     
-    Decomposition of the electrostatic energy difference upon receptor-fragment binding 
-    :math:`\Delta G_{electr}`. 
-    Charged solute is colored and uncharged solute is white. 
-    The fragment is in purple. The whole cycle takes place in water (blue background). 
-    The brown background box highlights the introduction of an uncharged copy of the solute.
+   Decomposition of the electrostatic energy difference upon receptor-fragment binding 
+   :math:`\Delta G_{electr}`. 
+   Charged solute is colored and uncharged solute is white. 
+   The fragment is in purple. The whole cycle takes place in water (blue background). 
+   The brown background box highlights the introduction of an uncharged copy of the solute.
 
 .. _fast_model:
 
