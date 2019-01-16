@@ -74,6 +74,8 @@ The following is a list of the input files required for a SEED run:
 * A standard SYBYL mol2 file for the receptor with partial charges on the 
   9th column in the ``@<TRIPOS>ATOM`` record and CHARMM atom types specified 
   by the ``@<TRIPOS>ALT_TYPE`` record (refer to the fragment file description for details).
+
+.. _output_files:
   
 Output Files 
 ------------
@@ -182,6 +184,33 @@ instead of generating them again.
   activated (**i4**)) which are selected according to their hydrophobicity. 
   For this purpose a low dielectric sphere is placed on each of these points. 
   The hydrophobicity is defined as the weighted sum of the receptor desolvation 
-  energy due to the presence of the probe and the probe/receptor van der Waals interaction. 
+  energy due to the presence of the probe and the probe/receptor van der Waals 
+  interaction. 
   The weighting factors and the probe radius are set in **p22**. The number of 
   selected apolar points is controlled with **p2**.
+  
+Troubleshooting
+---------------
+
+If after starting a SEED run the program exits unexpectedly, the 
+keyword ``WARNING`` should be looked for in the main output file 
+(``seed.out``, :ref:`p6 <p6>`) to find hints on possible problems 
+(wrong path for filenames, unknown value for some parameters, ...).
+
+The docking workflow implemented in SEED involves many filtering steps, hence, 
+if the main output file does not contain any fragment position 
+for a given fragment type, it can be due to several reasons: 
+the center of the spherical cutoff (:ref:`i6<i6>`) might be misplaced 
+(outside the binding site), the checking of steric clashes (:ref:`p10<p10>` and 
+:ref:`p11<p11>`) too strict, 
+the van der Waals energy cutoff (:ref:`p19<p19>`) for apolar fragments too severe, 
+the total energy cutoff (third value of :ref:`i7<i7>`), or the 
+energy cutoff for the second clustering (fourth value of :ref:`i7<i7>`) too stringent. 
+To find out what the reason could be, the following part of the main output file should 
+be investigated:
+
+| ``Total number of generated fragments of type 1 (BENZ) : 118800``
+| ``Fragments that passed the sphere checking : 102894``
+| ``Fragments that passed the bump checking : 49007``
+| ``Fragments that passed the vdW energy cutoff : 22100``
+| ``Fragments that passed the total energy cutoff : 17794``
