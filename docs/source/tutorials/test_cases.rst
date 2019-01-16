@@ -39,7 +39,8 @@ does not fit into the binding site.
     //stage.loadFile( "rcsb://1crn", { defaultRepresentation: true } );
     stage.loadFile("../_static/brd4_4pci_seed.mol2").then(function (o) {
       // add a "cartoon" representation to the structure component
-      o.addRepresentation("cartoon", { color: "atomindex" });
+      o.addRepresentation("cartoon", { color: "green" });
+      o.addRepresentation("licorice", {sele: "99 and sidechain", color: "element"})
       // provide a "good" view of the structure
       o.autoView();
     });
