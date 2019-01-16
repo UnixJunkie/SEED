@@ -15,8 +15,11 @@ In order to run this test case execute the following commands:
   ../../../bin/seed_4 seed.inp >& log
 
 The two enantiomers are docked by SEED which identifies the correct pose for the
-enantiomer observed in the crystal structure while the other enantiomer
-does not fit into the binding site.
+enantiomer observed in the crystal structure (white molecule) while the other enantiomer
+does not fit into the binding pocket and it is docked on the rim of the binding site.
+The correct enantiomer forms a hydrogen bond with the conserved asparagine
+of BRD4(1) (grey residue) replacing the role of the acetylated lysine from the 
+histone tail.
 
 .. raw:: html
 
@@ -40,7 +43,7 @@ does not fit into the binding site.
     stage.loadFile("../_static/brd4_4pci_seed.mol2").then(function (o) {
       // add a "cartoon" representation to the structure component
       o.addRepresentation("cartoon", { color: "green" });
-      o.addRepresentation("licorice", {sele: "99 and sidechain", color: "element"})
+      o.addRepresentation("licorice", {sele: "99 and (sidechain or .CA)", color: "element"})
       // provide a "good" view of the structure
       o.autoView();
     });
