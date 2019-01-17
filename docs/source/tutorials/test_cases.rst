@@ -69,7 +69,7 @@ histone tail.
 Note also the gap in energy between the top pose of the correct enantiomer and all other poses. 
 
 ====================  =============  ================  =================  =================  =============  ===============  =================  
-Name                  Tot\ :sup:`a`   ElinW\ :sup:`b`  rec_des\ :sup:`c`  frg_des\ :sup:`d`  vdW\ :sup:`e`  DElec\ :sup:`f`  DG_hydr\ :sup:`g`
+Name                  Tot             ElinW            rec_des             frg_des             vdW             DElec           DG_hydr        
 ====================  =============  ================  =================  =================  =============  ===============  =================  
 4pci_ligand                  -25.97             -9.58               5.16               4.31         -25.86            -5.34              -4.24
 4pci_ligand                  -20.67             -6.14               5.21               4.45         -24.19            -1.90              -4.24
