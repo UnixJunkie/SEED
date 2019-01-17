@@ -61,7 +61,7 @@ Fast Energy
 -----------
 WORK IN PROGRESS
 
-Please for the moment refer to the pdf user manual ``seed_4.0.0_doc.pdf``
+Please refer to the :ref:`publications` and the pdf user manual ``doc/seed_4.0.0_doc.pdf``.
 
 .. _accu_model:
 
@@ -69,4 +69,4 @@ Slow Energy
 -----------
 WORK IN PROGRESS
 
-Please for the moment refer to the pdf user manual ``seed_4.0.0_doc.pdf``
+Please refer to the :ref:`publications` and the pdf user manual ``doc/seed_4.0.0_doc.pdf``.
