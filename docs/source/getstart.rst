@@ -1,6 +1,13 @@
 Getting Started
 ===============
 
+After the :ref:`installation` and familiarizing with the most important 
+:ref:`input_files` and :ref:`output_files`, the best way to get started with 
+SEED is to try to replicate some :ref:`Test Cases <test_cases>` and start 
+understanding the main parameters with the help of the :ref:`par_generator`.
+
+.. _installation:
+
 Installation 
 ------------
   
@@ -21,7 +28,8 @@ The necessary header files are distributed along with SEED.
 The binary is compiled into the ``SEED/bin`` folder.
 
 After installation run SEED with the following command:
-::
+
+.. code-block:: bash
   
   ./seed_4 seed.inp >& log
 
@@ -147,8 +155,8 @@ of poses to be saved instead of the number of cluster members.
 ``<FragmentMol2FileName>_best.mol2``.
 
 The writing of the above ``*_clus.mol2`` and ``*_best.mol2`` files is activated or deacti-
-vated by :ref:`p3<p3>` (first and second value respectively). The writing of the ``*_clus.dat`` and
-``*_best.dat`` summary table is activated or deactivated by :ref:`p4<p4>` 
+vated by :ref:`p3<p3>` (first and second value respectively). The writing of the ``seed_clus.dat`` and
+``seed_best.dat`` summary table is activated or deactivated by :ref:`p4<p4>` 
 (first and second value respectively). Note that the maximum number of poses and 
 poses per cluster to be saved (:ref:`p5<p5>`) are upper bounds as the number of generated poses
 may be smaller than the number of poses requested in output. The four parameters

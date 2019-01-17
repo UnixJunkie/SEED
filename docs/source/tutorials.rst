@@ -16,6 +16,8 @@ Analysis of the outputs of a SEED run.
   :maxdepth: 2
   
   tutorials/output 
+
+.. _test_cases:
   
 Test cases on relevant examples from literature.
 
