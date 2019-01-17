@@ -1,0 +1,18 @@
+topology /home/jremy/Downloads/toppar/toppar_water_ions_modi.str
+
+# Build water segment
+pdbalias residue HOH TIP3  ; # changes HOH water names to TIP3
+pdbalias atom HOH O OH2     ;  # changes O atom types to OH2 to be consistent with the TIP3 naming
+segment SOLV {
+ auto none
+ pdb water_ordi.pdb
+}
+
+# Read water coordinates from PDB file
+coordpdb water_ordi.pdb SOLV
+
+# Guess missing coordinates (adding H)
+guesscoord
+
+# Write structure and coordinate files
+writepdb rep_waters.pdb

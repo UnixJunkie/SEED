@@ -305,6 +305,7 @@ file without defined conformations and protonation states.
       cd mol2seed ; for i in * ; do cat $i >> ../library_seed.mol2 ; done ; cd ..
 
 The chemical library is now ready to be docked by SEED.
+The steps for this tutorial can be run all together using the bash script ``library_preparation.sh``.
 
 
       
