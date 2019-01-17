@@ -20,11 +20,25 @@ These regions are efficiently and accurately determined
 by evaluating electrostatic desolvation penalty and van der Waals
 interactions with an uncharged probe sphere.
 :raw-html:`<br />`
-Two implicit solvation models
-based on the Generalized Born methodology and developed in the
-`Caflisch group <http://www.biochem-caflisch.uzh.ch/>`_
+Two implicit solvation models based on the Generalized Born methodology
 are employed to efficiently evaluate the protein and fragment desolvation
 upon binding and the screened electrostatic interaction.
+
+|
+
+SEED is developed in the `Caflisch Lab <http://www.biochem-caflisch.uzh.ch/>`_ at 
+the `University of Zurich <https://www.uzh.ch/de.html>`_
+and hosted on `GitLab <https://gitlab.com/CaflischLab/SEED>`_ under the 
+GNU General Public License version 3 (GPLv3).
+
+If you use SEED in your work, please cite the original SEED paper:
+
+* | N. Majeux, M. Scarsi, J. Apostolakis, C. Ehrhardt, and A. Caflisch. Exhaustive docking of
+    molecular fragments on protein binding sites with electrostatic solvation.
+    Proteins: Structure, Function and Genetics, 37:88-105, 1999.
+  | :raw-html:`<a class="reference external" href="http://dx.doi.org/doi:10.1002/(SICI)1097-0134(19991001)37:1<88::AID-PROT9>3.0.CO;2-O">doi: 10.1002/(SICI)1097-0134(19991001)37:1<88::AID-PROT9>3.0.CO;2-O</a>`
+
+Go to :ref:`publications` for an overview of articles related to SEED.
 
 Contents:
 =========
@@ -38,6 +52,7 @@ Contents:
    models
    params
    tutorials
+   publications
 
 
 

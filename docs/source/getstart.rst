@@ -3,19 +3,23 @@ Getting Started
 
 Installation 
 ------------
+  
+SEED code is hosted on `GitLab <https://gitlab.com/CaflischLab/SEED>`_.
 
-SEED makes use of the 
-`BOOST C++ Libraries <https://www.boost.org/>`_
-. The necessary header files are distributed along with SEED.
-
-In order to install SEED, cd to directory ``src`` and make with the following command 
-(you may have to modify the ``Makefile.local``):
+In order to build the latest development version of SEED do the following 
+(you may have to modify the ``Makefile.local`` in the ``src`` folder):
 
 .. code-block:: bash
     
+    git clone https://gitlab.com/CaflischLab/SEED
+    cd SEED/src 
     make seed
     
-The binary is compiled into the ``bin`` directory.
+SEED makes use of the 
+`BOOST C++ Libraries <https://www.boost.org/>`_. 
+The necessary header files are distributed along with SEED.
+The binary is compiled into the ``SEED/bin`` folder.
+
 After installation run SEED with the following command:
 ::
   

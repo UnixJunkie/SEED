@@ -1,21 +1,21 @@
 Tutorials
 =========
 
-Tutorials for preparing the inputs.
+Tutorials for preparing the input files.
 
 .. toctree::
    :maxdepth: 2
 
    tutorials/preparation
 
-Analysis of the output of a SEED run.
+Analysis of the outputs of a SEED run.
 
 .. toctree::
   :maxdepth: 2
   
   tutorials/output 
   
-Test cases on relevant examples from literarure.
+Test cases on relevant examples from literature.
 
 .. toctree::
    :maxdepth: 2

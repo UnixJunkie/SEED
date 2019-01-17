@@ -1,9 +1,36 @@
+Preliminary words
+=================
+
+This set of tutorials constitutes our "recipe cookbook" explaining how to 
+prepare the input files (receptor and fragment library) for SEED. 
+This is not by any means the only way to do it, 
+and you probably can find better ways yourself, especially if you are familiar with 
+preparing structural inputs for docking or Molecular Dynamics software. 
+
+In the following we will make use of many custom scripts (you can find them 
+in the ``scripts`` folder) and rely on external software, most of which is
+open source of free for academics. In particular, for specific tasks, we will use:
+
+* `ChemAxon <https://chemaxon.com/>`_ calculators
+* `obabel <https://openbabel.org/docs/dev/Command-line_tools/babel.html>`_ 
+* `RDKit <http://www.rdkit.org/docs/GettingStartedInPython.html>`_ Python API 
+* `CGenFF <http://silcsbio.com/>`_ for parametrizing molecules with the CHARMM General Force Field
+* `CHARMM <http://charmm.chemistry.harvard.edu/charmm_lite.php>`_ 
+* The `psfgen <http://www.ks.uiuc.edu/Research/vmd/plugins/psfgen/>`_ plugin of VMD 
+* `UCSF Chimera <https://www.cgl.ucsf.edu/chimera/download.html>`_
+* `CORINA <https://www.mn-am.com/products/corina>`_
+* `CAMPARI <http://campari.sourceforge.net/>`_ software package
+
+Most of the tasks for which we suggest one of these softwares can be carried out 
+with alternative ones that you might be more comfortable with. Thus you do not 
+need to have all the software from the list installed on your system. 
+
 .. _lig_from_pdb:
 
 Ligand Preparation from a PDB 
 =============================
 
-In this to tutorial we will learn hot to prepare a ligand for SEED docking 
+In this to tutorial we will learn how to prepare a ligand for SEED docking 
 starting from a PDB file. This can be useful in a typical redocking experiment
 scenario.
 Let us assume for this case that you know the protonation state and the conformation 
