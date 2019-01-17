@@ -105,6 +105,8 @@ To improve sampling additional rotations of the fragment are performed
 around the axis joining the receptor atom and fragment atom. 
 The number of rotations is set in :ref:`p13<p13>`.
 
+.. _angle_criterion:
+
 Angle criterion
 ---------------
 

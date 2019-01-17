@@ -29,45 +29,62 @@ Here we define all the parameters of the ``seed.inp`` file.
 .. _i2:
 
 **i2**
-  name of coordinate file for the receptor (in mol2 format)
+  name of coordinate file for the receptor (in SYBYL mol2 format)
 
 .. _i3:
 
 **i3**
   | Binding site residue list.
-  | First line: number of residues in the list
-  | Following lines: residue number (one per line, according to the numbering in 
-    the receptor input file).
+  | First line: number of residues in the binding site.
+  | Following lines: residue sequential numbers (one per line). 
+  | Note that if ARG38 is the first residue of the protein, its sequential 
+    number is 1 and not 38. To avoid ambiguity we recommend to renumber the 
+    residues starting from 1 in the input file. Binding site metal ions have to 
+    be in the list as well. 
 
 .. _i4:
   
 **i4**
   | List of points (*e.g.* ligand heavy atoms of a known ligand-receptor 
     complex structure) in the binding site used to select polar and apolar 
-    rec. vectors which satisfy the angle criterion (see parameters file).
+    receptor vectors which satisfy the angle criterion (see :ref:`angle_criterion`) 
+    and discard vectors pointing outside of the binding site.
   | First line:  number of points (``0``: no removal of vectors using the angle criterion).
   | Following lines: coordinates of the points (one point per line).
 
 .. _i5:
 
 **i5**
-  | Metals in the binding site.
+  | Vectors for the metal ions in the binding site.
   | Make sure that the residue number of the metal is in the
     binding site residue list. 
   | First line:  total number of coordination points.
-  | Following lines:  atom number of metal / x y z of coordination point
+  | Following lines:  atom number of metal / x y z of coordination point (vector extremity)
 
 .. _i6:
 
 **i6**
-  Spherical cutoff for docking (y,n / sphere center / sphere radius)
+  | Spherical cutoff for docking:
+  | coordinates of the center and radius of a sphere in which the geometry center of
+    the fragment position must be in order to be accepted. 
+    This filter can be discarded by selecting ``n`` instead of ``y`` as first value.
+  | ``y``,``n`` / sphere center / sphere radius
 
 .. _i7:
   
 **i7**
   | Fragment library specifications
-  | First line: run specification: dock+energy (``d``) or only energy (``e``)
-  | Following lines: Fragment library filename / 
+  | First line: one character specifying the running mode of SEED: 
+    :ref:`dock-runmode` (``d``) or only :ref:`energy-runmode` (``e``).
+  | Following lines: the first column contains the path of the fragment mol2 file 
+    and the second column allows the selection of apolar, polar docking or both 
+    (``a``, ``p``, ``b``). The fragment position is accepted if the total energy 
+    (according to the fast energy model) is smaller than a cutoff given in the third column. 
+    The second :ref:`clustering` is applied on the poses
+    for which the binding energy of the cluster representative is smaller than a cutoff value
+    specified in the 4th column. In summary:
+  
+  | Fragment library filename / 
     apolar docking, polar docking, or both (``a``, ``p``, ``b``) /
     energy cutoff in kcal/mol / 2nd clustering cutoff in kcal/mol
     
