@@ -2,7 +2,9 @@
 
 SEED is a program for fragment docking with force-field based evaluation of binding energy.
 
-Please refer to the documentation (seed_4.0.0_doc.pdf) to understand how to set up a calculation in SEED.
+The new SEED documentation is now online at: [https://caflischlab-seed.readthedocs.io/en/latest/](https://caflischlab-seed.readthedocs.io/en/latest/)!
+
+For details about the energy models implemented in SEED please refer to the original publications and to the pdf user manual (seed_4.0.0_doc.pdf).
 
 ### Installation ###
 cd to directory src and make SEED with the following command (you may have to modify the Makefile.local):
@@ -18,15 +20,6 @@ Run SEED with the following command:
 You can find an example seed.inp and seed.par, along with the results of simple study cases,
 in the test_cases folder.
 
-In the compressed folder tutorials/seed4_tuto_preparation_of_inputs.tar.gz you can find a tutorial 
-and some useful scripts explaining how to prepare the receptor and
-fragment structural inputs for SEED.
-
-In the scripts directory you can find separate_poses.py, that can be used to extract selected poses from the concatenated
-mol2 output files. For using it type:
-```sh
-python separate_poses.py -h
-```
 ### Citations ###
 Review of the applications of SEED in the period 1999-2018, includes a discussion on its strenghts/weaknesses in light of our experience:
  * J.-R. Marchand, and A. Caflisch. In silico fragment-based drug design with SEED.
