@@ -120,7 +120,7 @@ for line in orimol2:
 				out+=line
 			elif whereami_mol2==True:
 			## Residue number check and modification
-				if old_resn!=str(line.split()[7]) and old_resid!=int(line.split()[6]):
+				if old_resn!=str(line.split()[7]) or old_resid!=int(line.split()[6]):
 					counter_resid+=1
 				old_resid=int(line.split()[6])
 				old_resn=str(line.split()[7])

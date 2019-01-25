@@ -185,7 +185,7 @@ void ReReFi_mol2(char *RecFil,int *ReAtNu,int *ReBdNu,int *ReReNu,
   /* Read ReAtEl ReCoor ReAtTy ReResN RePaCh */
   ReAtEl_L=cmatrix(1,*ReAtNu,1,5);
   ReCoor_L=dmatrix(1,*ReAtNu,1,3);
-  ReAtTy_L=cmatrix(1,*ReAtNu,1,7); //Now read from ALT_TYPE
+  ReAtTy_L=cmatrix(1,*ReAtNu,1,7); //Now this is read from ALT_TYPE
   ReResN_L=ivector(1,*ReAtNu);
   RePaCh_L=dvector(1,*ReAtNu);
   *ReAtEl=ReAtEl_L;
