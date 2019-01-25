@@ -663,6 +663,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
     for (i=2;i <= ReAtNu; i++){
       if(ReResN[i-1] != ReResN[i] || ReResN[i]==1){ /* modified to cover also first  residue, dey */
         if(ReResN[i] == BSReNu[i2]){
+          // std::cout << i << "  " << ReResN[i] << "  " << i2 << "  " << BSReNu[i2] << std::endl; // NOTE fix case first resid != 1 clangini
           CheInpWroRe++;
         }
       }

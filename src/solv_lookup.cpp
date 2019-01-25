@@ -402,7 +402,7 @@ struct point len ----------- ReMaxC - ReMinC
                    BSResN,BSReNu,NGridx,NGridy,NGridz,PnxminBS,
                    PnyminBS,PnzminBS,PnxmaxBS,PnymaxBS,PnzmaxBS,
                    ResFirstAtom,NAtom_per_Res);
-
+  
 /* Evaluation of the desolvation of the receptor due to the occupation
    of a grid cube in the binding site */
   printf("\n\tElectric Displacement and receptor desolvation...\n");
@@ -2020,22 +2020,22 @@ int *NAtom_per_Res --------- NAtom_per_Res[n] = # of atoms of residue n
 /* Make two arrays that given the number of a residue, give the number
    of the first atom of that residue and the number of atoms belonging
    to this residue */
-
   Natom = 0;
   Previous = 0;
   Nres = 0;
   for (iat=1;iat<=ReAtNu;iat++) {
-    if (ReResN[iat] == Previous+1 ) {
+    // if (ReResN[iat] == Previous+1 ) { // fixed clangini
+    if (ReResN[iat] >= Previous+1 ) {
       if (Nres != 0 )
         NAtom_per_Res[Nres] = Natom;
       ResFirstAtom[++Nres] = iat;
-      Previous++;
+      // Previous++;
+      Previous = ReResN[iat]; // fixed clangini
       Natom = 0;
     }
     Natom++;
   }
   NAtom_per_Res[Nres] = Natom;
-
 
 /*  Calculate the extremes in the grid space (*PnxminBS,*PnxmaxBS,...) of
     the cube containing the residues of the binding site */
