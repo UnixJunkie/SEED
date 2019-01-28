@@ -124,13 +124,13 @@ Good alternatives to prepare a CHARMM-proof receptor file are to use the
 or the `CAMPARI <http://campari.sourceforge.net/>`_ software package (using keyword
 PDB_W_CONV 3 to write CHARMM compatible pdb files).
 
-Now run the minimization with CHARMM (see file ``H_min.inp``).
+Now run the minimization with CHARMM (see file ``H_min_rdie.inp``).
 Watch out to replace all the I/O names and paths properly in the file.
 Also pay attention to set the correct number of water molecules.
 
 .. code-block:: bash
   
-  charmm < H_min.inp > log
+  charmm < H_min_rdie.inp > log
 
 Extract the protein and water chains from ``receptor_min.pdb`` and convert it 
 to a mol2 file (we use UCSF Chimera for this task, as up to our knowledge, 

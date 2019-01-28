@@ -1,0 +1,66 @@
+* H-minimization
+* Written by P. Kolb (?), updated and cleaned by JRM, modifications by clangini
+
+set eps 4.0
+
+! Read Parameters
+open read card unit 29 name ${CHARMMFILES}/top_all36_prot.rtf
+read rtf card unit 29
+read rtf append card name ${CHARMMFILES}/toppar_water_ions.rtf
+read rtf append card name ${CHARMMFILES}/top_all36_cgenff.rtf
+close unit 29
+open read card unit 30 name ${CHARMMFILES}/par_all36_prot.prm
+read para card unit 30 flex
+read param append flex card name ${CHARMMFILES}/par_all36_cgenff.prm
+stream ${CHARMMFILES}/toppar_water_ions.str
+close unit 30
+stream lig.str
+
+! Read Molecules
+open read card unit 11 name rep_protein.pdb
+read sequence pdb unit 11
+generate PRO setup warn first NTER last CTER
+rewind unit 11
+read coor pdb  unit 11
+close unit 11
+
+!structured water molecules WATCH OUT change the number of water molecules in read sequence
+set wasser TIP3
+read sequence @wasser 5
+generate SOLV setup noangle nodihedral
+open read card unit 13 name rep_waters.pdb
+read coor pdb  unit 13 resid 
+close unit 13
+
+!ligand
+set residue LIG
+read sequence @residue 1
+generate @residue first none last none setup warn
+open read card unit 15 name lig.pdb
+read coor pdb  unit 15 resid
+close unit 15
+
+! Reinitializing coordinates of H atoms
+coor init sele type H* end
+! Reconstruction of H atoms + adds if absent of the original pdb files
+hbuild sele type H* end
+
+!
+! Minimization
+!
+! using distance-dependent dielectric
+nbond nbxmod 5 atom rdie shift vatom vdistance vswitch -
+cutnb 14.0 ctofnb 12.0 ctonnb 10.0 eps 4.0 e14fac 1.0 wmin 1.5
+!
+cons fix select (.not. hydrogen) end
+mini sd nstep 5000 tolgrd 0.01 nprint 100
+mini conj nstep 100000 tolgrd 0.01 nprint 100
+
+!
+! Write output
+!
+open unit 15 write form name receptor_min.pdb
+write coor pdb unit 15
+close unit 15
+
+stop
