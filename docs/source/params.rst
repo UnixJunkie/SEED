@@ -36,9 +36,13 @@ Here we define all the parameters of the ``seed.inp`` file.
 **i3**
   | Binding site residue list.
   | First line: number of residues in the binding site.
-  | Following lines: residue sequential numbers (one per line). 
-  | Note that if ARG38 is the first residue of the protein, its sequential 
-    number is 1 and not 38. To avoid ambiguity we recommend to renumber the 
+  | Following lines: residue indices (one per line). 
+  | Note that residues are renumbered sequentially starting from 1 within SEED 
+    and the residue index refers to this new numbering; if for example 
+    ARG38 is the first residue of the protein, its index is 1 and not 38. The SEED 
+    residue indices can be retrieved from ``seed.out`` after the line 
+    ``Data for the receptor :``.
+    To avoid ambiguity we recommend to renumber the 
     residues starting from 1 in the input file. Binding site metal ions have to 
     be in the list as well. 
 
