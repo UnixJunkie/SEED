@@ -2247,6 +2247,9 @@ int *Nsurfpt_re_apol_BS - Tot # of points over the rec SAS3
   for (ires=1;ires<=BSResN;ires++) {
     for (iat=ResFirstAtom[BSReNu[ires]];iat<=ResFirstAtom[BSReNu[ires]]+
          NAtom_per_Res[BSReNu[ires]]-1;iat++) {
+      // cl debug start      
+      // std::cout << ires << "  " << BSReNu[ires] << "  " << ResFirstAtom[BSReNu[ires]] << std::endl;
+      // cl debug end 
       for (i=pointsrf_re[iat];i<=pointsrf_re[iat]+nsurf_re[iat] - 1 ;
            i++,Ntot++) {
         (*Nsurfpt_re_apol_BS)++;

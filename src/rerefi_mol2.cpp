@@ -236,6 +236,7 @@ void ReReFi_mol2(char *RecFil,int *ReAtNu,int *ReBdNu,int *ReReNu,
       ResNa = ResNa_tmp;
     }
     ++itItem;
+    ReResN_L[i] = ReReNu_count; // this way we renumber residues starting from 1
     //std::cout << "Partial charge "<<i<<": "<< (*itItem)<<"ebbasta" << std::endl;
     RePaCh_L[i] = boost::lexical_cast<double> (*itItem);
     //std::cout << "Charge "<<i<<": "<<FrPaCh_L[i]<< std::endl;
