@@ -1,0 +1,4 @@
+AuthUserFile file:///home/clangini/Praktikum/SEED/seed_4_dev/docs/build/html/.htpasswd
+AuthType Basic
+AuthName "models.html"
+Require valid-user

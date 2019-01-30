@@ -53,6 +53,7 @@ Contents:
    params
    tutorials
    publications
+   restricted
 
 
 
