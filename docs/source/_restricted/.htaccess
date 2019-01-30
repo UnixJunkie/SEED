@@ -1,7 +1,0 @@
-AuthUserFile https://caflischlab-seed.readthedocs.io/en/latest/.htpasswd
-AuthType Basic
-AuthName "sacerrimo"
-
-<Files "models.html">
-  Require valid-user
-</Files>
