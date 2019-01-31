@@ -69,7 +69,7 @@ remapped to the correct CHARMM atom types by using:
   bash convert_CAMP_BIO_to_CGENFF.sh CAMP_BIO_to_CGENFF.map MOL2FILE > OUTPUTFILE
   
 A protein receptor can be prepared with CAMPARI using the two keyfiles ``tmd_build.template.key`` and 
-``cons_mini_abs_internal.template.key``. 
+``cons_mini_abs_internal.template.key`` (make sure to correct filenames and paths).
 
 ``tmd_build.template.key`` rebuilds the system starting from the provided pdb. 
 Missing residues are added and missing sidechains are build in random conformations.
