@@ -58,8 +58,8 @@ void CoGReP(const int ReAtNu,double **ReCoor,double *RePaCh,const double CoDieV,
 /* Coordinates of one point of the coulombic grid */
         CoGCor[1]=BSMinC[1]-CoGrIn+(i-1)*CoGrSi;
         CoGCor[2]=BSMinC[2]-CoGrIn+(j-1)*CoGrSi;
-        CoGCor[3]=BSMinC[3]-CoGrIn+(k-1)*CoGrSi;
-
+        CoGCor[3]=BSMinC[3]-CoGrIn+(k-1)*CoGrSi; 
+        
 /* Initialization of the "potential" */
         CoGrRP_in=0.0;
 

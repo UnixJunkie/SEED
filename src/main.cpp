@@ -815,6 +815,8 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
         fprintf(FPaOut,"        same input file parameters\n\n");
         exit(0);
       }
+      fgets_wrapper(StrLin,_STRLENGTH,FilePa);
+      fgets_wrapper(StrLin,_STRLENGTH,FilePa);
       for (i1=1;i1<=CoGPoN[1];i1++) {
         for (i2=1;i2<=CoGPoN[2];i2++) {
           for (i3=1;i3<=CoGPoN[3];i3++) {
@@ -835,7 +837,12 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
       if (CoGrAcc[0]=='w') {
         FilePa=fopen(CoGrFile,"w"); /* to change to "wb" for binray grids*/
         /* FilePa=fopen(CoGrFile,"wb"); /\* to change to "wb" for binray grids*\/ */
-        fprintf(FilePa,"%d %d %d\n",CoGPoN[1],CoGPoN[2],CoGPoN[3]);
+        // Now write all the info to be able to convert it to a .dx file for PyMOL visualization. clangini
+        fprintf(FilePa,"%d %d %d\n",CoGPoN[1],CoGPoN[2],CoGPoN[3]); // Number of voxels along x,y,z
+        fprintf(FilePa,"%.12f %.12f %.12f\n", BSMinC[1]-CoGrIn, BSMinC[2]-CoGrIn, BSMinC[3]-CoGrIn); // Origin of the grid 
+        fprintf(FilePa,"%f %f %f\n", CoGrSi, CoGrSi, CoGrSi); // grid spacing in x,y,z 
+        // hack clangini
+        
         /*
            fwrite(&CoGPoN[1],sizeof(int),1,FilePa);
            fwrite(&CoGPoN[2],sizeof(int),1,FilePa);
@@ -885,6 +892,8 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
         fprintf(FPaOut,"        same input file parameters\n\n");
         exit(0);
       }
+      fgets_wrapper(StrLin,_STRLENGTH,FilePa);
+      fgets_wrapper(StrLin,_STRLENGTH,FilePa);
       for (i1=1;i1<=VWGPoN[1];i1++) {
         for (i2=1;i2<=VWGPoN[2];i2++) {
           for (i3=1;i3<=VWGPoN[3];i3++) {
@@ -901,7 +910,10 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
       printf("Receptor part of the van der Waals interaction -> done\n");
       if (VWGrAcc[0]=='w') {
         FilePa=fopen(VWGrFile,"w");
-        fprintf(FilePa,"%d %d %d\n",VWGPoN[1],VWGPoN[2],VWGPoN[3]);
+        fprintf(FilePa,"%d %d %d\n",VWGPoN[1],VWGPoN[2],VWGPoN[3]); // Number of voxels along x,y,z
+        fprintf(FilePa,"%.12f %.12f %.12f\n", BSMinC[1]-VWGrIn, BSMinC[2]-VWGrIn, BSMinC[3]-VWGrIn); // Origin of the grid 
+        fprintf(FilePa,"%f %f %f\n", VWGrSi, VWGrSi, VWGrSi); // grid spacing in x,y,z 
+        
         for (i1=1;i1<=VWGPoN[1];i1++) {
           for (i2=1;i2<=VWGPoN[2];i2++) {
             for (i3=1;i3<=VWGPoN[3];i3++) {

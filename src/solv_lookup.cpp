@@ -422,7 +422,8 @@ struct point len ----------- ReMaxC - ReMinC
                        *PnzmaxBS,*XGrid,*YGrid,*ZGrid,*GridMat,*PUnitVol,
                        corr_re_desofd,RecFilPDB,FDexe,FDdir,DesoMapAcc,
                        DesoMapFile,*DeltaPrDeso);
-    else if ( strcmp(ReDesoAlg,CO) == 0 ) {
+    else if ( strcmp(ReDesoAlg,CO) == 0 ) { 
+      // for the moment ReDesoAlg is hard-coded to "co" in reinfi. clangi
 /* Evaluation of the desolvation in the BS by Coulmomb approximation */
       nn = Calc_D_Coul(ReAtNu,ReCoor,ReRad2,Min,Max,RePaCh,DielRe,DielWa,
                        GrSiSo,pi4,*PnxminBS,*PnyminBS,*PnzminBS,
