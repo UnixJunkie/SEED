@@ -3306,6 +3306,10 @@ double ***DeltaPrDeso --- Elec desolvation due to the occupation of a grid point
   double Wat,Size,Incr,epsre,epswa,Xfirst,Yfirst,Zfirst;
   char StrLin[_STRLENGTH],Alg[3];
   FILE *WriFile,*ReaFile;
+  
+  // hack clangini
+  bool PrntCompleteMap = true; 
+  // hack clangini
 
   if (DesoMapAcc[0] == 'w') {
 /* Write the D vector on the output file */
@@ -3315,13 +3319,21 @@ double ***DeltaPrDeso --- Elec desolvation due to the occupation of a grid point
                                           DielRe,DielWa,ReDesoAlg);
     fprintf(WriFile,"%d %d %d %f %f %f\n",NGridx,NGridy,NGridz,
                                           XGrid[1],YGrid[1],ZGrid[1]);
+    if (PrntCompleteMap) {
+      fprintf(WriFile, "%f %f %f\n", XGrid[nxminBS], YGrid[nyminBS], ZGrid[nzminBS]);
+    }
     fprintf(WriFile,"%d %d %d %d %d %d\n",nxminBS,nyminBS,nzminBS,
                                           nxmaxBS,nymaxBS,nzmaxBS);
     for (ix=nxminBS;ix<=nxmaxBS;ix++)
       for (iy=nyminBS;iy<=nymaxBS;iy++)
-        for (iz=nzminBS;iz<=nzmaxBS;iz++)
-          if (GridMat[ix][iy][iz] != 'o' )
-            fprintf(WriFile,"%.12f\n",DeltaPrDeso[ix][iy][iz]);
+        for (iz=nzminBS;iz<=nzmaxBS;iz++){
+          if (PrntCompleteMap){
+            fprintf(WriFile,"%.12f\n", DeltaPrDeso[ix][iy][iz]);
+          } else {
+            if (GridMat[ix][iy][iz] != 'o' )
+              fprintf(WriFile,"%.12f\n",DeltaPrDeso[ix][iy][iz]);
+          }
+        }
     fclose(WriFile);
 #endif
   }
@@ -3333,6 +3345,9 @@ double ***DeltaPrDeso --- Elec desolvation due to the occupation of a grid point
                                         &epsre,&epswa,Alg);
     fgets_wrapper(StrLin,_STRLENGTH,ReaFile);
     sscanf(StrLin,"%d%d%d%lf%lf%lf",&Nx,&Ny,&Nz,&Xfirst,&Yfirst,&Zfirst);
+    if (PrntCompleteMap){
+      fgets_wrapper(StrLin,_STRLENGTH,ReaFile);
+    }
     fgets_wrapper(StrLin,_STRLENGTH,ReaFile);
     sscanf(StrLin,"%d%d%d%d%d%d",&nminx,&nminy,&nminz,&nmaxx,&nmaxy,&nmaxz);
     if (fabs(Wat - WaMoRa) > 0.000001 || NPt != NPtSphere ||
@@ -3381,11 +3396,17 @@ double ***DeltaPrDeso --- Elec desolvation due to the occupation of a grid point
     }
     for (ix=nminx;ix<=nmaxx;ix++)
       for (iy=nminy;iy<=nmaxy;iy++)
-        for (iz=nminz;iz<=nmaxz;iz++)
-          if (GridMat[ix][iy][iz] != 'o' ) {
+        for (iz=nminz;iz<=nmaxz;iz++){
+          if (PrntCompleteMap){
             fgets_wrapper(StrLin,_STRLENGTH,ReaFile);
             sscanf(StrLin,"%lf",&(DeltaPrDeso)[ix][iy][iz]);
+          } else {
+            if (GridMat[ix][iy][iz] != 'o' ) {
+              fgets_wrapper(StrLin,_STRLENGTH,ReaFile);
+              sscanf(StrLin,"%lf",&(DeltaPrDeso)[ix][iy][iz]);
+            }
           }
+        }
     fclose(ReaFile);
   }
   else

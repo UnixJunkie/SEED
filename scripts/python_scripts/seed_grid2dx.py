@@ -46,7 +46,7 @@ def main(argv):
         print('Missing inputs.')
         sys.exit(2)
     
-    if grid_type not in ['coulomb', 'vanderwaals', 'solvation']:
+    if grid_type not in ['coulomb', 'vanderwaals', 'desolvation']:
         print('The specified grid type ' + grid_type + ' is not recognized.')
         sys.exit(2)
         
@@ -63,15 +63,30 @@ def main(argv):
             grid_delta = np.diag(grid_spacing)
             n_skiprows = 3 # number of rows to be skipped to read the grid data
             
-    elif grid_type == 'solvation':
-        raise NotImplementedError("type " + grid_type + " is not yet implemented.")
+    elif grid_type == 'desolvation':
+        # raise NotImplementedError("type " + grid_type + " is not yet implemented.")
+        # Reading main info desolvation grid
+        with open(grid_fn, 'r') as f:
+            line = f.readline()
+            grid_spacing = float(line.split()[2])
+            grid_delta = np.diag(np.repeat(grid_spacing, 3))
+            
+            line = f.readline()
+            line = f.readline()
+            grid_origin = np.array(line.split(), dtype = np.float64)
+            
+            line = f.readline()
+            line_split = np.array(line.split(), dtype=np.int32)
+            grid_shape = tuple(line_split[3:6] - line_split[0:3] + 1)
+            
+            n_skiprows = 4 # number of rows to be skipped to read the grid data
     
     # Reading grid into ndarray:
     npoint = np.prod(grid_shape)
     grid_vals = np.loadtxt(grid_fn, dtype=np.float64, skiprows=n_skiprows)
     # print(grid_vals.shape)
     
-    if grid_type == 'coulomb':
+    if grid_type in ['coulomb', 'desolvation']:
         grid_vals = grid_vals.reshape(grid_shape)
         # Now saving to dx file:
         dx = OpenDX.field(grid_type)
