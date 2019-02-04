@@ -2032,7 +2032,6 @@ int *NAtom_per_Res --------- NAtom_per_Res[n] = # of atoms of residue n
   Previous = 0;
   Nres = 0;
   for (iat=1;iat<=ReAtNu;iat++) {
-=======
     // if (ReResN[iat] == Previous+1 ) { // fixed clangini
     if (ReResN[iat] != Previous ) {
       if (Nres != 0 )
