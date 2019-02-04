@@ -319,5 +319,5 @@ The output files can be easily recombined together by concatenation:
     
 Note that the ``FNR!=1`` is there to remove the header line. 
 In general the SEED parallel binary is targeted towards the use on a cluster; 
-in the ``scripts`` folder we provide a template submission script for systems using 
-`SLURM <https://slurm.schedmd.com/>`_ for job scheduling. 
+We provide a template submission script ``seed_sbatch.template.sh`` for systems using 
+`SLURM <https://slurm.schedmd.com/>`_ as job scheduler. 
