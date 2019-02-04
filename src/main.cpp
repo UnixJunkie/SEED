@@ -23,6 +23,9 @@
 #include <time.h>
 #include "nrutil.h"
 #include <sys/time.h>
+#include "funct.h"
+#include <float.h>
+
 /* CLANGINI 2016 */
 //#include <boost/math/constants/constants.hpp>
 #include <sys/stat.h> /* to check for directory existence (consider changing using boost/system instead) */
@@ -32,19 +35,20 @@
 #include <vector>
 
 #ifdef USE_QUATERNION_ROTATION
-#include <quaternion.h>
+  #include <quaternion.h>
 #endif
 
 #if  __cplusplus > 199711L
-#include <unordered_map> //C++11 feature. Implemented as hash table
+  #include <unordered_map> //C++11 feature. Implemented as hash table
 #else
-#include <map>
+  #include <map>
+#endif
+
+#ifdef ENABLE_MPI
+  #include <mpi.h>
+  #define MASTERRANK 0
 #endif
 /* CLANGINI 2016 END */
-#include "funct.h"
-
-#include <float.h>
-
 
 #define _STRLENGTH 500
 
@@ -53,6 +57,8 @@
    allocation block size , avoid "do_not_touch_ener"
  */
 #define _ALLOCSIZE 100000
+
+using namespace std;
 
 int main(int argc,char *argv[])
   /* Main part of the program :
@@ -303,6 +309,24 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   char * numThreads;
 #endif
 
+#ifdef ENABLE_MPI // MPI variables.
+  int myrank, name_len, numtasks;
+  char processor_name[MPI_MAX_PROCESSOR_NAME];
+  char dummyStr[_STRLENGTH];
+  double start_time, end_time, max_time; // for timing
+  int dummyMpi; // dummy
+  int endtag = 777; // for final handshaking
+#endif
+
+  #ifdef ENABLE_MPI // start MPI universe!
+  MPI_Init(&argc,&argv); // Initialize MPI
+  MPI_Comm_size(MPI_COMM_WORLD,&numtasks); // get number of tasks
+  MPI_Comm_rank(MPI_COMM_WORLD,&myrank); // get my rank
+  MPI_Get_processor_name(processor_name, &name_len); // get processor name
+
+  MPI_Barrier(MPI_COMM_WORLD); // synchronize before calculating the starting time
+  start_time = MPI_Wtime();
+  #endif
   /*
      allocation in block size  -> to do realloc increase
    */
@@ -365,6 +389,9 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   /* t_omp_start = omp_get_wtime(); */
 #endif
   /* CLANGINI 2016 */
+  #ifdef ENABLE_MPI
+  if(myrank == MASTERRANK) {
+  #endif
   /* Make the directory outputs (if it does not exist)*/
   if ((stat("outputs",&DirExist) != 0)||(stat("outputs", &DirExist) == 0 && !S_ISDIR(DirExist.st_mode))){
     if (system("mkdir outputs") == -1)
@@ -373,8 +400,12 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   /* Make the directory scratch (if it does not exist)*/
   if ((stat("scratch",&DirExist) != 0)||(stat("scratch", &DirExist) == 0 && !S_ISDIR(DirExist.st_mode))){
     if(system("mkdir scratch") == -1)
-      std::cout << "Cannot create outputs directory" << std::endl;
+      std::cout << "Cannot create scratch directory" << std::endl;
   }
+  #ifdef ENABLE_MPI
+  }
+  MPI_Barrier(MPI_COMM_WORLD); // Necessary to avoid problems with CheckFile function within ReInFi
+  #endif
   /* CLANGINI 2016 END */
   /* Read the input and parameters files */
   InpFil=argv[1];
@@ -412,7 +443,15 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   /* Extract the output name for each fragment type from the fragments paths */
   /* FrFiNa_out=cmatrix(1,FragNu,1,_STRLENGTH); clangini*/
   /* ExtOutNam(FragNu,FrFiNa,FrFiNa_out); clangini */
+  #ifdef ENABLE_MPI // add suffix corresponding to the part
+  ExtOutNam(FrFiNa, FrFiNa_out, myrank); // overloaded in case we use MPI
+  ExtOutNam(OutFil, dummyStr, myrank);
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  #else
   ExtOutNam(FrFiNa,FrFiNa_out);
+  #endif
+
 
   /* Open the input files, write informations and check the existence of some
      files */
@@ -800,7 +839,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
     fprintf(FPaOut,"Number of points of the coulombic grid : %d\n\n",
         CoGPoN[1]*CoGPoN[2]*CoGPoN[3]);
     CoGrRP=d3tensor(1,CoGPoN[1],1,CoGPoN[2],1,CoGPoN[3]);
-    if (CoGrAcc[0]=='r') {
+    if (CoGrAcc[0]=='r') { // Reading case:
       FilePa=fopen(CoGrFile,"r");
       fgets_wrapper(StrLin,_STRLENGTH,FilePa);
       sscanf(StrLin,"%d%d%d",&Nx,&Ny,&Nz);
@@ -830,10 +869,13 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
       }
       fclose(FilePa);
     }
-    else {
+    else { // calculating/writing case:
       CoGReP(ReAtNu,ReCoor,RePaCh,CoDieV,CoDieP,CoGrIn,CoGrSi,BSMinC,CoGPoN,
           CoGrRP);
       printf("Receptor part of the coulombic interaction -> done\n");
+      #ifdef ENABLE_MPI
+      if (myrank == MASTERRANK){
+      #endif
       if (CoGrAcc[0]=='w') {
         FilePa=fopen(CoGrFile,"w"); /* to change to "wb" for binray grids*/
         /* FilePa=fopen(CoGrFile,"wb"); /\* to change to "wb" for binray grids*\/ */
@@ -858,6 +900,9 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
         }
         fclose(FilePa);
       }
+      #ifdef ENABLE_MPI
+      }
+      #endif
     }
 
     /* times(&timevar); */
@@ -867,16 +912,14 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
     /* time_3=timevar.tms_utime+timevar.tms_stime; */
     gettimeofday(&time_2,NULL);
     gettimeofday(&time_3,NULL);
+    #ifdef ENABLE_MPI
+    MPI_Barrier(MPI_COMM_WORLD);
+    #endif
 
 
     /* Compute or read the receptor part of the van der Waals interactions on a grid */
     for (i=1;i<=3;i++)
       VWGPoN[i]=ffloor((BSMaxC[i]+VWGrIn-(BSMinC[i]-VWGrIn))/VWGrSi)+2;
-    //clangingi debug:
-    //std::cout << "(BSMinC[i]-VWGrIn)  " << (BSMinC[1]-VWGrIn) << std::endl;
-    //std::cout << "(BSMaxC[i]+VWGrIn)  " << (BSMaxC[1]+ VWGrIn) << std::endl;
-    //std::cout << "VWGPoN[i]  " << VWGPoN[1] << std::endl;
-    //end clangini debug
 
     fprintf(FPaOut,"Number of points of the van der Waals grid : %d\n\n",
         VWGPoN[1]*VWGPoN[2]*VWGPoN[3]);
@@ -908,6 +951,9 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
       VWGReP(ReAtNu,ReCoor,ReVdWR_p3,ReVdWE_sr,VWGrIn,VWGrSi,BSMinC,VWGPoN,
           ReMaxC,ReMinC,VWGrRP_at,VWGrRP_re);
       printf("Receptor part of the van der Waals interaction -> done\n");
+      #ifdef ENABLE_MPI
+      if (myrank == MASTERRANK){
+      #endif
       if (VWGrAcc[0]=='w') {
         FilePa=fopen(VWGrFile,"w");
         fprintf(FilePa,"%d %d %d\n",VWGPoN[1],VWGPoN[2],VWGPoN[3]); // Number of voxels along x,y,z
@@ -923,12 +969,17 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
         }
         fclose(FilePa);
       }
+      #ifdef ENABLE_MPI
+      }
+      #endif
     }
 
     /* times(&timevar); */
     /* time_4=timevar.tms_utime+timevar.tms_stime; */
     gettimeofday(&time_4,NULL);
-
+    #ifdef ENABLE_MPI
+    MPI_Barrier(MPI_COMM_WORLD);
+    #endif
   }
 
 
@@ -1166,7 +1217,9 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
       mult_fact_rmin,mult_fact_rmax,FPaOut,&ReSelfVol_corrB,EmpCorrB);
 
 
-
+#ifdef ENABLE_MPI
+  if (myrank == MASTERRANK){
+#endif
   FilePa=fopen("./outputs/apolar_rec_reduc.mol2","w");
   /*fprintf(FilePa,"# TRIPOS MOL2 file generated by WITNOTP\n"); clangini */
   fprintf(FilePa,"# TRIPOS MOL2 file generated by SEED\n"); /* clangini */
@@ -1193,6 +1246,10 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
         apol_Vect_re[i1][6]);
   }
   fclose(FilePa);
+#ifdef ENABLE_MPI
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
 
   /* Normalization of the vectors apol_Vect_re */
@@ -1238,7 +1295,12 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   /* clangini 2016 */
   /* Setting up the table summary file */
   if (write_sumtab_opt[0]=='y'){ // Should introduce some check.
+    #ifdef ENABLE_MPI
+    sprintf(dummyStr, "./outputs/seed_clus_part%d.dat", myrank);
+    strcpy(TabFil, dummyStr);
+    #else
     strcpy(TabFil,"./outputs/seed_clus.dat");
+    #endif
     //char TabLin[_STRLENGTH];
     //std::ofstream TabOutStream;
     TabOutStream.open (TabFil);
@@ -1268,7 +1330,12 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   }
   if (write_best_sumtab_opt[0]=='y'){
     // Second summary table, with the best poses:
+    #ifdef ENABLE_MPI
+    sprintf(dummyStr, "./outputs/seed_best_part%d.dat", myrank);
+    strcpy(TabFil, dummyStr);
+    #else
     strcpy(TabFil,"./outputs/seed_best.dat");
+    #endif
     TabOutStream.open (TabFil);
     if(TabOutStream.is_open()){
       TabOutStream << std::left << std::setw(30) << "Name" << std::right
@@ -1316,7 +1383,6 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
     //        "_clus_pproc.mol2\0");               /*use another output folder? */
     sprintf(WriPat,"%s%s%s","./outputs/",FrFiNa_out, /* should give the possibility to */
             "_clus.mol2\0");               /*use another output folder? */
-
     FilePa=fopen(WriPat,"w");
     fprintf(FilePa,"# TRIPOS MOL2 file generated by SEED\n\n");
     fclose(FilePa);
@@ -3727,7 +3793,12 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
         MolWei = molecular_weight(FrAtEl_nu, FrAtNu, AtWei);
         if (write_best_sumtab_opt[0]=='y'){
           // append to _best_pproc summary table
+          #ifdef ENABLE_MPI
+          sprintf(dummyStr, "./outputs/seed_best_part%d.dat", myrank);
+          strcpy(TabFil, dummyStr);
+          #else
           strcpy(TabFil,"./outputs/seed_best.dat");
+          #endif
           TabOutStream.open (TabFil, std::ios::out | std::ios::app); // append mode
           if(TabOutStream.is_open()){
             //for (j=1;j<=((NuPosMem<NuPosSdCl)?NuPosMem:NuPosSdCl);j++) {
@@ -4323,6 +4394,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
       /* (time_10-time_9)*0.01); */
       fclose(FPaOut);
 
+
       if (Solv_typ[0]!='p')     /* Modification NM 26-05-2004 */ /* This has to be modified. clangini */
       {
         /*for (i1=1;i1<=((SFWrNu<FiNuMa)?SFWrNu:FiNuMa);i1++) {
@@ -4555,7 +4627,6 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
         /* Compute NuSdClKe and NuPosSdCl */
         NuSdClKe=0;
         NuPosSdCl=0;
-        //std::cout << "SFWrNu = " << SFWrNu << std::endl; //clangini
         for (j=1;j<=SFWrNu;j++) {
           //std::cout << "j = " << j << " ClusLi_sd_pproc[j] = " <<ClusLi_sd_pproc[j]<< std::endl; //clangini
           if (ClusLi_sd_pproc[j]==2) { // if it is a first cluster representative
@@ -4576,6 +4647,8 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
         IntVar1=0;
         IntVar2=0;
         for (j=1;j<=SFWrNu;j++) {
+          // cout << "j= " << j << endl;
+          // cout << "ClusLi_sd_pproc[j] " << ClusLi_sd_pproc[j] << endl;
           if (ClusLi_sd_pproc[j]==2) { // if representative of first clustering
                                        //(and hence of second as well) clangini
             IntVar1=IntVar1+1;
@@ -4611,6 +4684,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
         // Sort is sorting all the kept positions, here we split the ordered poses
         // into the clusters they belong to. clangini
         CluIndex_sort=ivector(1,NuSdClKe);// clangini
+
         for (j=1;j<= NuSdClKe;j++){
           CluIndex_sort[j] = j; // clangini
         }
@@ -4752,7 +4826,6 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
         }
         PosToRem.clear();
 
-
         /* Append lines to summary table. START clangini */
         /* Calculate HAC (Heavy Atom Count) and MW (Molecular Weight)*/
         HeAtCo = count_heavy_atom(FrAtEl_nu, FrAtNu);
@@ -4760,7 +4833,12 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
         if (write_sumtab_opt[0]=='y'){
           // append to _pproc summary table
           //std::ofstream TabOutStream;
+          #ifdef ENABLE_MPI
+          sprintf(dummyStr, "./outputs/seed_clus_part%d.dat", myrank);
+          strcpy(TabFil, dummyStr);
+          #else
           strcpy(TabFil,"./outputs/seed_clus.dat");
+          #endif
           TabOutStream.open (TabFil, std::ios::out | std::ios::app); // append mode
           if(TabOutStream.is_open()){
             for (j=1;j<=((NuLiEnClus<NuPosSdCl)?NuLiEnClus:NuPosSdCl);j++) {
@@ -4783,7 +4861,12 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
         }
         if (write_best_sumtab_opt[0]=='y'){
           // append to _best_pproc summary table
+          #ifdef ENABLE_MPI
+          sprintf(dummyStr, "./outputs/seed_best_part%d.dat", myrank);
+          strcpy(TabFil, dummyStr);
+          #else
           strcpy(TabFil,"./outputs/seed_best.dat");
+          #endif
           TabOutStream.open (TabFil, std::ios::out | std::ios::app); // append mode
           if(TabOutStream.is_open()){
             for (j=1;j<=((NuPosMem<NuPosSdCl)?NuPosMem:NuPosSdCl);j++) {
@@ -4887,28 +4970,32 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
         }
         // clangini 18/01/17 END
 
-        ReprSdClAr=ivector(1,NuSdClKe);
-        IntVar1=1;
-        ReprSdClAr[IntVar1]=FrPosAr_sort[1];
-        for (j=1;j<=NuPosSdCl;j++) {
-          if (SdClusAr_sort[j]!=IntVar1) {
-            IntVar1=SdClusAr_sort[j];
-            ReprSdClAr[IntVar1]=FrPosAr_sort[j];
-          }
-        }
-        if (write_pproc_opt[0]=='y'&& write_pproc_chm_opt[0]=='y') {
-
-          /*write_chm_clus_pprocr(CurFra,NuSdClKe,FrAtNu,FrAtTy,FrCoPo,ResN_fr,
-              FrFiNa_out,ReprSdClAr); no longer used clangini*/ /*Needs to be removed clangini*/
-        }
-        if (gc_opt[0]=='y')
-        {
-          /*GeomCenter_FFLD(CurFra,FrFiNa_out,FrAtNu,FrAtEl_nu,NuSdClKe,ReprSdClAr,
-              To_s_ro,FrCoPo,ResN_fr,FragNa,gc_reprke,gc_cutclus,
-              gc_endifclus,gc_weighneg,gc_weighpos,gc_maxwrite);
-              Do we want to keep support for FFLD? clangini */
-        }
-        free_ivector(ReprSdClAr,1,NuSdClKe);
+        // // clangini 23/05/2018 START
+        // // The following section of code appears to be no longer used -> commented
+        // ReprSdClAr=ivector(1,NuSdClKe);
+        // IntVar1=1;
+        // ReprSdClAr[IntVar1]=FrPosAr_sort[1];
+        //
+        // for (j=1;j<=NuPosSdCl;j++) {
+        //   if (SdClusAr_sort[j]!=IntVar1) {
+        //     IntVar1=SdClusAr_sort[j];
+        //     ReprSdClAr[IntVar1]=FrPosAr_sort[j];
+        //   }
+        // }
+        // if (write_pproc_opt[0]=='y'&& write_pproc_chm_opt[0]=='y') {
+        //
+        //   /*write_chm_clus_pprocr(CurFra,NuSdClKe,FrAtNu,FrAtTy,FrCoPo,ResN_fr,
+        //       FrFiNa_out,ReprSdClAr); no longer used clangini*/ /*Needs to be removed clangini*/
+        // }
+        // if (gc_opt[0]=='y')
+        // {
+        //   /*GeomCenter_FFLD(CurFra,FrFiNa_out,FrAtNu,FrAtEl_nu,NuSdClKe,ReprSdClAr,
+        //       To_s_ro,FrCoPo,ResN_fr,FragNa,gc_reprke,gc_cutclus,
+        //       gc_endifclus,gc_weighneg,gc_weighpos,gc_maxwrite);
+        //       Do we want to keep support for FFLD? clangini */
+        // }
+        // free_ivector(ReprSdClAr,1,NuSdClKe);
+        // // clangini 23/05/2018 END of commented part
 
 
         /* times(&timevar); */
@@ -5033,6 +5120,30 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
     /* time_8*0.01); */
     fclose(FPaOut);
 
+    #ifdef ENABLE_MPI
+    // final MPI output and handshaking:
+    end_time = MPI_Wtime() - start_time;
+    fprintf(stdout, "Rank %d finished execution after %.2f seconds\n", myrank, end_time);
+    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Status status;
+    if (myrank == MASTERRANK){
+      for (i = 1; i <= numtasks - 1; i++){
+        MPI_Send(&dummyMpi, 1, MPI_INT, i, endtag, MPI_COMM_WORLD);
+      }
+    } else {
+      MPI_Recv(&dummyMpi, 1, MPI_INT, MASTERRANK, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+      if (status.MPI_TAG == endtag){
+        fprintf(stdout, "Rank %d received correct end message from rank %d\n", myrank, MASTERRANK);
+      } else {
+        fprintf(stderr, "Fatal. Received bad message \'%d\' from master rank. Expected \'%d\'\n", status.MPI_TAG, endtag);
+        MPI_Abort(MPI_COMM_WORLD, 1); // double check if it is correct to stop execution like this
+      }
+    }
+    MPI_Reduce(&end_time, &max_time, 1, MPI_DOUBLE,MPI_MAX, 0, MPI_COMM_WORLD);
+    if(myrank == MASTERRANK){
+      fprintf(stdout, "\nMax execution time across all ranks (Total execution time): %.2f seconds\n", max_time);
+    }
+    #endif
 
     /* clean-up */
     free_ivector(Index_ro,1,currentsize);
@@ -5132,7 +5243,9 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
     free_dvector(ReVdWR_p3,1,ReAtNu);
     free_dmatrix(distrPointBS,1,distrPointBSNumb,1,3);
 
-
+    #ifdef ENABLE_MPI
+    MPI_Finalize();
+    #endif
     return 0;
 
   }
