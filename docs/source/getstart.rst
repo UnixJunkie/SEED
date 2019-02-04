@@ -262,8 +262,8 @@ be investigated:
 | ``Fragments that passed the total energy cutoff : 17794``
 
 
-Getting started with SEED MPI 
------------------------------
+Getting started with parallel SEED
+----------------------------------
 
 SEED has a parallel version based on the Message Passing Interface (MPI) that 
 is indicated to speed up docking campaigns on high performance multicore architectures. 
