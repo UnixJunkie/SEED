@@ -31,7 +31,7 @@ After installation run SEED with the following command:
 
 .. code-block:: bash
   
-  ./seed_4 seed.inp >& log
+  seed_4 seed.inp >& log
 
 .. _input_files:
 
@@ -260,3 +260,64 @@ be investigated:
 | ``Fragments that passed the bump checking : 49007``
 | ``Fragments that passed the vdW energy cutoff : 22100``
 | ``Fragments that passed the total energy cutoff : 17794``
+
+
+Getting started with SEED MPI 
+-----------------------------
+
+SEED has a parallel version based on the Message Passing Interface (MPI) that 
+is indicated to speed up docking campaigns on high performance multicore architectures. 
+
+In order to install it you need a C-compiled MPI implementation (for example 
+`OpenMPI <https://www.open-mpi.org/>`_) against which to link the code. You 
+might also have to modify the ``Makefile.local`` and provide the name of the 
+specific MPI library you want to use. 
+You can compile SEED MPI implementation by running:
+
+.. code-block:: bash
+  
+  cd SEED/src 
+  make seed_mpi 
+  
+SEED MPI version implements a simple parallelization strategy in which each 
+process screens a subset of the library against the same target. In order to 
+start a SEED parallel run:
+
+.. code-block:: bash
+  
+  mpirun -np N seed_4_mpi seed.inp >& log
+  
+where *N* is the number of required MPI ranks.
+
+Dynamic load balance is not implemented so far, hence for the moment each process 
+reads from and writes to separate files, which means that the library has to be 
+split beforehand into *N* mol2 files. Depending on the way the library was prepared, 
+there might be some patterns (*e.g.*, the ligands are ordered by molecular weight) 
+which could result in degraded performance as some processes will be faster than others. 
+In order to avoid this problem we recommend shuffling the library before 
+splitting it and running the docking: 
+
+.. code-block:: bash
+
+  python shuffle_library_withDictionaries.py library_name.mol2
+  bash split_library_reciprocal.sh library_name_shuffled.mol2 N
+  
+The shuffled library will be suffixed ``_shuffled.mol2``.
+The *N* files will be named ``library_name_shuffled_part${i}.mol2`` with *i* going from 0 to *N*-1.
+In the input file ``seed.inp`` you have to provide the ``library_name_shuffled.mol2`` 
+as input file, omitting the suffix.
+Each MPI rank *i* will look for its corresponding library file ``library_name_shuffled_part${i}.mol2``.
+Each output file (both mol2 structural outputs and the main log ``seed.out``)
+will be suffixed with ``_part${i}`` as well.
+
+The output files can be easily recombined together by concatenation:
+
+.. code-block:: bash 
+
+    cat seed_best_part*.mol2 > seed_best_all.mol2
+    awk 'FNR!=1' seed_best_part*.dat > seed_best_all.dat
+    
+Note that the ``FNR!=1`` is there to remove the header line. 
+In general the SEED parallel binary is targeted towards the use on a cluster; 
+in the ``scripts`` folder we provide a template submission script for systems using 
+`SLURM <https://slurm.schedmd.com/>`_ for job scheduling. 
