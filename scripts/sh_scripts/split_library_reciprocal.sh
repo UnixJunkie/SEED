@@ -1,7 +1,7 @@
 #!/bin/bash
 # clangini 31/07/2017
 USAGE="\nScript for splitting a concatenated mol2 file input_library.mol2 into N files\n\
-Usage: bash split_library_reciprocal.sh input_library.mol2 output_name N\n\
+Usage: bash split_library_reciprocal.sh input_library.mol2 N output_name \n\
 The output files are suffixed _partX with X going from 0 to N-1.
 part1 contains molecules 1, M+1, 2M+1, ... , part2 contains 2, M+2, 2M+2, ...\n"
 
@@ -35,14 +35,14 @@ else
 fi
 
 re='^[0-9]+$'
-if ! [[ $3 =~ $re ]] ; then
-   echo -e "\nFatal: $3 is not a number.\n"
+if ! [[ $2 =~ $re ]] ; then
+   echo -e "\nFatal: $2 is not a number.\n"
    exit -11
 fi
 
 library_fn_full=$1
-output_fn_full=$2
-npart=$3
+output_fn_full=$3
+npart=$2
 
 # library_fn_full=${library##*/}
 library_fn_noext=${library_fn_full%.*}
