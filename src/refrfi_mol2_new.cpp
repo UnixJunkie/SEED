@@ -21,13 +21,94 @@
 #include <sstream>
 #include <stdlib.h>
 #include <string>
+#include <vector>
 #include <boost/tokenizer.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/trim_all.hpp>
 #include <boost/lexical_cast.hpp>
 #include "nrutil.h"
 #ifndef _STRLENGTH
 #define _STRLENGTH 500
 #endif
+
+#ifdef ENABLE_MPI
+  #include <mpi.h>
+  #define MASTERRANK 0
+#endif
+
+#ifdef ENABLE_MPI
+/* MPI wrapper to read and dispatch the molecules. */
+int MPI_ReFrFi_mol2(std::istream *inStream, std::streampos *strPos)
+{
+  int nrks,aone,mol2tag[3], whichready, mlen;
+  MPI_Request *rkreqs;
+  MPI_Status mstatus;
+  int rk;
+  int *readies;
+  std::string StrLin, concat; // tmp line
+  std::vector<std::string> mpi_strs; // vector to be dispatched
+
+  aone = 1;
+  mol2tag[0] = 197;
+  mol2tag[1] = 198;
+  mol2tag[2] = 199;
+  MPI_Comm_size(MPI_COMM_WORLD,&nrks);
+  readies = new int [nrks-1];
+  rkreqs = new MPI_Request [nrks-1]
+  inStream->seekg(*strPos, std::ios_base::beg); //Move the get position to current location
+  
+  while(true) {
+    *strPos = inStream->tellg()
+    std::getline(*inStream, StrLin);
+    boost::trim(StrLin);
+    
+    if (inStream->eof()){
+      std::cerr << "\n\tEnd of fragment library was reached!" << std::endl;
+      return 1;
+    } else if (StrLin == "@<TRIPOS>MOLECULE") {
+      break;
+    }
+    
+    mpi_strs.push_back(StrLin)
+  }
+  
+  // concat vector string:
+  for (const auto &s: mpi_strs) concat += mpi_strs;
+  boost::algorithm::trim_all(concat);
+  
+  for (rk=1; rk < nrks; rk++){
+    MPI_Irecv(readies[rk-1], aone, MPI_INT, rk, mol2tag[0], MPI_COMM_WORLD, &rkreqs[rk-1])
+  }
+  MPI_Waitany(rnks-1, rkreqs, &whichready, &mstatus);
+
+  mlen = concat.length();
+  MPI_Send(&mlen, aone, MPI_INT, whichready, mol2tag[1], MPI_COMM_WORLD); // send length of the message
+  MPI_Send(concat.c_str(), mlen, MPI_CHAR, whichready, mol2tag[2], MPI_COMM_WORLD);
+  
+  // open new request for the one we just used up
+  MPI_Irecv(readies[whichready], aone, MPI_INT, whichready, mol2tag[0], MPI_COMM_WORLD, &rkreqs[whichready]);
+  
+  // // SUBSTITUTE NEXT -> SOLVED more elegantly
+  // while(!inStream->eof() && StrLin != "@<TRIPOS>MOLECULE"){ // get to the beginning of the molecule
+  //   std::getline(*inStream, StrLin);
+  //   boost::trim(StrLin)
+  // }
+  // if (inStream->eof()){ // end of file reached
+  //   std::cerr << "\n\tEnd of fragment library was reached!" << std::endl;
+  //   return 1;
+  // } else {
+  //   mpi_strs.push_back(StrLin);
+  // }
+  // 
+  // *strPos = inStream->tellg();
+  // std::getline(*inStream, StrLin)
+  // while(!inStream->eof() && StrLin != "@<TRIPOS>MOLECULE")
+  // // SUBSTITUTE PREVIOUS
+  
+  // NOTE should consider to signal EOF   
+}
+#endif
+
 /* The code for the mol2 reader was partially inspired by RDKIT http://www.rdkit.org/ */
 /* 	We reimplemented this function in C++ to take advantage of the more advanced
 	parsing functions of this language (in particular we make extensive use of boost/tokenizer)
