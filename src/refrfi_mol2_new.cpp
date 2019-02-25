@@ -74,6 +74,7 @@ int MPI_ReFrFi_mol2(std::istream *inStream, std::streampos *strPos, MPI_Request 
     } else if (StrLin == "@<TRIPOS>MOLECULE" && molstart == false) {
       molstart = true;
     } else if (StrLin == "@<TRIPOS>MOLECULE" && molstart == true) {
+      molstart = false;
       break;
     }
     
@@ -103,7 +104,7 @@ int MPI_ReFrFi_mol2(std::istream *inStream, std::streampos *strPos, MPI_Request 
     MPI_Waitall(rnks-1, rkreqs, mstati);
     
     for (rk=1; rk < nrks; rk++){
-      MPI_Send(azero, aone, MPI_INT, rk, mol2tag[2], MPI_COMM_WORLD);
+      MPI_Send(azero, aone, MPI_INT, rk, mol2tag[1], MPI_COMM_WORLD);
     }
     delete [] mstati;
     
@@ -132,7 +133,20 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
   int insec; // which mol2 section you are in 
   int seclc; // section line count 
   int curm; 
+  bool skipit;
   
+  // initialize pointers to null:
+  // TODO replace with nullptr (also in nrutil)
+  FrAtEl_L = NULL;
+  FrAtTy_L = NULL;
+  FrBdTy_L = NULL;
+  SubNa_L = NULL;
+  FrSyAtTy_L = NULL;
+  FrBdAr_L = NULL;
+  FrCoor_L = NULL;
+  FrPaCh_L = NULL;
+  
+  skipit = true;
   mlen = -1;
   mol2tag[0] = 197;
   mol2tag[1] = 198;
@@ -151,7 +165,7 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
   
   if (mlen == 0){
     // eof reached
-    return 0;
+    return 1;
   }
   
   mpi_mess = new char [mlen];
@@ -160,180 +174,202 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
   boost::split(mpi_strs, mpi_mess, boost::is_any_of("\n"));
   delete [] mpi_mess;
     
-  if (mpi_strs.size() > 0){
-  	tokenizer tokens(mpi_strs[0], sep); //Initialize tokenizer
-  	tokenizer::const_iterator itItem; // = tokens.begin();
+	tokenizer tokens(mpi_strs[0], sep); //Initialize tokenizer
+	tokenizer::const_iterator itItem; // = tokens.begin();
     
-    
-    insec = -1;
-    for (std::vector<std::string>::iterator s = mpi_strs.begin(); s != mpi_strs.end(); ++s) {
-      /* Look for the next molecule section */
-      if (insec == -1 && *s != "@<TRIPOS>MOLECULE") continue; // cycle until molecule start
-      if ( *s.at(0) == '@') {
-        if (insec == 1 || insec == 2 || insec == 3) {
-          std::cerr << "Encountered a new section while still processing input. \
-                        Skipping." << std::endl;
-          insec = -1;
-          break;
-        } 
-        if (*s == "@<TRIPOS>MOLECULE") {
-          insec = 1;
-          seclc = 0;
-          curm = 0;
+  insec = -1;
+  for (std::vector<std::string>::iterator s = mpi_strs.begin(); s != mpi_strs.end(); ++s) {
+    /* Look for the next molecule section */
+    if (insec == -1 && *s != "@<TRIPOS>MOLECULE") continue; // cycle until molecule start
+    if ( *s.at(0) == '@') {
+      if (insec != 0 || insec != -1) {
+        std::cerr << "Encountered a new section while still processing input. \
+                      Skipping." << std::endl;
+        //insec = -1;
+        skipit = true;
+        break;
+      } 
+      if (*s == "@<TRIPOS>MOLECULE") {
+        insec = 1;
+        seclc = 0;
+        curm = 0;
+        visitsecs[insec] = true;
+        continue;
+      } else if (*s == "@<TRIPOS>ATOM") {
+        if (curm == 0) {
+          continue;
+        } else if (visitsecs[2]){
+          continue;
+        } else {
+          insec = 2;
           visitsecs[insec] = true;
           continue;
-        } else if (*s == "@<TRIPOS>ATOM") {
-          if (curm == 0) {
-            continue;
-          } else if (visitsecs[2]){
-            continue;
-          } else {
-            insec = 2;
-            visitsecs[insec] = true;
-            continue;
-          } 
-        } else if (*s == "@<TRIPOS>BOND"){
-          if (curm == 0){
-            continue;
-          } else if (visitsecs[3]){
-            continue;
-          } else {
-            insec = 3;
-            visitsecs[insec] = true;
-            continue;
-          }
-        } else if (*s == "@<TRIPOS>ALT_TYPE") {
-          if (curm == 0){
-            continue;
-          } else if (visitsecs[4]) {
-            continue;
-          } else {
-            insec = 4;
-            seclc = 0;
-            visitsecs[insec] = true;
-            continue;
-          }
+        } 
+      } else if (*s == "@<TRIPOS>BOND"){
+        if (curm == 0){
+          continue;
+        } else if (visitsecs[3]){
+          continue;
+        } else {
+          insec = 3;
+          visitsecs[insec] = true;
+          continue;
+        }
+      } else if (*s == "@<TRIPOS>ALT_TYPE") {
+        if (curm == 0){
+          continue;
+        } else if (visitsecs[4]) {
+          continue;
+        } else {
+          insec = 4;
+          seclc = 0;
+          visitsecs[insec] = true;
+          continue;
         }
       }
-      
-      if (insec == 1){ // MOLECULE section 
-        seclc++;
-        if (seclc == 1) { // read name 
-          FragNa_str = *s;
-          strcpy(FragNa, FragNa_str.c_str());
-        } else if (seclc == 2) { // read mol info 
-          std::stringstream(*s) >> (*FrAtNu) >> (*FrBdNu); //>> (*FrCoNu);
-          *FrCoNu = 1;
-          // zero the indicators and set molecule as valid 
-          insec = 0;
-          seclc = 0;
-          curm = 1;
-        }
-        // rest of molecule section is ignored
-      } else if (insec == 2) {
-        if (seclc == 0) { // first time I allocate the structures:
-          FrAtEl_L=cmatrix(1,*FrAtNu,1,5);
-        	FrCoor_L=dmatrix(1,*FrAtNu,1,3);
-        	FrSyAtTy_L=cmatrix(1,*FrAtNu,1,7);
-          SubNa_L =cmatrix(1,*FrAtNu,1,10);/*can be simplified. same for all fragment atoms*/
-        	FrPaCh_L=dvector(1,*FrAtNu);
-        	*FrAtEl=FrAtEl_L;
-        	*FrCoor=FrCoor_L;
-        	*FrSyAtTy=FrSyAtTy_L;
-        	*FrPaCh=FrPaCh_L;
-          *SubNa = SubNa_L;
-        }
-        tokens.assign(*s, sep);
-    		itItem = tokens.begin();
-  	  	++itItem;
-        strcpy(&FrAtEl_L[seclc][1],(*itItem).c_str());
-    		++itItem;
-        FrCoor_L[seclc][1] = boost::lexical_cast<double> (*itItem);
-        ++itItem;
-        FrCoor_L[seclc][2] = boost::lexical_cast<double> (*itItem);
-        ++itItem;
-        FrCoor_L[seclc][3] = boost::lexical_cast<double> (*itItem);
-        ++itItem;
-        strcpy(&FrSyAtTy_L[seclc][1],(*itItem).c_str());
-    		++itItem; ++itItem;
-        strcpy(&SubNa_L[seclc][1],(*itItem).c_str());
-        ++itItem;
-    		FrPaCh_L[seclc] = boost::lexical_cast<double> (*itItem);
-        
-        seclc++;  
-        if (seclc == *FrAtNu) {
-          insec = 0;
-          seclc = 0;
-        }
-      } else if (insec == 3){
-        if (seclc == 0){
-          FrBdAr_L=imatrix(1,*FrBdNu,1,2);
-        	FrBdTy_L=cmatrix(1,*FrBdNu,1,4);
-        	*FrBdAr=FrBdAr_L;
-        	*FrBdTy=FrBdTy_L;
-        }
-        tokens.assign(*s, sep);
-  		  itItem = tokens.begin();
-  		  ++itItem; // skip bond_id
-  		  FrBdAr_L[seclc][1] = boost::lexical_cast<int>(*itItem);
-  		  ++itItem;
-  		  FrBdAr_L[seclc][2] = boost::lexical_cast<int>(*itItem);
-  		  ++itItem;
-        strcpy(&FrBdTy_L[seclc][1],(*itItem).c_str());
-        
-        seclc++;
-        if (seclc == *FrBdNu){
-          insec = 0;
-          seclc = 0;
-        }
-      } else if (insec == 4){
-        seclc++;
-        if (seclc == 1){
-          found = StrLin.find("ALT_TYPE_SET");
-    	    if (found == std::string::npos){
-            break;
-          } else {
-            AlTySp = *s.substr(0,(found-1));
-            FrAtTy_L=cmatrix(1,*FrAtNu,1,7);
-        	  *FrAtTy=FrAtTy_L;
-            continue;
-          }
-        } else if (seclc == 2) {      
-          tokens.assign(*s, sep);
-          itItem = tokens.begin();
-    	    firstToken = *(itItem);
-      	  if (firstToken != AlTySp){
-      		  std::cerr << "Names of alternative atom type set do not coincide for fragment " << *CurFraTot
-                      << ". Skipping!\n";
-            break;
-      	   }
-    	     ++itItem; // skip the alternative atom type set name
-           AtCount = 0;
-           AtNu_flag = false;
-        } else if (seclc > 2){
-          tokens.assign(*s, sep);
-          itItem = tokens.begin();
-        } 
-    	  while (AtCount < *FrAtNu){
-    		  if (*itItem != "\\"){
-    			  if (!AtNu_flag){
-    				  CuAtNu =  boost::lexical_cast<int>(*itItem); // Current atom number
-    				  AtNu_flag = true;
-    				  ++itItem;
-    			  } else {
-              strcpy(&FrAtTy_L[CuAtNu][1],(*itItem).c_str());
-    				  ++AtCount;
-    				  ++itItem;
-    				  AtNu_flag = false;
-    			  }
-    		  } else {
-            break;
-          }   
-    	  }
-      } // end of insec switch
     }
+    
+    if (insec == 1){ // MOLECULE section 
+      seclc++;
+      if (seclc == 1) { // read name 
+        FragNa_str = *s;
+        strcpy(FragNa, FragNa_str.c_str());
+      } else if (seclc == 2) { // read mol info 
+        std::stringstream(*s) >> (*FrAtNu) >> (*FrBdNu); //>> (*FrCoNu);
+        *FrCoNu = 1;
+        // zero the indicators and set molecule as valid 
+        insec = 0;
+        seclc = 0;
+        curm = 1;
+      }
+      // rest of molecule section is ignored
+    } else if (insec == 2) {
+      if (seclc == 0) { // first time I allocate the structures:
+        FrAtEl_L=cmatrix(1,*FrAtNu,1,5);
+      	FrCoor_L=dmatrix(1,*FrAtNu,1,3);
+      	FrSyAtTy_L=cmatrix(1,*FrAtNu,1,7);
+        SubNa_L =cmatrix(1,*FrAtNu,1,10);/*can be simplified. same for all fragment atoms*/
+      	FrPaCh_L=dvector(1,*FrAtNu);
+      	*FrAtEl=FrAtEl_L;
+      	*FrCoor=FrCoor_L;
+      	*FrSyAtTy=FrSyAtTy_L;
+      	*FrPaCh=FrPaCh_L;
+        *SubNa = SubNa_L;
+      }
+      tokens.assign(*s, sep);
+  		itItem = tokens.begin();
+	  	++itItem;
+      strcpy(&FrAtEl_L[seclc][1],(*itItem).c_str());
+  		++itItem;
+      FrCoor_L[seclc][1] = boost::lexical_cast<double> (*itItem);
+      ++itItem;
+      FrCoor_L[seclc][2] = boost::lexical_cast<double> (*itItem);
+      ++itItem;
+      FrCoor_L[seclc][3] = boost::lexical_cast<double> (*itItem);
+      ++itItem;
+      strcpy(&FrSyAtTy_L[seclc][1],(*itItem).c_str());
+  		++itItem; ++itItem;
+      strcpy(&SubNa_L[seclc][1],(*itItem).c_str());
+      ++itItem;
+  		FrPaCh_L[seclc] = boost::lexical_cast<double> (*itItem);
+      
+      seclc++;  
+      if (seclc == *FrAtNu) {
+        insec = 0;
+        seclc = 0;
+      }
+    } else if (insec == 3){
+      if (seclc == 0){
+        FrBdAr_L=imatrix(1,*FrBdNu,1,2);
+      	FrBdTy_L=cmatrix(1,*FrBdNu,1,4);
+      	*FrBdAr=FrBdAr_L;
+      	*FrBdTy=FrBdTy_L;
+      }
+      tokens.assign(*s, sep);
+		  itItem = tokens.begin();
+		  ++itItem; // skip bond_id
+		  FrBdAr_L[seclc][1] = boost::lexical_cast<int>(*itItem);
+		  ++itItem;
+		  FrBdAr_L[seclc][2] = boost::lexical_cast<int>(*itItem);
+		  ++itItem;
+      strcpy(&FrBdTy_L[seclc][1],(*itItem).c_str());
+      
+      seclc++;
+      if (seclc == *FrBdNu){
+        insec = 0;
+        seclc = 0;
+      }
+    } else if (insec == 4){
+      seclc++;
+      if (seclc == 1){
+        found = StrLin.find("ALT_TYPE_SET");
+  	    if (found == std::string::npos){
+          skipit = true;
+          break;
+        } else {
+          AlTySp = *s.substr(0,(found-1));
+          FrAtTy_L=cmatrix(1,*FrAtNu,1,7);
+      	  *FrAtTy=FrAtTy_L;
+          continue;
+        }
+      } else if (seclc == 2) {      
+        tokens.assign(*s, sep);
+        itItem = tokens.begin();
+  	    firstToken = *(itItem);
+    	  if (firstToken != AlTySp){
+    		  std::cerr << "Names of alternative atom type set do not coincide for fragment " << *CurFraTot
+                    << ". Skipping!\n";
+          skipit = true;
+          break;
+    	   }
+  	     ++itItem; // skip the alternative atom type set name
+         AtCount = 0;
+         AtNu_flag = false;
+      } else if (seclc > 2){
+        tokens.assign(*s, sep);
+        itItem = tokens.begin();
+      } 
+  	  while (AtCount < *FrAtNu){
+  		  if (*itItem != "\\"){
+  			  if (!AtNu_flag){
+  				  CuAtNu =  boost::lexical_cast<int>(*itItem); // Current atom number
+  				  AtNu_flag = true;
+  				  ++itItem;
+  			  } else {
+            strcpy(&FrAtTy_L[CuAtNu][1],(*itItem).c_str());
+  				  ++AtCount;
+  				  ++itItem;
+  				  AtNu_flag = false;
+  			  }
+  		  } else {
+          break;
+        }   
+  	  }
+      if (AtCount == *FrAtNu){
+        skipit = false; // correct termination
+        break;
+      }
+    } // end of insec switch
   }
-  (*CurFraTot)++;
+  
+  if (skipit){
+    (*SkiFra)++;
+    (*CurFraTot)++;
+    // clean-up memory:
+    // check for NULL is taken care by the function
+    free_cmatrix(FrAtEl_L,1,*FrAtNu,1,5);
+    free_dmatrix(FrCoor_L,1,*FrAtNu,1,3);
+    free_cmatrix(FrSyAtTy_L,1,*FrAtNu,1,7);
+    free_dvector(FrPaCh_L,1,*FrAtNu);
+    free_cmatrix(SubNa_L,1,*FrAtNu,1,10);
+    free_imatrix(FrBdAr_L,1,*FrBdNu,1,2);
+    free_cmatrix(FrBdTy_L,1,*FrBdNu,1,4);
+    free_cmatrix(FrAtTy_L,1,*FrAtNu,1,7);
+    return 0; 
+  } else {
+    (*CurFraTot)++;
+    return 0;
+  }
 }
 #endif
 

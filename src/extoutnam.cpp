@@ -107,7 +107,7 @@ void ExtOutNam(char *FrFiNa,char *FrFiNa_out)
 
 /* Overloaded version in case we use MPI
    it adds a suffix _partMY_RANK before the .mol2 ending */
-void ExtOutNam(char *FrFiNa,char *FrFiNa_out, int myrank)
+void ExtOutNam(char *FrFiNa,char *FrFiNa_out, char *suffix)
 /* This function extracts the output name for each fragment type from the
    fragments paths :
    FrFiNa_out  output name for each fragment type
@@ -116,12 +116,12 @@ void ExtOutNam(char *FrFiNa,char *FrFiNa_out, int myrank)
    LasCha  pointer on the last character of the name */
 {
   char *LasCha;
-  char suffix[_STRLENGTH];
+  //char suffix[_STRLENGTH];
   char extension[10];
   int LengStr,j;
 
   // first we modify FrFiNa to add the _partMYRANK
-  sprintf(suffix, "_part%d", myrank);
+  //sprintf(suffix, "_part%d", myrank);
   LengStr = strlen(&FrFiNa[0]);
 
   LasCha = strrchr(&FrFiNa[0], '.');

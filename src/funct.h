@@ -19,6 +19,9 @@
 #include <iostream>
 #include <cstdio>
 #include "quaternion.h"
+#ifdef ENABLE_MPI
+#include <mpi.h>
+#endif
 #define sqrtf sqrt
 #define sinf sin
 #define cosf cos
@@ -112,6 +115,16 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
                 char ***FrAtEl,double ***FrCoor,char ***FrAtTy,  char ***FrSyAtTy,double **FrPaCh,
                 int ***FrBdAr,char ***FrBdTy,char *FrSubN,char *FrSubC,
                 int *FrCoNu,char ***SubNa, std::string &AlTySp);
+#ifdef ENABLE_MPI
+int MPI_ReFrFi_mol2(std::istream *inStream, std::streampos *strPos, MPI_Request *rkreqs,
+                    int *readies);
+int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
+                std::string & FragNa_str,int *FrAtNu,int *FrBdNu,
+                char ***FrAtEl,double ***FrCoor,char ***FrAtTy,char ***FrSyAtTy,
+                double **FrPaCh,
+                int ***FrBdAr,char ***FrBdTy,char *FrSubN,char *FrSubC,
+                int *FrCoNu, char ***SubNa, std::string &AlTySp);
+#endif
 void ReFrFi_mol2_syb(int CurFra,char **FrFiNa,char *FragNa,int *FrAtNu,int *FrBdNu,
                  char ***FrAtEl,double ***FrCoor,char ***FrAtTy, char ***FrSyAtTy,double **FrPaCh,
                  int ***FrBdAr,char ***FrBdTy,char *FrSubN,char *FrSubC,
@@ -273,7 +286,7 @@ void SqDisFrRe_ps(int FrAtNu,double **RoSFCo,double **ReCoor,double *ReMinC,
             int *LiChResEn,double **SDFrRe_ps_elec,double **ChFrRe_ps_elec);
 /* void ExtOutNam(int FragNu,char **FrFiNa,char **FrFiNa_out); clangini */
 void ExtOutNam(char *FrFiNa,char *FrFiNa_out); /* clangini */
-void ExtOutNam(char *FrFiNa,char *FrFiNa_out, int myrank); /* clangini */
+void ExtOutNam(char *FrFiNa,char *FrFiNa_out, char *suffix); /* clangini */
 void FindFrSym(int FrAtNu,double **FrCoor,char **FrAtTy,int *UndisAt_fr);
 void write_chm_clus_reduc(int CurFra,int SFWrNu,int FrAtNu,int *AliHyd,
                           double *Coulo_ro,double *Vande_ro,double *TotEn_ro,
