@@ -316,6 +316,8 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   double start_time, end_time, max_time; // for timing
   int dummyMpi; // dummy
   int endtag = 777; // for final handshaking
+  MPI_Request *rkreqs;
+  int *readies;
 #endif
 
   #ifdef ENABLE_MPI // start MPI universe!
@@ -326,6 +328,8 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
 
   MPI_Barrier(MPI_COMM_WORLD); // synchronize before calculating the starting time
   start_time = MPI_Wtime();
+  rkreqs = new MPI_Request[numtasks-1];
+  readies = new int [nrks-1];
   #endif
   /*
      allocation in block size  -> to do realloc increase
@@ -5143,6 +5147,9 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
     if(myrank == MASTERRANK){
       fprintf(stdout, "\nMax execution time across all ranks (Total execution time): %.2f seconds\n", max_time);
     }
+    /* clean-up MPI stuff */
+    delete [] rkreqs;
+    delete [] readies;
     #endif
 
     /* clean-up */

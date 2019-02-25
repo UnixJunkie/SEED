@@ -38,23 +38,27 @@
 
 #ifdef ENABLE_MPI
 /* MPI wrapper to read and dispatch the molecules. */
-int MPI_ReFrFi_mol2(std::istream *inStream, std::streampos *strPos)
+int MPI_ReFrFi_mol2(std::istream *inStream, std::streampos *strPos, MPI_Request *rkreqs,
+                    int *readies)
 {
-  int nrks,aone,mol2tag[3], whichready, mlen;
-  MPI_Request *rkreqs;
+  int nrks,aone,mol2tag[3], whichready, mlen,azero;
   MPI_Status mstatus;
+  MPI_Status *mstati;
   int rk;
   int *readies;
   std::string StrLin, concat; // tmp line
   std::vector<std::string> mpi_strs; // vector to be dispatched
-
+  bool endoffile, molstart;
+  
+  endoffile = false;
+  molstart = false;
+  // maysend = false;
   aone = 1;
+  azero = 0;
   mol2tag[0] = 197;
   mol2tag[1] = 198;
   mol2tag[2] = 199;
   MPI_Comm_size(MPI_COMM_WORLD,&nrks);
-  readies = new int [nrks-1];
-  rkreqs = new MPI_Request [nrks-1]
   inStream->seekg(*strPos, std::ios_base::beg); //Move the get position to current location
   
   while(true) {
@@ -64,50 +68,275 @@ int MPI_ReFrFi_mol2(std::istream *inStream, std::streampos *strPos)
     
     if (inStream->eof()){
       std::cerr << "\n\tEnd of fragment library was reached!" << std::endl;
-      return 1;
-    } else if (StrLin == "@<TRIPOS>MOLECULE") {
+      endoffile = true;
+      mpi_strs.push_back(StrLin);
+      break;
+    } else if (StrLin == "@<TRIPOS>MOLECULE" && molstart == false) {
+      molstart = true;
+    } else if (StrLin == "@<TRIPOS>MOLECULE" && molstart == true) {
       break;
     }
     
     mpi_strs.push_back(StrLin)
   }
   
-  // concat vector string:
-  for (const auto &s: mpi_strs) concat += mpi_strs;
-  boost::algorithm::trim_all(concat);
-  
-  for (rk=1; rk < nrks; rk++){
-    MPI_Irecv(readies[rk-1], aone, MPI_INT, rk, mol2tag[0], MPI_COMM_WORLD, &rkreqs[rk-1])
-  }
-  MPI_Waitany(rnks-1, rkreqs, &whichready, &mstatus);
+  if (!endoffile){
+    // concat vector string:
+    for (const auto &s: mpi_strs) concat += mpi_strs;
+    boost::algorithm::trim_all(concat);
+    
+    for (rk=1; rk < nrks; rk++){
+      MPI_Irecv(&readies[rk-1], aone, MPI_INT, rk, mol2tag[0], MPI_COMM_WORLD, &rkreqs[rk-1])
+    }
+    MPI_Waitany(rnks-1, rkreqs, &whichready, &mstatus);
 
-  mlen = concat.length();
-  MPI_Send(&mlen, aone, MPI_INT, whichready, mol2tag[1], MPI_COMM_WORLD); // send length of the message
-  MPI_Send(concat.c_str(), mlen, MPI_CHAR, whichready, mol2tag[2], MPI_COMM_WORLD);
+    mlen = concat.length();
+    MPI_Send(&mlen, aone, MPI_INT, whichready, mol2tag[1], MPI_COMM_WORLD); // send length of the message
+    MPI_Send(concat.c_str(), mlen, MPI_CHAR, whichready, mol2tag[2], MPI_COMM_WORLD);
+    
+    // open new request for the one we just used up
+    MPI_Irecv(&readies[whichready], aone, MPI_INT, whichready, mol2tag[0], MPI_COMM_WORLD, &rkreqs[whichready]);
+    
+    return 0;
+  } else { // end-of-file: close all requests.
+    mstati = new MPI_Status[nrks-1];
+    MPI_Waitall(rnks-1, rkreqs, mstati);
+    
+    for (rk=1; rk < nrks; rk++){
+      MPI_Send(azero, aone, MPI_INT, rk, mol2tag[2], MPI_COMM_WORLD);
+    }
+    delete [] mstati;
+    
+    return 1;
+  }
+}
+
+int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
+                std::string & FragNa_str,int *FrAtNu,int *FrBdNu,
+                char ***FrAtEl,double ***FrCoor,char ***FrAtTy,char ***FrSyAtTy,
+                double **FrPaCh,
+                int ***FrBdAr,char ***FrBdTy,char *FrSubN,char *FrSubC,
+                int *FrCoNu, char ***SubNa, std::string &AlTySp)
+{
+  typedef boost::tokenizer< boost::char_separator<char> > tokenizer;
+  boost::char_separator<char> sep(" \t\n");
+
+	char **FrAtEl_L,**FrAtTy_L,**FrBdTy_L, **SubNa_L, **FrSyAtTy_L;
+  int i,**FrBdAr_L, AtCount, CuAtNu, amready, aone, mol2tag[3], mlen;
+	bool AtNu_flag, visitsecs[5];
+  double **FrCoor_L,*FrPaCh_L;
+  char *mpi_mess;
+  std::vector<std::string> mpi_strs;
+  MPI_Request myreq;
+  MPI_Status mstatus;
+  int insec; // which mol2 section you are in 
+  int seclc; // section line count 
+  int curm; 
   
-  // open new request for the one we just used up
-  MPI_Irecv(readies[whichready], aone, MPI_INT, whichready, mol2tag[0], MPI_COMM_WORLD, &rkreqs[whichready]);
+  mlen = -1;
+  mol2tag[0] = 197;
+  mol2tag[1] = 198;
+  mol2tag[2] = 199;
+  aone = 1;
+  amready = 1;
+	std::string StrLin, firstToken;
+	std::size_t found;
+  for (i = 0; i < 4; i++){
+    visitsecs[i] = false;
+  }
   
-  // // SUBSTITUTE NEXT -> SOLVED more elegantly
-  // while(!inStream->eof() && StrLin != "@<TRIPOS>MOLECULE"){ // get to the beginning of the molecule
-  //   std::getline(*inStream, StrLin);
-  //   boost::trim(StrLin)
-  // }
-  // if (inStream->eof()){ // end of file reached
-  //   std::cerr << "\n\tEnd of fragment library was reached!" << std::endl;
-  //   return 1;
-  // } else {
-  //   mpi_strs.push_back(StrLin);
-  // }
-  // 
-  // *strPos = inStream->tellg();
-  // std::getline(*inStream, StrLin)
-  // while(!inStream->eof() && StrLin != "@<TRIPOS>MOLECULE")
-  // // SUBSTITUTE PREVIOUS
+  MPI_Isend(&amready, aone, MPI_INT, MASTERRANK, mol2tag[0], MPI_COMM_WORLD, &myreq);
+  MPI_Wait(&myreq, &mstatus);
+  MPI_Recv(&mlen, aone, MPI_INT, MASTERRANK, mol2tag[1], MPI_COMM_WORLD, &mstatus);
   
-  // NOTE should consider to signal EOF   
+  if (mlen == 0){
+    // eof reached
+    return 0;
+  }
+  
+  mpi_mess = new char [mlen];
+  MPI_Recv(mpi_mess, mlen, MPI_CHAR, MASTERRANK, mol2tag[2], MPI_COMM_WORLD, &mstatus);
+  
+  boost::split(mpi_strs, mpi_mess, boost::is_any_of("\n"));
+  delete [] mpi_mess;
+    
+  if (mpi_strs.size() > 0){
+  	tokenizer tokens(mpi_strs[0], sep); //Initialize tokenizer
+  	tokenizer::const_iterator itItem; // = tokens.begin();
+    
+    
+    insec = -1;
+    for (std::vector<std::string>::iterator s = mpi_strs.begin(); s != mpi_strs.end(); ++s) {
+      /* Look for the next molecule section */
+      if (insec == -1 && *s != "@<TRIPOS>MOLECULE") continue; // cycle until molecule start
+      if ( *s.at(0) == '@') {
+        if (insec == 1 || insec == 2 || insec == 3) {
+          std::cerr << "Encountered a new section while still processing input. \
+                        Skipping." << std::endl;
+          insec = -1;
+          break;
+        } 
+        if (*s == "@<TRIPOS>MOLECULE") {
+          insec = 1;
+          seclc = 0;
+          curm = 0;
+          visitsecs[insec] = true;
+          continue;
+        } else if (*s == "@<TRIPOS>ATOM") {
+          if (curm == 0) {
+            continue;
+          } else if (visitsecs[2]){
+            continue;
+          } else {
+            insec = 2;
+            visitsecs[insec] = true;
+            continue;
+          } 
+        } else if (*s == "@<TRIPOS>BOND"){
+          if (curm == 0){
+            continue;
+          } else if (visitsecs[3]){
+            continue;
+          } else {
+            insec = 3;
+            visitsecs[insec] = true;
+            continue;
+          }
+        } else if (*s == "@<TRIPOS>ALT_TYPE") {
+          if (curm == 0){
+            continue;
+          } else if (visitsecs[4]) {
+            continue;
+          } else {
+            insec = 4;
+            seclc = 0;
+            visitsecs[insec] = true;
+            continue;
+          }
+        }
+      }
+      
+      if (insec == 1){ // MOLECULE section 
+        seclc++;
+        if (seclc == 1) { // read name 
+          FragNa_str = *s;
+          strcpy(FragNa, FragNa_str.c_str());
+        } else if (seclc == 2) { // read mol info 
+          std::stringstream(*s) >> (*FrAtNu) >> (*FrBdNu); //>> (*FrCoNu);
+          *FrCoNu = 1;
+          // zero the indicators and set molecule as valid 
+          insec = 0;
+          seclc = 0;
+          curm = 1;
+        }
+        // rest of molecule section is ignored
+      } else if (insec == 2) {
+        if (seclc == 0) { // first time I allocate the structures:
+          FrAtEl_L=cmatrix(1,*FrAtNu,1,5);
+        	FrCoor_L=dmatrix(1,*FrAtNu,1,3);
+        	FrSyAtTy_L=cmatrix(1,*FrAtNu,1,7);
+          SubNa_L =cmatrix(1,*FrAtNu,1,10);/*can be simplified. same for all fragment atoms*/
+        	FrPaCh_L=dvector(1,*FrAtNu);
+        	*FrAtEl=FrAtEl_L;
+        	*FrCoor=FrCoor_L;
+        	*FrSyAtTy=FrSyAtTy_L;
+        	*FrPaCh=FrPaCh_L;
+          *SubNa = SubNa_L;
+        }
+        tokens.assign(*s, sep);
+    		itItem = tokens.begin();
+  	  	++itItem;
+        strcpy(&FrAtEl_L[seclc][1],(*itItem).c_str());
+    		++itItem;
+        FrCoor_L[seclc][1] = boost::lexical_cast<double> (*itItem);
+        ++itItem;
+        FrCoor_L[seclc][2] = boost::lexical_cast<double> (*itItem);
+        ++itItem;
+        FrCoor_L[seclc][3] = boost::lexical_cast<double> (*itItem);
+        ++itItem;
+        strcpy(&FrSyAtTy_L[seclc][1],(*itItem).c_str());
+    		++itItem; ++itItem;
+        strcpy(&SubNa_L[seclc][1],(*itItem).c_str());
+        ++itItem;
+    		FrPaCh_L[seclc] = boost::lexical_cast<double> (*itItem);
+        
+        seclc++;  
+        if (seclc == *FrAtNu) {
+          insec = 0;
+          seclc = 0;
+        }
+      } else if (insec == 3){
+        if (seclc == 0){
+          FrBdAr_L=imatrix(1,*FrBdNu,1,2);
+        	FrBdTy_L=cmatrix(1,*FrBdNu,1,4);
+        	*FrBdAr=FrBdAr_L;
+        	*FrBdTy=FrBdTy_L;
+        }
+        tokens.assign(*s, sep);
+  		  itItem = tokens.begin();
+  		  ++itItem; // skip bond_id
+  		  FrBdAr_L[seclc][1] = boost::lexical_cast<int>(*itItem);
+  		  ++itItem;
+  		  FrBdAr_L[seclc][2] = boost::lexical_cast<int>(*itItem);
+  		  ++itItem;
+        strcpy(&FrBdTy_L[seclc][1],(*itItem).c_str());
+        
+        seclc++;
+        if (seclc == *FrBdNu){
+          insec = 0;
+          seclc = 0;
+        }
+      } else if (insec == 4){
+        seclc++;
+        if (seclc == 1){
+          found = StrLin.find("ALT_TYPE_SET");
+    	    if (found == std::string::npos){
+            break;
+          } else {
+            AlTySp = *s.substr(0,(found-1));
+            FrAtTy_L=cmatrix(1,*FrAtNu,1,7);
+        	  *FrAtTy=FrAtTy_L;
+            continue;
+          }
+        } else if (seclc == 2) {      
+          tokens.assign(*s, sep);
+          itItem = tokens.begin();
+    	    firstToken = *(itItem);
+      	  if (firstToken != AlTySp){
+      		  std::cerr << "Names of alternative atom type set do not coincide for fragment " << *CurFraTot
+                      << ". Skipping!\n";
+            break;
+      	   }
+    	     ++itItem; // skip the alternative atom type set name
+           AtCount = 0;
+           AtNu_flag = false;
+        } else if (seclc > 2){
+          tokens.assign(*s, sep);
+          itItem = tokens.begin();
+        } 
+    	  while (AtCount < *FrAtNu){
+    		  if (*itItem != "\\"){
+    			  if (!AtNu_flag){
+    				  CuAtNu =  boost::lexical_cast<int>(*itItem); // Current atom number
+    				  AtNu_flag = true;
+    				  ++itItem;
+    			  } else {
+              strcpy(&FrAtTy_L[CuAtNu][1],(*itItem).c_str());
+    				  ++AtCount;
+    				  ++itItem;
+    				  AtNu_flag = false;
+    			  }
+    		  } else {
+            break;
+          }   
+    	  }
+      } // end of insec switch
+    }
+  }
+  (*CurFraTot)++;
 }
 #endif
+
 
 /* The code for the mol2 reader was partially inspired by RDKIT http://www.rdkit.org/ */
 /* 	We reimplemented this function in C++ to take advantage of the more advanced
@@ -120,7 +349,7 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
                 char ***FrAtEl,double ***FrCoor,char ***FrAtTy,char ***FrSyAtTy,
                 double **FrPaCh,
                 int ***FrBdAr,char ***FrBdTy,char *FrSubN,char *FrSubC,
-                int *FrCoNu, char ***SubNa, std::string &AlTySp )
+                int *FrCoNu, char ***SubNa, std::string &AlTySp)
 /* This function reads the file of the current fragment (CurFra) in the mol2
    format :
    inStream pointer to the input file stream
