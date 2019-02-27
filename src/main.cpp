@@ -1456,10 +1456,10 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
     /* Reads the next valid molecule. If it detects any problems it skips the molecule. clangini */
   
     #ifdef ENABLE_MPI
-    std::cerr << "============ Start of loop for rank "<< myrank << " ============" << std::endl;
+    //std::cerr << "============ Start of loop for rank "<< myrank << " ============" << std::endl;
     if (myrank == MASTERRANK){ 
       LstFra_f = MPI_ReFrFi_mol2(&FrInStream,&FrInPos,rkreqs,readies, &firsttime);
-      std::cerr << "rank " << myrank << " ended reading with status " << LstFra_f << std::endl;
+      // std::cerr << "rank " << myrank << " ended reading with status " << LstFra_f << std::endl;
     } else {
       LstFra_f = MPI_slave_ReFrFi_mol2(&SkiFra,&CurFraTot,FragNa,
                       FragNa_str,&FrAtNu,&FrBdNu,
@@ -1467,7 +1467,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
                       &FrPaCh,
                       &FrBdAr,&FrBdTy,FrSubN,FrSubC,
                       &FrCoNu, &SubNa, AlTySp);
-      std::cerr << "rank " << myrank << " ended readig with status " << LstFra_f << std::endl;
+      // std::cerr << "rank " << myrank << " ended readig with status " << LstFra_f << std::endl;
       if(LstFra_f == -1){
         continue;
       }

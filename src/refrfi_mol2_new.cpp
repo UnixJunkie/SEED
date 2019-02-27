@@ -64,12 +64,9 @@ int MPI_ReFrFi_mol2(std::istream *inStream, std::streampos *strPos, MPI_Request 
   MPI_Comm_size(MPI_COMM_WORLD,&nrks);
   inStream->seekg(*strPos, std::ios_base::beg); //Move the get position to current location
   
-  std::cerr << "MPI read main " << std::endl;
-  
   while(true) {
     *strPos = inStream->tellg();
     std::getline(*inStream, StrLin);
-    boost::trim(StrLin);
     
     if (inStream->eof()){
       std::cerr << "\n\tEnd of fragment library was reached!" << std::endl;
@@ -89,11 +86,10 @@ int MPI_ReFrFi_mol2(std::istream *inStream, std::streampos *strPos, MPI_Request 
   if (!endoffile){
     // concat vector string:
     concat = boost::algorithm::join(mpi_strs,"\n");
-    boost::replace_all(concat, "\0", "");
     boost::algorithm::trim_all(concat);
     
     if (*firsttime){
-      std::cerr << "First call Master" << std::endl;
+      //std::cerr << "First call Master" << std::endl;
       for (rk=1; rk < nrks; rk++){
         MPI_Irecv(&readies[rk-1], aone, MPI_INT, rk, mol2tag[0], MPI_COMM_WORLD, &rkreqs[rk-1]);
       }
@@ -104,11 +100,7 @@ int MPI_ReFrFi_mol2(std::istream *inStream, std::streampos *strPos, MPI_Request 
     mlen = concat.length() + 1; // +1 needed accounts for '\0'
     MPI_Send(&mlen, aone, MPI_INT, nextplease+1, mol2tag[1], MPI_COMM_WORLD); // send length of the message
     mpi_mess = new char[mlen]; 
-    strcpy(mpi_mess, concat.c_str()); 
-    
-    // if (mpi_mess[mlen] == '\0'){
-    //   std::cerr << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << std::endl;
-    // }
+    strcpy(mpi_mess, concat.c_str());
     
     //std::cerr << "Sending to rank " << nextplease+1 << " message " << mlen << " long. or " << strlen(mpi_mess) << "\n";
     //std::cerr << mpi_mess << std::endl; 
@@ -180,7 +172,6 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
     visitsecs[i] = false;
   }
   
-  std::cerr << "MPI read slave " << std::endl;
   MPI_Isend(&amready, aone, MPI_INT, MASTERRANK, mol2tag[0], MPI_COMM_WORLD, &myreq);
   MPI_Wait(&myreq, &mstatus);
   MPI_Recv(&mlen, aone, MPI_INT, MASTERRANK, mol2tag[1], MPI_COMM_WORLD, &mstatus);
@@ -194,52 +185,35 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
   mpi_mess = new char[mlen];
   MPI_Recv(mpi_mess, mlen, MPI_CHAR, MASTERRANK, mol2tag[2], MPI_COMM_WORLD, &mstatus);
   
-  int mycount = -1;
-  MPI_Get_count(&mstatus, MPI_CHAR, &mycount);
-  
-  //std::cerr << "Receiving message from " << MASTERRANK << " message " << mlen << " long.\n";
-  //std::cerr << mpi_mess << std::endl; 
-  // std::cerr << "ggggggggg " << mlen << "   " << mycount << "   " << strlen(mpi_mess) << " gggggggggggggggg"<< std::endl;
-  // if (mpi_mess[strlen(mpi_mess)] == '\0'){
-  //   std::cerr << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << std::endl;
-  // }
-  
+  // int mycount = -1; 
+  // MPI_Get_count(&mstatus, MPI_CHAR, &mycount); // enable if want to double check the size of the message
+
   boost::split(mpi_strs, mpi_mess, boost::is_any_of("\n"));
   delete [] mpi_mess;
-  
-  // for(auto const& ll: mpi_strs) {
-  //    std::cerr << ll << std::endl;
-  // }
-  if (mpi_strs[0] == "@<TRIPOS>MOLECULE"){
-    std::cerr << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << std::endl;
-  }
-  //return -1;
   
 	tokenizer tokens(mpi_strs[0], sep); //Initialize tokenizer
 	tokenizer::const_iterator itItem; // = tokens.begin();
     
   insec = -1;
   for (std::vector<std::string>::iterator s = mpi_strs.begin(); s != mpi_strs.end(); ++s) {
-    std::cerr << "looping" << std::endl;
     /* Look for the next molecule section */
     if (insec == -1 && *s != "@<TRIPOS>MOLECULE") continue; // cycle until molecule start
     if ( (*s).at(0) == '@') {
       if (insec != 0 && insec != -1) {
         std::cerr << "Encountered a new section while still processing input. \
-                      Skipping." << std::endl;
-        //insec = -1;
+                      Skipping!" << std::endl;
         skipit = true;
         break;
       } 
       if (*s == "@<TRIPOS>MOLECULE") {
-        std::cerr << "Enter the mol" << std::endl;
+        // std::cerr << "Enter the mol" << std::endl;
         insec = 1;
         seclc = 0;
         curm = 0;
         visitsecs[insec] = true;
         continue;
       } else if (*s == "@<TRIPOS>ATOM") {
-        std::cerr << "Enter the atom section with curm " << curm << std::endl;
+        // std::cerr << "Enter the atom section with curm " << curm << std::endl;
         if (curm == 0) {
           continue;
         } else if (visitsecs[2]){
@@ -250,7 +224,7 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
           continue;
         } 
       } else if (*s == "@<TRIPOS>BOND"){
-        std::cerr << "Enter the bond section with curm " << curm << std::endl;
+        // std::cerr << "Enter the bond section with curm " << curm << std::endl;
         if (curm == 0){
           continue;
         } else if (visitsecs[3]){
@@ -261,14 +235,13 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
           continue;
         }
       } else if (*s == "@<TRIPOS>ALT_TYPE") {
-        std::cerr << "Enter the alt_type section with curm " << curm << std::endl;
+        // std::cerr << "Enter the alt_type section with curm " << curm << std::endl;
         if (curm == 0){
           continue;
         } else if (visitsecs[4]) {
           continue;
         } else {
           insec = 4;
-          //seclc = 0;
           visitsecs[insec] = true;
           continue;
         }
@@ -349,14 +322,12 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
       }
     } else if (insec == 4){
       if (seclc == 0){
-        std::cerr << *s << std::endl;
         found = s->find("ALT_TYPE_SET");
   	    if (found == std::string::npos){
           std::cerr << "Alternative atom type set not found" << std::endl;
           skipit = true;
           break;
         } else {
-          std::cerr << "Alternative atom type set FOUND" << std::endl;
           AlTySp = s->substr(0,(found-1));
           FrAtTy_L=cmatrix(1,*FrAtNu,1,7);
       	  *FrAtTy=FrAtTy_L;
@@ -388,7 +359,7 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
     			  } else {
               strcpy(&FrAtTy_L[CuAtNu][1],(*itItem).c_str());
     				  ++AtCount;
-              std::cerr << "read alt data type " << CuAtNu << " type " << (*itItem).c_str() << " AtCount " << AtCount << std::endl;
+              // std::cerr << "read alt data type " << CuAtNu << " type " << (*itItem).c_str() << " AtCount " << AtCount << std::endl;
     				  ++itItem;
     				  AtNu_flag = false;
     			  }
