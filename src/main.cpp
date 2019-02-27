@@ -318,6 +318,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   int endtag = 777; // for final handshaking
   MPI_Request *rkreqs;
   int *readies;
+  bool firsttime;
 #endif
 
   #ifdef ENABLE_MPI // start MPI universe!
@@ -329,7 +330,8 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   MPI_Barrier(MPI_COMM_WORLD); // synchronize before calculating the starting time
   start_time = MPI_Wtime();
   rkreqs = new MPI_Request[numtasks-1];
-  readies = new int [nrks-1];
+  readies = new int[numtasks-1];
+  firsttime = true;
   #endif
   /*
      allocation in block size  -> to do realloc increase
@@ -450,7 +452,8 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   #ifdef ENABLE_MPI // add suffix corresponding to the part
   // set suffix 
   if (myrank == MASTERRANK) {
-    sprintf(suffix, "");
+    // sprintf(suffix, '\0');
+    suffix[0] = '\0';
   } else {
     sprintf(suffix, "_part%d", myrank);
   }
@@ -607,12 +610,18 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
       fclose(FilChk);
 
   /* Fragment input file is now only one clangini*/
+  #ifdef ENABLE_MPI
+  if (myrank == MASTERRANK){
+  #endif
   if ((FilChk=fopen(FrFiNa,"r"))==NULL) {
     fprintf(FPaOut,"WARNING Was not able to open fragment file %s\n\n",FrFiNa);
     ChkExit=1;
   }
   else
     fclose(FilChk);
+  #ifdef ENABLE_MPI
+  }
+  #endif
 
 
   if ((FilChk=fopen(TREFiP,"r"))==NULL) {
@@ -1383,16 +1392,18 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   CurFra = 0; /* Current fragment clangini */
   int LstFra_f = 0; /* flag to signal that the last fragment was reached */
 
+  std::ifstream FrInStream; /* declare input stream for the fragment */
+  std::streampos FrInPos;
   #ifdef ENABLE_MPI
   if (myrank == MASTERRANK){
   #endif
-  std::ifstream FrInStream; /* declare input stream for the fragment */
+  
   FrInStream.open(FrFiNa, std::ios_base::binary); /* open input stream for the fragment */
   if (FrInStream.fail()) {
     fprintf(stderr,"Cannot open specified input file %s\nProgram exits!\n",FrFiNa);
     exit(13);
   }
-  std::streampos FrInPos = FrInStream.tellg(); /* Save the get position */
+  FrInPos = FrInStream.tellg(); /* Save the get position */
   #ifdef ENABLE_MPI 
   }
   #endif 
@@ -1428,8 +1439,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
     clbErr = 0;
 
     /* CurFra=i; clangini */
-    FPaOut=fopen(OutFil,"a");
-
+      FPaOut=fopen(OutFil,"a");
     //fprintf(FPaOut,"-------------------------------------------------\n\n");//Moved after fragment reading. clangini
     //fprintf(FPaOut,"Data for the fragment type %d :\n\n",CurFraTot); //Moved after fragment reading. clangini
 
@@ -1446,15 +1456,21 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
     /* Reads the next valid molecule. If it detects any problems it skips the molecule. clangini */
   
     #ifdef ENABLE_MPI
-    if (myrank == MASTERRANK){
-      LstFra_f = MPI_ReFrFi_mol2(&FrInStream,&FrInPos,rkreqs,readies)
+    std::cerr << "============ Start of loop for rank "<< myrank << " ============" << std::endl;
+    if (myrank == MASTERRANK){ 
+      LstFra_f = MPI_ReFrFi_mol2(&FrInStream,&FrInPos,rkreqs,readies, &firsttime);
+      std::cerr << "rank " << myrank << " ended reading with status " << LstFra_f << std::endl;
     } else {
       LstFra_f = MPI_slave_ReFrFi_mol2(&SkiFra,&CurFraTot,FragNa,
                       FragNa_str,&FrAtNu,&FrBdNu,
                       &FrAtEl, &FrCoor,&FrAtTy,&FrSyAtTy,
                       &FrPaCh,
                       &FrBdAr,&FrBdTy,FrSubN,FrSubC,
-                      &FrCoNu, &SubNa, AlTySp)
+                      &FrCoNu, &SubNa, AlTySp);
+      std::cerr << "rank " << myrank << " ended readig with status " << LstFra_f << std::endl;
+      if(LstFra_f == -1){
+        continue;
+      }
     }
     #else 
     LstFra_f = ReFrFi_mol2(&FrInStream,&FrInPos,&SkiFra,&CurFraTot,FragNa,
@@ -1464,15 +1480,21 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
                            &SubNa,AlTySp);
     #endif 
     
-    if (LstFra_f){
+    if (LstFra_f == 1){
+      #ifdef ENABLE_MPI
+      if (myrank == MASTERRANK){
+      #endif
       std::cerr << "\tNo more fragments in input file " << FrFiNa << std::endl;
+      #ifdef ENABLE_MPI 
+      }
+      #endif
       fclose(FPaOut);
       break;
     }
 
     #ifdef ENABLE_MPI
     // masterrank only does reading and dispatching 
-    if (myrank != MASTERRANK) continue;
+    if (myrank == MASTERRANK) continue;
     #endif 
     
     //CurFraTot++; //This is updated in ReFrFi_mol2
@@ -5130,7 +5152,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
     free_cmatrix(FrBdTy,1,FrBdNu,1,4);
     free_ivector(AliHyd,1,FrAtNu);
     free_ivector(FrAtEl_nu,1,FrAtNu);
-  } /* End of while(!FrInStream.eof()&&!LstFra_f)  clangini */
+  } /* End of while(true)  clangini */
 
 
     /* Collect the energies of all the fragment types, sort them with respect to

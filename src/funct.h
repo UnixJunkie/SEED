@@ -117,7 +117,7 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
                 int *FrCoNu,char ***SubNa, std::string &AlTySp);
 #ifdef ENABLE_MPI
 int MPI_ReFrFi_mol2(std::istream *inStream, std::streampos *strPos, MPI_Request *rkreqs,
-                    int *readies);
+                    int *readies, bool *firsttime);
 int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
                 std::string & FragNa_str,int *FrAtNu,int *FrBdNu,
                 char ***FrAtEl,double ***FrCoor,char ***FrAtTy,char ***FrSyAtTy,
