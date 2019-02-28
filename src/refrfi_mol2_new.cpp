@@ -83,7 +83,6 @@ int MPI_ReFrFi_mol2(std::istream *inStream, std::streampos *strPos, MPI_Request 
     mpi_strs.push_back(StrLin);
   }
   
-  if (!endoffile){
     // concat vector string:
     concat = boost::algorithm::join(mpi_strs,"\n");
     boost::algorithm::trim_all(concat);
@@ -107,9 +106,11 @@ int MPI_ReFrFi_mol2(std::istream *inStream, std::streampos *strPos, MPI_Request 
     
     MPI_Send(mpi_mess, mlen, MPI_CHAR, nextplease+1, mol2tag[2], MPI_COMM_WORLD);
     delete [] mpi_mess;
-    // open new request for the one we just used up
-    MPI_Irecv(&readies[nextplease], aone, MPI_INT, nextplease+1, mol2tag[0], MPI_COMM_WORLD, &rkreqs[nextplease]);
     
+    // open new request for the one we just used up
+    MPI_Irecv(&readies[nextplease], aone, MPI_INT, nextplease+1, mol2tag[0], MPI_COMM_WORLD, &rkreqs[nextplease]);    
+  
+  if (!endoffile){
     return 0;
   } else { // end-of-file: close all requests.
     mstati = new MPI_Status[nrks-1];
