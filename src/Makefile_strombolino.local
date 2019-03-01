@@ -5,6 +5,6 @@ LDFLAGS = -lm -O3 -static
 INC_FLAGS = -I. -I../lib/
 
 # For seed MPI:
-MPICXX = mpic++
+MPICXX = /software/openmpi/Gnu/bin/mpic++
 MPICXXFLAGS = -std=c++11 -O3 -pedantic -Wall -march=native -DUSE_QUATERNION_ROTATION
 MPILDFLAGS = -lm -O3 #-l:libmpi_cxx.so.1.0.2
