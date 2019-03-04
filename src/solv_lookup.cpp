@@ -690,8 +690,12 @@ double *PRmax ----------- Largest rec charge radius
   int i,j;
   double d,d2;
 
-  for (i=1;i<=ReAtNu;i++)
+  for (i=1;i<=ReAtNu;i++){
     ReRad[i] =  ReVdWR[i];
+    if (ReRad[i] < 1.0){ // buffering the radius
+      ReRad[i] = 1.0;
+    }
+  }
 
   *PRmin = 9999.;
   *PRmax = -9999.;
@@ -745,9 +749,13 @@ double *PRmax ----------- Largest charge radius
 {
   int i,j;
   double d;
-
-  for (i=1;i<=ReAtNu;i++)
+  
+  for (i=1;i<=ReAtNu;i++){
     ReRad[i] =  ReVdWR[i];
+    if (ReRad[i] < 1.0){ // buffering the radius. clangini
+      ReRad[i] = 1.0;
+    }
+  }
 
   *PRmin = 9999.;
   *PRmax = -9999.;
