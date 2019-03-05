@@ -133,7 +133,7 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
                 int *FrCoNu, char ***SubNa, std::string &AlTySp)
 {
   typedef boost::tokenizer< boost::char_separator<char> > tokenizer;
-  boost::char_separator<char> sep(" \t\n");
+  boost::char_separator<char> sep(" \t\n\r");
 
 	char **FrAtEl_L,**FrAtTy_L,**FrBdTy_L, **SubNa_L, **FrSyAtTy_L;
   int i,**FrBdAr_L, AtCount, CuAtNu, amready, aone, mol2tag[3], mlen;
@@ -439,7 +439,7 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
 {
 	typedef boost::tokenizer< boost::char_separator<char> > tokenizer;
 	//boost::char_separator<char> sep={" \t\n"};
-  boost::char_separator<char> sep(" \t\n");
+  boost::char_separator<char> sep(" \t\n\r");
 
 	char **FrAtEl_L,**FrAtTy_L,**FrBdTy_L, **SubNa_L, **FrSyAtTy_L;
   int i,**FrBdAr_L,/*FrAtNu_cn,FrBdNu_cn,*/ AtCount, CuAtNu /*insec isValid*/;

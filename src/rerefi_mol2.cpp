@@ -144,7 +144,7 @@ void ReReFi_mol2(char *RecFil,int *ReAtNu,int *ReBdNu,int *ReReNu,
    ReBdAr  receptor bonds array */
 {
   typedef boost::tokenizer< boost::char_separator<char> > tokenizer;
-  boost::char_separator<char> sep(" \t\n");
+  boost::char_separator<char> sep(" \t\n\r");
 
   std::ifstream inStream;
   std::string StrLin, AlTySp, firstToken, ResNa_tmp, ResNa;
