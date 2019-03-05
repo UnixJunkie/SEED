@@ -94,8 +94,9 @@ void SeedFr_ap(int ReCuVe,double **apol_Vect_re,int *ReApAt,int FrCuVe,
   ApLeng=0.0;
   ApLeng=ReVdWR[ReApAt[ReCuVe]]+FrVdWR[FrApAt[FrCuVe]];
 
-  if (ApLeng<1.0)
-    fprintf(FPaOut,"WARNING Apolar bond length was less than 1.0\n\n");
+  if (ApLeng<1.0){
+    fprintf(FPaOut,"WARNING Apolar bond length is %f (less than 1.0) between atoms %d and %d\n", ApLeng, ReApAt[ReCuVe], FrApAt[FrCuVe]);
+  }
 
   for (i=1;i<=FrAtNu;i++) {
     SeFrCo[i][1]=SeFrCo[i][1]+(ApLeng-1.0)*TranVe[1];
