@@ -40,7 +40,7 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
                 char ***FrAtEl,double ***FrCoor,char ***FrAtTy,char ***FrSyAtTy,
                 double **FrPaCh,
                 int ***FrBdAr,char ***FrBdTy,char *FrSubN,char *FrSubC,
-                int *FrCoNu, char ***SubNa, std::string &AlTySp )
+                int *FrCoNu, char ***SubNa, std::string &AlTySp)
 /* This function reads the file of the current fragment (CurFra) in the mol2
    format :
    inStream pointer to the input file stream
@@ -138,10 +138,10 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
     //std::cout << "StrLin is: " << StrLin << std::endl; /* clangini */
 	  boost::trim(StrLin);
 	  if (StrLin != "@<TRIPOS>ATOM"){
-		  std::cerr << "No @<TRIPOS>ATOM-tag found for fragment" << *CurFraTot
-			    << ". Skipping!\n";
       (*SkiFra)++;
       (*CurFraTot)++;
+      std::cerr << "No @<TRIPOS>ATOM-tag found for fragment" << *CurFraTot
+      << ". Skipping!\n";
 		  continue;
 	  }
     //std::cout << "TRIPOS ATOM tag was found" << std::endl; /* clangini */
@@ -211,10 +211,10 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
   	}
 	  boost::trim(StrLin);
 	  if (StrLin != "@<TRIPOS>BOND"){
-		  std::cerr << "No @<TRIPOS>BOND-tag found for fragment " << *CurFraTot
-			    << ". Skipping!\n";
 		  (*SkiFra)++;
       (*CurFraTot)++;
+      std::cerr << "No @<TRIPOS>BOND-tag found for fragment " << *CurFraTot
+      << ". Skipping!\n";
       /* Once we will implement the resizing this part will not be needed any more */
 		  free_cmatrix(*FrAtEl,1,*FrAtNu,1,5);
       free_dmatrix(*FrCoor,1,*FrAtNu,1,3);
@@ -273,10 +273,10 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
 
 	  boost::trim(StrLin);
 	  if (StrLin != "@<TRIPOS>ALT_TYPE"){
-	    std::cerr << "No @<TRIPOS>ALT_TYPE-tag found for fragment " << *CurFraTot
-		            << ". Skipping!\n";
       (*SkiFra)++;
       (*CurFraTot)++;
+      std::cerr << "No @<TRIPOS>ALT_TYPE-tag found for fragment " << *CurFraTot
+      << ". Skipping!\n";
 		  /* Once we will implement the resizing this part will not be needed any more */
 		  free_cmatrix(*FrAtEl,1,*FrAtNu,1,5);
       free_dmatrix(*FrCoor,1,*FrAtNu,1,3);
@@ -295,10 +295,10 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
     /* std::transform(StrLin.begin(), StrLin.end(),StrLin.begin(), ::toupper); */
 	  found = StrLin.find("ALT_TYPE_SET");
 	  if (found == std::string::npos){
-		  std::cerr << "No standard ALT_TYPE_SET signature find for fragment "<< *CurFraTot
-                << "Skipping!\n";
       (*SkiFra)++;
       (*CurFraTot)++;
+      std::cerr << "No standard ALT_TYPE_SET signature find for fragment "<< *CurFraTot
+      << "Skipping!\n";
       /* Once we will implement the resizing this part will not be needed any more */
 		  free_cmatrix(*FrAtEl,1,*FrAtNu,1,5);
       free_dmatrix(*FrCoor,1,*FrAtNu,1,3);
@@ -319,10 +319,10 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
     //std::cout <<"Alternative atom type specification is: "<<firstToken<<std::endl;
 	  //boost::algorithm::to_upper(firstToken); // not needed
 	  if (firstToken != AlTySp){
-		  std::cerr << "Names of alternative atom type set do not coincide for fragment " << *CurFraTot
-                << ". Skipping!\n";
       (*SkiFra)++;
       (*CurFraTot)++;
+      std::cerr << "Names of alternative atom type set do not coincide for fragment " << *CurFraTot
+      << ". Skipping!\n";
        /* Once we will implement the resizing this part will not be needed any more */
 		  free_cmatrix(*FrAtEl,1,*FrAtNu,1,5);
       free_dmatrix(*FrCoor,1,*FrAtNu,1,3);
