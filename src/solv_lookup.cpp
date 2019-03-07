@@ -711,7 +711,7 @@ double *PRmax ----------- Largest rec charge radius
         ReRad[j] = ReVdWR[i] - d;
     }
     
-    if (ReRad[i] < 1.0) ReRad[i] = 1.0; // buffering the radius
+    // if (ReRad[i] < 1.0) ReRad[i] = 1.0; // buffering the radius
     
     *PRmin = (*PRmin < ReRad[i]) ? *PRmin : ReRad[i];
     *PRmax = (*PRmax > ReRad[i]) ? *PRmax : ReRad[i];
@@ -774,7 +774,7 @@ double *PRmax ----------- Largest charge radius
         ReRad[j] = ReVdWR[i] - d;
     }
     
-    if (ReRad[i] < 1.0) ReRad[i] = 1.0; // buffering the radius
+    // if (ReRad[i] < 1.0) ReRad[i] = 1.0; // buffering the radius
     
     *PRmin = (*PRmin < ReRad[i]) ? *PRmin : ReRad[i];
     *PRmax = (*PRmax > ReRad[i]) ? *PRmax : ReRad[i];
