@@ -26,6 +26,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/trim_all.hpp>
 #include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/lexical_cast.hpp>
 #include "nrutil.h"
 #ifndef _STRLENGTH
@@ -67,6 +68,7 @@ int MPI_ReFrFi_mol2(std::istream *inStream, std::streampos *strPos, MPI_Request 
   while(true) {
     *strPos = inStream->tellg();
     std::getline(*inStream, StrLin);
+    boost::trim(StrLin);
     
     if (inStream->eof()){
       std::cerr << "\n\tEnd of fragment library was reached!" << std::endl;
@@ -84,7 +86,7 @@ int MPI_ReFrFi_mol2(std::istream *inStream, std::streampos *strPos, MPI_Request 
   }
   
     // concat vector string:
-    concat = boost::algorithm::join(mpi_strs,"\n");
+    concat = boost::algorithm::join(mpi_strs,"\n"); // concat with newline
     boost::algorithm::trim_all(concat);
     
     if (*firsttime){
@@ -189,7 +191,7 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
   // int mycount = -1; 
   // MPI_Get_count(&mstatus, MPI_CHAR, &mycount); // enable if want to double check the size of the message
 
-  boost::split(mpi_strs, mpi_mess, boost::is_any_of("\n"));
+  boost::split(mpi_strs, mpi_mess, boost::is_any_of("\n")); // split by newline
   delete [] mpi_mess;
   
 	tokenizer tokens(mpi_strs[0], sep); //Initialize tokenizer
@@ -198,11 +200,12 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
   insec = -1;
   for (std::vector<std::string>::iterator s = mpi_strs.begin(); s != mpi_strs.end(); ++s) {
     /* Look for the next molecule section */
+    // std::cerr << *s << std::endl;
+    if (s->empty() || boost::starts_with(*s,"#")){ continue; } // cycle comments
     if (insec == -1 && *s != "@<TRIPOS>MOLECULE") continue; // cycle until molecule start
     if ( (*s).at(0) == '@') {
       if (insec != 0 && insec != -1) {
-        std::cerr << "Encountered a new section while still processing input. \
-                      Skipping!" << std::endl;
+        std::cerr << "Encountered a new section while still processing input. Skipping." << std::endl;
         skipit = true;
         break;
       } 
@@ -254,8 +257,26 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
       if (seclc == 1) { // read name 
         FragNa_str = *s;
         strcpy(FragNa, FragNa_str.c_str());
-      } else if (seclc == 2) { // read mol info 
-        std::stringstream(*s) >> (*FrAtNu) >> (*FrBdNu); //>> (*FrCoNu);
+      } else if (seclc == 2) { // read mol info
+        std::vector<std::string> s_split;
+        boost::split(s_split, *s, boost::is_any_of(" \t"), boost::token_compress_on);
+        // std::cerr << "dim of string " << s_split.size() << std::endl;
+        if (s_split.size() < 2){
+          skipit = true;
+          std::cerr << "Either number of atoms or number of bonds is not specified. Skipping." << std::endl;
+          break;
+        }
+        if (std::all_of(s_split[0].begin(), s_split[0].end(), ::isdigit) && std::all_of(s_split[1].begin(), s_split[1].end(), ::isdigit)){
+          (*FrAtNu) = boost::lexical_cast<int>(s_split[0]);
+          // std::cerr << "number of atoms " << *FrAtNu << std::endl;
+          (*FrBdNu) = boost::lexical_cast<int>(s_split[1]);
+          // std::cerr << "number of bonds " << *FrBdNu << std::endl;
+        } else {
+            skipit = true;
+            std::cerr << "Non numeric values specifying number of atoms/bonds. Skipping." << std::endl;
+            break;
+        }
+        //std::stringstream(*s) >> (*FrAtNu) >> (*FrBdNu); //>> (*FrCoNu); // OLD VERSION
         *FrCoNu = 1;
         // zero the indicators and set molecule as valid 
         insec = 0;
@@ -307,7 +328,6 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
       	*FrBdTy=FrBdTy_L;
       }
       seclc++;
-      
       tokens.assign(*s, sep);
 		  itItem = tokens.begin();
 		  ++itItem; // skip bond_id
