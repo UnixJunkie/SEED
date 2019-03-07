@@ -69,7 +69,7 @@ dict_interesting_coordinates={}
 for line in orimol2:
 	if len(line.split())==0:
 		continue
-	elif "#" in line:
+	elif line.strip().startswith("#"):
 		continue
 	if len(line.split()) >= 6:
 		for atom in interesting_atoms:
@@ -83,7 +83,7 @@ out=""
 for line in orimol2:
 	if len(line.split())==0:
 		continue
-	elif "#" in line:
+	elif line.strip().startswith("#"):
 		continue
 	if len(line.split())==5:
 		out+=(" %s %s 1 0 0\n") % (int(line.split()[0])+lonepair, int(line.split()[1])+lonepair)
@@ -102,7 +102,7 @@ james_bond=False
 for line in orimol2:
 	if len(line.split())==0:
 		continue
-	elif "#" in line:
+	elif line.strip().startswith("#"):
 		continue
 	if "@<TRIPOS>ATOM" in line:
 		start=True
