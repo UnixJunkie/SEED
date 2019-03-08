@@ -512,24 +512,21 @@ struct point *surfpt_fr - Coor of points over frag SAS1 (relative to RoSFCo)
 	to "nan" values or the effective born radius is smaller than 0
 
       */
-      if(ReEffRad[hVar_corrB]<=0 || isnan(ReEffRad[hVar_corrB]))
-      {
+      if(ReEffRad[hVar_corrB] <= 0.7 || isnan(ReEffRad[hVar_corrB])){
 #ifndef NOWARN
-	  fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of receptor atom %d using standard approach\n",iat);
+	       fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of receptor atom %d using standard approach\n",iat);
+         fprintf(FPaOut, "Setting it to 0.7 Aengstrom\n");
 #endif
-    //clangini debug start
-    //std::cout << "Eff radius either none or zero" << std::cout;
-    //clangini debug end
-	  ReEffRad[NeighList3[iat]] = 1. / ( 1./ReRadOut[NeighList3[iat]] -
-					     (ReSelfVol[NeighList3[iat]]+ReSelfVol_add[NeighList3[iat]])/pi4 );
+	       // ReEffRad[NeighList3[iat]] = 1. / ( 1./ReRadOut[NeighList3[iat]] -
+					//      (ReSelfVol[NeighList3[iat]]+ReSelfVol_add[NeighList3[iat]])/pi4 );
+          ReEffRad[hVar_corrB] = 0.7;
       }
-
-
-
-
+      
+      if (ReEffRad[hVar_corrB] < 0.7){
+        fprintf(FPaOut, "WARNING. Empirically-corrected radius of receptor for atom %d is %f\n", iat, ReEffRad[hVar_corrB]);
+      }
+      
     }
-
-
   }
 
 /* Receptor desolvation calculated with GB (it could be useful one day...)
@@ -575,20 +572,20 @@ struct point *surfpt_fr - Coor of points over frag SAS1 (relative to RoSFCo)
 	    to "nan" values or the effective born radius is smaller than 0
 
 	  */
-	  if(FrEffRad[iat]<=0 || isnan(FrEffRad[iat]))
-	  {
+	  if(FrEffRad[iat]<=0.7 || isnan(FrEffRad[iat])){
 #ifndef NOWARN
 	      fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of fragment atom %d, using standard approach\n",iat);
+        fprintf(FPaOut, "Setting it to 0.7 Aengstrom\n");
 #endif
-        //clangini debug start
-        //std::cout << "Eff radius either none or zero" << std::cout;
-        //clangini debug end
-	      FrEffRad[iat] = 1. / ( 1./FrRadOut[iat] - FrSelfVol[iat]/pi4 );
+	      // FrEffRad[iat] = 1. / ( 1./FrRadOut[iat] - FrSelfVol[iat]/pi4 );
+        FrEffRad[iat] = 0.7;
 
 	  }
-
-      }
-      FrSelfEn += Ksolv * FrPaCh[iat] * FrPaCh[iat] / (2. * FrEffRad[iat]);
+    if (FrEffRad[iat] < 0.7){
+      fprintf(FPaOut, "WARNING. Empirically-corrected radius of fragment for fragment atom %d is %f\n", iat, FrEffRad[iat]);
+    }
+  }
+  FrSelfEn += Ksolv * FrPaCh[iat] * FrPaCh[iat] / (2. * FrEffRad[iat]);
 
 
     }
@@ -2402,18 +2399,21 @@ double *PFrSelfEn ------- Tot frag self-energy
 	    to "nan" values or the effective born radius is smaller than 0
 
 	  */
-	  if(FrEffRad[iat]<=0 || isnan(FrEffRad[iat]))
+	  if(FrEffRad[iat]<=0.7 || isnan(FrEffRad[iat]))
 	  {
 #ifndef NOWARN
 	    fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of fragment atom %d, using standard approach\n",iat);
+      fprintf(FPaOut, "Setting it to 0.7 Aengstrom\n");
 #endif
-      std::cout << "Fragment effective radius is 0 or nan" << std::endl;
-	    FrEffRad[iat] = 1. / ( 1./FrRadOut[iat] - FrSelfVol[iat]/pi4 );
+	    // FrEffRad[iat] = 1. / ( 1./FrRadOut[iat] - FrSelfVol[iat]/pi4 );
+      FrEffRad[iat] = 0.7;
 	  }
+    if (FrEffRad[iat] < 0.7){
+        fprintf(FPaOut, "WARNING. Empirically-corrected radius of fragment for fragment atom %d is %f\n", iat, FrEffRad[iat]);
+    }
+  }
 
-      }
-
-      *PFrSelfEn += Ksolv * FrPaCh[iat] * FrPaCh[iat] / (2. * FrEffRad[iat]);
+  *PFrSelfEn += Ksolv * FrPaCh[iat] * FrPaCh[iat] / (2. * FrEffRad[iat]);
 
     }
   }
