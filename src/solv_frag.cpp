@@ -27,7 +27,8 @@
 
 void ElecFrag(int ReAtNu,double **ReCoor,double *RePaCh,
               double **RePaCh_Fr,double *ReRad,
-              double *ReRad2,double *ReRadOut,double *ReRadOut2,
+              double *ReRad2,double *ReRadOut,double *ReRadOut2, 
+              double *ReEffRad_bound, double *FrEffRad_bound,
               struct point *surfpt_re,int *nsurf_re,
               int *pointsrf_re,double *ReSelfVol,int FrAtNu,double **RoSFCo,
               double **FrCoor,double *FrPaCh,double *FrRad,double *FrRad2,
@@ -45,7 +46,7 @@ void ElecFrag(int ReAtNu,double **ReCoor,double *RePaCh,
               int nymaxBS,int nzmaxBS,double corr_scrint,
               double corr_fr_deso,double *PReDesoElec,
               double *PReFrIntElec,double *PFrDesoElec,double *ReSelfVol_corrB,
-	      char *EmpCorrB, FILE * FPaOut)
+	            char *EmpCorrB, FILE * FPaOut)
 /*########################################################################
 Continuum Electrostatics: it calculates the rec and frag desolvation,
 as well as the screened interaction. Slow and precise method
@@ -512,14 +513,14 @@ struct point *surfpt_fr - Coor of points over frag SAS1 (relative to RoSFCo)
 	to "nan" values or the effective born radius is smaller than 0
 
       */
-      if(ReEffRad[hVar_corrB] < 0.7 || isnan(ReEffRad[hVar_corrB])){
+      if(ReEffRad[hVar_corrB] < ReEffRad_bound[hVar_corrB] || isnan(ReEffRad[hVar_corrB])){
 #ifndef NOWARN
 	       fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of receptor atom %d using standard approach\n",iat);
-         fprintf(FPaOut, "Setting it to 0.7 Aengstrom\n");
+         fprintf(FPaOut, "Setting it to lower bound (%f)\n", ReEffRad_bound[hVar_corrB]);
 #endif
 	       // ReEffRad[NeighList3[iat]] = 1. / ( 1./ReRadOut[NeighList3[iat]] -
 					//      (ReSelfVol[NeighList3[iat]]+ReSelfVol_add[NeighList3[iat]])/pi4 );
-          ReEffRad[hVar_corrB] = 0.7;
+          ReEffRad[hVar_corrB] = ReEffRad_bound[hVar_corrB];
       }
     }
   }
@@ -567,13 +568,13 @@ struct point *surfpt_fr - Coor of points over frag SAS1 (relative to RoSFCo)
 	    to "nan" values or the effective born radius is smaller than 0
 
 	  */
-	  if(FrEffRad[iat] < 0.7 || isnan(FrEffRad[iat])){
+	  if(FrEffRad[iat] < FrEffRad_bound[iat] || isnan(FrEffRad[iat])){
 #ifndef NOWARN
 	      fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of fragment atom %d, using standard approach\n",iat);
-        fprintf(FPaOut, "Setting it to 0.7 Aengstrom\n");
+        fprintf(FPaOut, "Setting it to lower bound (%f)\n", FrEffRad_bound[iat]);
 #endif
 	      // FrEffRad[iat] = 1. / ( 1./FrRadOut[iat] - FrSelfVol[iat]/pi4 );
-        FrEffRad[iat] = 0.7;
+        FrEffRad[iat] = FrEffRad_bound[iat];
 
 	  }
   }
@@ -2192,7 +2193,7 @@ double *PFrIntEn -------- Tot rec intramolecular interaction energy
 
 int FragSolvEn(int FrAtNu,double **FrCoor,double *FrPaCh,
                double *FrVdWR,double *FrRadOut,
-               double *FrRadOut2,double **Frdist2,int Nsurfpt_fr,
+               double *FrRadOut2, double *FrEffRad_bound,double **Frdist2,int Nsurfpt_fr,
                struct point *surfpt_fr_orig,double WaMoRa,double GrSiSo,
                double Ksolv,double pi4,double *PFrSolvEn,char *EmpCorrB,FILE*FPaOut)
 /*##########################################
@@ -2282,10 +2283,10 @@ char ***FrGridMat ------- Matrix telling if a grid point is occupied by the
                  FrGridMat,Nsurfpt_fr,surfpt_fr_orig,FrSelfVol,FrSelfVol_corrB,
 		 EmpCorrB);
 /* Calculate the frag self energy */
-  nn = Get_Self_En_Fr(FrAtNu,FrCoor,FrPaCh,FrRadOut,FrRadOut2,
+  nn = Get_Self_En_Fr(FrAtNu,FrCoor,FrPaCh,FrRadOut,FrRadOut2,FrEffRad_bound,
                       XGrid,YGrid,ZGrid,UnitVol,Ksolv,pi4,FrGridMat,
                       1,1,1,NGridx,NGridy,NGridz,FrSelfVol,FrEffRad,&FrSelfEn,
-		      FrSelfVol_corrB,EmpCorrB,FPaOut);
+		                  FrSelfVol_corrB,EmpCorrB,FPaOut);
 /* Calculate the frag interaction energy */
   nn = GB_int_fr(FrAtNu,Frdist2,FrPaCh,FrEffRad,Ksolv,&FrIntEn);
 
@@ -2308,12 +2309,12 @@ char ***FrGridMat ------- Matrix telling if a grid point is occupied by the
 }
 
 int Get_Self_En_Fr(int FrAtNu,double **RoSFCo,double *FrPaCh,double *FrRadOut,
-                   double *FrRadOut2,double *XGrid,double *YGrid,double *ZGrid,
+                   double *FrRadOut2,double *FrEffRad_bound,double *XGrid,double *YGrid,double *ZGrid,
                    double UnitVol,double Ksolv,double pi4,char ***FrGridMat,
                    int nxminFr,int nyminFr,int nzminFr,
                    int nxmaxFr,int nymaxFr,int nzmaxFr,
                    double *FrSelfVol,double *FrEffRad,double *PFrSelfEn,
-		   double *FrSelfVol_corrB,char *EmpCorrB,FILE * FPaOut)
+		               double *FrSelfVol_corrB,char *EmpCorrB,FILE * FPaOut)
 /*##########################################
 Calculate the frag self energy
 ###########################################*/
@@ -2391,14 +2392,14 @@ double *PFrSelfEn ------- Tot frag self-energy
 	    to "nan" values or the effective born radius is smaller than 0
 
 	  */
-	  if(FrEffRad[iat] < 0.7 || isnan(FrEffRad[iat]))
+	  if(FrEffRad[iat] < FrEffRad_bound[iat] || isnan(FrEffRad[iat]))
 	  {
 #ifndef NOWARN
 	    fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of fragment atom %d, using standard approach\n",iat);
-      fprintf(FPaOut, "Setting it to 0.7 Aengstrom\n");
+      fprintf(FPaOut, "Setting it to lower bound (%f)\n", FrEffRad_bound[iat]);
 #endif
 	    // FrEffRad[iat] = 1. / ( 1./FrRadOut[iat] - FrSelfVol[iat]/pi4 );
-      FrEffRad[iat] = 0.7;
+      FrEffRad[iat] = FrEffRad_bound[iat];
 	  }
   }
 

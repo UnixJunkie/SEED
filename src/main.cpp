@@ -227,7 +227,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
        *SdClusAr_sort,*FlagAr,*ReprSdClAr,MaxPosClus,SFWrNu_init,PrintLev,
        ToNFrP_ap,ij,distrPointBSNumb,gc_reprke,gc_maxwrite,ChkInGrid; /*,CorrFiNumb; clangini*/
 
-      double **FrCoor,*FrPaCh,**ReCoor,*RePaCh,**ReVeCo,**FrVeCo,**SeFrCo,
+  double **FrCoor,*FrPaCh,**ReCoor,*RePaCh,**ReVeCo,**FrVeCo,**SeFrCo,
       /*AnglRo,*/**RoSFCo,*VdWRad,*VdWEne,*ReVdWR,*ReVdWE,*FrVdWR,*FrVdWE,
       LaVdWR,ReMaxC[4],ReMinC[4],SphAng,VdWFaB,BSMaxC[4],BSMinC[4],CoDieV,
       CoGrIn,CoGrSi,***CoGrRP,BuEvFa,*ReVdWE_sr,*FrVdWE_sr,
@@ -283,6 +283,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   struct stat DirExist;
   char TabLin[_STRLENGTH]; //clangini
   std::ofstream TabOutStream; //clangini
+  double *FrEffRad_bound, *ReEffRad_bound; // Lower bound for the Born Effective radius (frg and rec)
   int HeAtCo = 0; // HeAtCo = Heavy Atom Count clangini
   double *AtWei; // list of atomic weights clangini
   double MolWei = 0.0; // Molecular Weight clangini
@@ -1194,6 +1195,12 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   ReRad2=dvector(1,ReAtNu);
   ReRadOut=dvector(1,ReAtNu);
   ReRadOut2=dvector(1,ReAtNu);
+  
+  /* lower bound on born radius set to vdW radius*/
+  ReEffRad_bound = dvector(1,ReAtNu);
+  for (iat=1; iat <= ReAtNu; iat++){
+    ReEffRad_bound[iat] = ReVdWR[iat];
+  }
 
   surfpt_re=structpointvect(1,NPtSphere*ReAtNu);
   iatsrf_re=ivector(1,NPtSphere*ReAtNu);
@@ -1217,6 +1224,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
 
   /* Do all the precalculation necessary for continuum electrostatics */
   Solvation(ReAtNu,ReCoor,ReVdWE_sr,ReVdWR,ReRad,ReRad2,ReRadOut,ReRadOut2,
+      ReEffRad_bound,
       ReMaxC,ReMinC,RePaCh,DielRe,DielWa,WaMoRa,GrSiSo,GrInSo,
       NPtSphere,ReResN,ReReNu,BSResN,BSReNu,ReDesoAlg,DesoMapAcc,
       DesoMapFile,RecFilPDB,FDexe,FDdir,&Min,&Max,&XGrid,
@@ -1624,7 +1632,12 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
           FrRadOut2,Frdist2,&Rmin,&FrRmax);
           //Frdist2 is passed as **double and not as ***double as it is
           //allocated in the main and not in get_Ch_Rad_Fr. clangini
-
+      
+      /* Lower bound on Born radius for fragment */
+      FrEffRad_bound = dvector(1, FrAtNu);
+      for (iat = 1; iat <= FrAtNu; iat++)
+        FrEffRad_bound[iat] = FrVdWR[iat];
+      
       /* Get the extremes of frag coor */
       vect=dvector(1,FrAtNu);
       getColumnFrom2DArray(FrCoor, 1, 1, FrAtNu, vect);
@@ -1662,7 +1675,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
         /* Calculate the solvation energy of the fragment without the receptor
            Use a very fine grid spacing (0.1) */
         nn = FragSolvEn(FrAtNu,FrCoor,FrPaCh,FrVdWR,FrRadOut,
-            FrRadOut2,Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.1,
+            FrRadOut2,FrEffRad_bound,Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.1,
             Ksolv,pi4,&FrSolvEn,EmpCorrB,FPaOut);
         /* fprintf(FPaOut,"Dielectric value = %4.1f -> %4.1f transfer energy for the fragment (%s) : ",
             DielRe,DielWa,&ResN_fr[i][1]); */
@@ -2006,7 +2019,8 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
                          interaction (with screening effect) energies (slow method) */
                       ElecFrag(ReAtNu,ReCoor,RePaCh,ChFrRe_ps_elec,
                           ReRad,ReRad2,ReRadOut,
-                          ReRadOut2,surfpt_re,nsurf_re,
+                          ReRadOut2,ReEffRad_bound,
+                          FrEffRad_bound,surfpt_re,nsurf_re,
                           pointsrf_re,ReSelfVol,FrAtNu,RoSFCo,FrCoor,
                           FrPaCh,FrRad,FrRad2,FrRadOut,FrRadOut2,
                           Frdist2,SDFrRe_ps_elec,FrMinC,FrMaxC,&FrSolvEn,
@@ -2517,7 +2531,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                            interaction (with screening effect) energies (slow method) */
                         ElecFrag(ReAtNu,ReCoor,RePaCh,ChFrRe_ps_elec,
                             ReRad,ReRad2,ReRadOut,
-                            ReRadOut2,surfpt_re,nsurf_re,
+                            ReRadOut2,ReEffRad_bound,FrEffRad_bound,surfpt_re,nsurf_re,
                             pointsrf_re,ReSelfVol,FrAtNu,RoSFCo,FrCoor,
                             FrPaCh,FrRad,FrRad2,FrRadOut,FrRadOut2,
                             Frdist2,SDFrRe_ps_elec,FrMinC,FrMaxC,
@@ -3040,7 +3054,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                          interaction (with screening effect) energies (slow method) */
                       ElecFrag(ReAtNu,ReCoor,RePaCh,ChFrRe_ps_elec,
                           ReRad,ReRad2,ReRadOut,
-                          ReRadOut2,surfpt_re,nsurf_re,
+                          ReRadOut2,ReEffRad_bound,FrEffRad_bound,surfpt_re,nsurf_re,
                           pointsrf_re,ReSelfVol,FrAtNu,RoSFCo,FrCoor,
                           FrPaCh,FrRad,FrRad2,FrRadOut,FrRadOut2,
                           Frdist2,SDFrRe_ps_elec,FrMinC,FrMaxC,&FrSolvEn,
@@ -3408,7 +3422,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                            interaction (with screening effect) energies (slow method) */
                         ElecFrag(ReAtNu,ReCoor,RePaCh,ChFrRe_ps_elec,
                             ReRad,ReRad2,ReRadOut,
-                            ReRadOut2,surfpt_re,nsurf_re,
+                            ReRadOut2,ReEffRad_bound,FrEffRad_bound,surfpt_re,nsurf_re,
                             pointsrf_re,ReSelfVol,FrAtNu,RoSFCo,FrCoor,
                             FrPaCh,FrRad,FrRad2,FrRadOut,FrRadOut2,
                             Frdist2,SDFrRe_ps_elec,FrMinC,FrMaxC,
@@ -3772,7 +3786,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           /* Compute receptor desolvation, fragment desolvation and receptor-fragment
              interaction (with screening effect) energies (slow method) */
           ElecFrag(ReAtNu,ReCoor,RePaCh,ChFrRe_ps_elec,ReRad,ReRad2,
-              ReRadOut,ReRadOut2,surfpt_re,nsurf_re,
+              ReRadOut,ReRadOut2,ReEffRad_bound,FrEffRad_bound,surfpt_re,nsurf_re,
               pointsrf_re,ReSelfVol,FrAtNu,RoSFCo,FrCoor,
               FrPaCh,FrRad,FrRad2,FrRadOut,FrRadOut2,Frdist2,
               SDFrRe_ps_elec,FrMinC,FrMaxC,&FrSolvEn,Nsurfpt_fr,
@@ -3927,6 +3941,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
       free_dvector(FrRadOut,1,FrAtNu);
       free_dvector(FrRad2,1,FrAtNu);
       free_dvector(FrRad,1,FrAtNu);
+      free_dvector(FrEffRad_bound,1,FrAtNu);
       if ((Solv_typ[0]=='s')||(Solv_typ[0]=='b')) {
         free_structpointvect(surfpt_fr,1,NPtSphere*FrAtNu);
         free_ivector(iatsrf_fr,1,NPtSphere*FrAtNu);
@@ -4531,6 +4546,11 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           Frdist2=dmatrix(1,FrAtNu,1,FrAtNu);
           nn = get_Ch_Rad_Fr(FrAtNu,FrCoor,FrVdWR,WaMoRa,FrRad,FrRad2,FrRadOut,
               FrRadOut2,Frdist2,&Rmin,&FrRmax);
+              
+          /* Lower bound on Born radius for fragment */
+          FrEffRad_bound = dvector(1, FrAtNu);
+          for (iat = 1; iat <= FrAtNu; iat++)
+            FrEffRad_bound[iat] = FrVdWR[iat];
 
           /* Get the extremes of frag coor */
           vect=dvector(1,FrAtNu);
@@ -4566,7 +4586,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           /* Calculate the solvation energy of the fragment without the receptor
              Use a very fine grid spacing (0.1) */
           nn = FragSolvEn(FrAtNu,FrCoor,FrPaCh,FrVdWR,FrRadOut,
-              FrRadOut2,Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.1,
+              FrRadOut2,FrEffRad_bound,Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.1,
               Ksolv,pi4,&FrSolvEn,EmpCorrB,FPaOut);
           /*fprintf(FPaOut,"Dielectric value = %4.1f -> %4.1f transfer energy for the fragment (%s) : ",
               DielRe,DielWa,&FrFiNa_out[CurFra][1]);*/
@@ -4639,7 +4659,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                  interaction (with screening effect) energies (slow method) */
               ElecFrag(ReAtNu,ReCoor,RePaCh,ChFrRe_ps_elec,
                   ReRad,ReRad2,ReRadOut,
-                  ReRadOut2,surfpt_re,nsurf_re,
+                  ReRadOut2,ReEffRad_bound,FrEffRad_bound,surfpt_re,nsurf_re,
                   pointsrf_re,ReSelfVol,FrAtNu,RoSFCo,FrCoor,
                   FrPaCh,FrRad,FrRad2,FrRadOut,FrRadOut2,
                   Frdist2,SDFrRe_ps_elec,FrMinC,FrMaxC,&FrSolvEn,
@@ -4673,6 +4693,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           free_dvector(FrRadOut,1,FrAtNu);
           free_dvector(FrRad2,1,FrAtNu);
           free_dvector(FrRad,1,FrAtNu);
+          free_dvector(FrEffRad_bound, 1, FrAtNu);
           free_structpointvect(surfpt_fr,1,NPtSphere*FrAtNu);
           free_ivector(iatsrf_fr,1,NPtSphere*FrAtNu);
           free_ivector(pointsrf_fr,1,FrAtNu);
@@ -5237,6 +5258,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
     free_dvector(ReRadOut,1,ReAtNu);
     free_dvector(ReRad2,1,ReAtNu);
     free_dvector(ReRad,1,ReAtNu);
+    free_dvector(ReEffRad_bound,1,ReAtNu);
     free_ivector(nsurf_re,1,ReAtNu);
     free_ivector(pointsrf_re,1,ReAtNu);
     free_ivector(iatsrf_re,1,NPtSphere*ReAtNu);

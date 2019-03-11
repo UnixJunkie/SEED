@@ -37,6 +37,7 @@
 
 void Solvation(int ReAtNu,double **ReCoor,double *ReVdWE_sr,double *ReVdWR,
                double *ReRad,double *ReRad2,double *ReRadOut,double *ReRadOut2,
+               double *ReEffRad_bound,
                double *ReMaxC,double *ReMinC,double *RePaCh,double DielRe,
                double DielWa,double WaMoRa,double GrSiSo,double GrInSo,
                int NPtSphere,int *ReResN,int ReReNu,int BSResN,
@@ -371,13 +372,18 @@ struct point len ----------- ReMaxC - ReMinC
 	  to "nan" values or the effective born radius is smaller than 0
 
 	*/
-	if(EffRad[iat] < 0.7 || isnan(EffRad[iat]))
+	if(EffRad[iat] < ReEffRad_bound[iat] || isnan(EffRad[iat]))
 	{
 #ifndef NOWARN
-	    fprintf(FPaOut,"WARNING could not calculate effective born radius for atom %d, using standard approach\n",iat);
+	    /* fprintf(FPaOut,"WARNING could not calculate empirically-corrected 
+              effective born radius for receptor atom %d, using standard approach\n",iat);*/
+      fprintf(FPaOut, "WARNING could not calculate empirically-corrected effective born radius for receptor atom %d.\n", iat);
+      if (!isnan(EffRad[iat])){
+        fprintf(FPaOut, "Effective Born radius (%f) set to its lower bound (%f).\n", EffRad[iat], ReEffRad_bound[iat]);
+      }
 #endif
 	    // EffRad[iat] = 1. / ( 1./ReRadOut[iat] - (*SelfVol)[iat]/pi4 );
-      EffRad[iat] = 0.7;
+      EffRad[iat] = ReEffRad_bound[iat];
 	}
 
 
