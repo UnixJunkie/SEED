@@ -371,12 +371,13 @@ struct point len ----------- ReMaxC - ReMinC
 	  to "nan" values or the effective born radius is smaller than 0
 
 	*/
-	if(EffRad[iat]<=0 || isnan(EffRad[iat]))
+	if(EffRad[iat] < 0.7 || isnan(EffRad[iat]))
 	{
 #ifndef NOWARN
 	    fprintf(FPaOut,"WARNING could not calculate effective born radius for atom %d, using standard approach\n",iat);
 #endif
-	    EffRad[iat] = 1. / ( 1./ReRadOut[iat] - (*SelfVol)[iat]/pi4 );
+	    // EffRad[iat] = 1. / ( 1./ReRadOut[iat] - (*SelfVol)[iat]/pi4 );
+      EffRad[iat] = 0.7;
 	}
 
 
