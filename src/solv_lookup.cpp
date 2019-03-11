@@ -302,6 +302,12 @@ struct point len ----------- ReMaxC - ReMinC
   printf("\n\tCharge radii...\n");
   nn = get_Ch_Rad(ReAtNu,ReCoor,ReVdWR,WaMoRa,ReRad,ReRad2,
                   ReRadOut,ReRadOut2,&Rmin,&Rmax);
+  
+  /* setting lower bound for born radius */
+  for (iat=1; iat <= ReAtNu; iat++){
+    ReEffRad_bound[iat] = ReRad[iat];
+  }
+  
   /* GridMat is the matrix that tells us whether a gr pt is occupied */
 
   *GridMat = c3tensor(1,NGridx+1,1,NGridy+1,1,NGridz+1);

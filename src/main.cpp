@@ -1198,9 +1198,9 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   
   /* lower bound on born radius set to vdW radius*/
   ReEffRad_bound = dvector(1,ReAtNu);
-  for (iat=1; iat <= ReAtNu; iat++){
-    ReEffRad_bound[iat] = ReVdWR[iat];
-  }
+  // for (iat=1; iat <= ReAtNu; iat++){ // moved into Solvation()
+  //   ReEffRad_bound[iat] = ReVdWR[iat];
+  // }
 
   surfpt_re=structpointvect(1,NPtSphere*ReAtNu);
   iatsrf_re=ivector(1,NPtSphere*ReAtNu);
@@ -1636,7 +1636,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
       /* Lower bound on Born radius for fragment */
       FrEffRad_bound = dvector(1, FrAtNu);
       for (iat = 1; iat <= FrAtNu; iat++)
-        FrEffRad_bound[iat] = FrVdWR[iat];
+        FrEffRad_bound[iat] = FrRad[iat];
       
       /* Get the extremes of frag coor */
       vect=dvector(1,FrAtNu);
@@ -4550,7 +4550,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           /* Lower bound on Born radius for fragment */
           FrEffRad_bound = dvector(1, FrAtNu);
           for (iat = 1; iat <= FrAtNu; iat++)
-            FrEffRad_bound[iat] = FrVdWR[iat];
+            FrEffRad_bound[iat] = FrRad[iat];
 
           /* Get the extremes of frag coor */
           vect=dvector(1,FrAtNu);
