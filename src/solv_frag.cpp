@@ -2287,6 +2287,10 @@ char ***FrGridMat ------- Matrix telling if a grid point is occupied by the
                       XGrid,YGrid,ZGrid,UnitVol,Ksolv,pi4,FrGridMat,
                       1,1,1,NGridx,NGridy,NGridz,FrSelfVol,FrEffRad,&FrSelfEn,
 		                  FrSelfVol_corrB,EmpCorrB,FPaOut);
+                      
+  for (iat=1;iat <= FrAtNu; iat++){
+    FrEffRad_bound[iat] = FrEffRad[iat];
+  }
 /* Calculate the frag interaction energy */
   nn = GB_int_fr(FrAtNu,Frdist2,FrPaCh,FrEffRad,Ksolv,&FrIntEn);
 
@@ -2392,14 +2396,14 @@ double *PFrSelfEn ------- Tot frag self-energy
 	    to "nan" values or the effective born radius is smaller than 0
 
 	  */
-	  if(FrEffRad[iat] < FrEffRad_bound[iat] || isnan(FrEffRad[iat]))
+	  if(FrEffRad[iat] < 0 || isnan(FrEffRad[iat]))
 	  {
 #ifndef NOWARN
 	    fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of fragment atom %d, using standard approach\n",iat);
-      fprintf(FPaOut, "Setting it to lower bound (%f)\n", FrEffRad_bound[iat]);
+      // fprintf(FPaOut, "Setting it to lower bound (%f)\n", FrEffRad_bound[iat]);
 #endif
-	    // FrEffRad[iat] = 1. / ( 1./FrRadOut[iat] - FrSelfVol[iat]/pi4 );
-      FrEffRad[iat] = FrEffRad_bound[iat];
+	    FrEffRad[iat] = 1. / ( 1./FrRadOut[iat] - FrSelfVol[iat]/pi4 );
+      // FrEffRad[iat] = FrEffRad_bound[iat];
 	  }
   }
 
