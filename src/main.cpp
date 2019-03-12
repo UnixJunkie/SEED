@@ -1675,7 +1675,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
         /* Calculate the solvation energy of the fragment without the receptor
            Use a very fine grid spacing (0.1) */
         nn = FragSolvEn(FrAtNu,FrCoor,FrPaCh,FrVdWR,FrRadOut,
-            FrRadOut2,FrEffRad_bound,Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.01, // 0.1 before
+            FrRadOut2,FrEffRad_bound,Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.05, // 0.1 before
             Ksolv,pi4,&FrSolvEn,EmpCorrB,FPaOut);
         /* fprintf(FPaOut,"Dielectric value = %4.1f -> %4.1f transfer energy for the fragment (%s) : ",
             DielRe,DielWa,&ResN_fr[i][1]); */
@@ -4586,7 +4586,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           /* Calculate the solvation energy of the fragment without the receptor
              Use a very fine grid spacing (0.1) */
           nn = FragSolvEn(FrAtNu,FrCoor,FrPaCh,FrVdWR,FrRadOut,
-              FrRadOut2,FrEffRad_bound,Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.01, // 0.1 before
+              FrRadOut2,FrEffRad_bound,Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.05, // 0.1 before
               Ksolv,pi4,&FrSolvEn,EmpCorrB,FPaOut);
           /*fprintf(FPaOut,"Dielectric value = %4.1f -> %4.1f transfer energy for the fragment (%s) : ",
               DielRe,DielWa,&FrFiNa_out[CurFra][1]);*/

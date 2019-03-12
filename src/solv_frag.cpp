@@ -2396,7 +2396,7 @@ double *PFrSelfEn ------- Tot frag self-energy
 	    to "nan" values or the effective born radius is smaller than 0
 
 	  */
-	  if(FrEffRad[iat] < 0 || isnan(FrEffRad[iat]))
+	  if(FrEffRad[iat] <= 0 || isnan(FrEffRad[iat]))
 	  {
 #ifndef NOWARN
 	    fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of fragment atom %d, using standard approach\n",iat);
