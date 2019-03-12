@@ -888,8 +888,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
         }
       }
       fclose(FilePa);
-    }
-    else { // calculating/writing case:
+    } else { // calculating/writing case:
       CoGReP(ReAtNu,ReCoor,RePaCh,CoDieV,CoDieP,CoGrIn,CoGrSi,BSMinC,CoGPoN,
           CoGrRP);
       printf("Receptor part of the coulombic interaction -> done\n");
@@ -1569,8 +1568,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
       }
       std::cout << "Fragment " << FragNa
       << " for energy evaluation run has not been pre-aligned." << std::endl;
-    }
-    else {
+    } else {
       std::cout << "Fragment " << FragNa << " has not been pre-aligned." << std::endl;
     }
     /* CLANGINI 2016 end */
@@ -1675,7 +1673,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
         /* Calculate the solvation energy of the fragment without the receptor
            Use a very fine grid spacing (0.1) */
         nn = FragSolvEn(FrAtNu,FrCoor,FrPaCh,FrVdWR,FrRadOut,
-            FrRadOut2,FrEffRad_bound,Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.05, // 0.1 before
+            FrRadOut2,FrEffRad_bound,Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.01, // 0.1 before
             Ksolv,pi4,&FrSolvEn,EmpCorrB,FPaOut);
         /* fprintf(FPaOut,"Dielectric value = %4.1f -> %4.1f transfer energy for the fragment (%s) : ",
             DielRe,DielWa,&ResN_fr[i][1]); */
@@ -3903,7 +3901,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           TabOutStream.close();
         }
         free_dmatrix(FrCoor_NoAlign,1,FrAtNu,1,3);//clangini
-      }
+      } // end of else if (EvalEn[0]=='e') {
       else {
         /* --------------------- */
         /* Situation of conflict */
@@ -4586,7 +4584,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           /* Calculate the solvation energy of the fragment without the receptor
              Use a very fine grid spacing (0.1) */
           nn = FragSolvEn(FrAtNu,FrCoor,FrPaCh,FrVdWR,FrRadOut,
-              FrRadOut2,FrEffRad_bound,Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.05, // 0.1 before
+              FrRadOut2,FrEffRad_bound,Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.01, // 0.1 before
               Ksolv,pi4,&FrSolvEn,EmpCorrB,FPaOut);
           /*fprintf(FPaOut,"Dielectric value = %4.1f -> %4.1f transfer energy for the fragment (%s) : ",
               DielRe,DielWa,&FrFiNa_out[CurFra][1]);*/
