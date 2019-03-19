@@ -3,11 +3,14 @@
 #SHELL = /bin/bash
 # Folders: 
 #SRC_DIR = .
-BIN_DIR = ../bin
-BUILD_DIR = build
+MKFILE_PATH = $(abspath $(lastword $(MAKEFILE_LIST)))
+CURR_DIR = $(dir $(MKFILE_PATH))
+BIN_DIR = $(CURR_DIR)../bin
+BUILD_DIR = $(CURR_DIR)build
 
-BUILD_DIR_MPI = build/mpi
-BUILD_DIR_DEBUG = build/dbg
+BUILD_DIR_MPI = $(CURR_DIR)build/mpi
+BUILD_DIR_DEBUG = $(CURR_DIR)build/dbg
+
 TARGET_EXEC = $(BIN_DIR)/seed_4_lb
 TARGET_EXEC_DEBUG = $(BIN_DIR)/seed_4_debug
 TARGET_EXEC_MPI = $(BIN_DIR)/seed_4_mpi_lb
@@ -26,7 +29,7 @@ MPILDFLAGS = -lm -O3
 
 DBGCXXFLAGS = -g3 -std=c++11 -O3 -pedantic -Wall -march=native
 
-include Makefile.local
+include $(CURR_DIR)Makefile.local
 
 DEP_FLAGS = $(INC_FLAGS) -MMD -MP
 
@@ -45,6 +48,7 @@ RM = rm
 MKDIR_P = mkdir -p
 RMDIR = rmdir
 ECHO = @echo
+# PWD = shell pwd
 
 # Targets:
 .PHONY: seed
@@ -67,13 +71,13 @@ $(TARGET_EXEC_MPI): $(OBJS_MPI)
 	$(MPICXX) $(OBJS_MPI) $(MPILDFLAGS) -o $@
 
 # Using order-only prerequisite to build the directory
-$(BUILD_DIR)/%.o: %.cpp | $(BUILD_DIR)
+$(BUILD_DIR)/%.o: $(CURR_DIR)%.cpp | $(BUILD_DIR)
 	$(CXX) -c $(CXXFLAGS) $(DEP_FLAGS) $< -o $@
 
-$(BUILD_DIR_DEBUG)/%.o: %.cpp | $(BUILD_DIR_DEBUG)
+$(BUILD_DIR_DEBUG)/%.o: $(CURR_DIR)%.cpp | $(BUILD_DIR_DEBUG)
 	$(CXX) -c $(DBGCXXFLAGS) $(DEP_FLAGS) $< -o $@
 
-$(BUILD_DIR_MPI)/%.o: %.cpp | $(BUILD_DIR_MPI)
+$(BUILD_DIR_MPI)/%.o: $(CURR_DIR)%.cpp | $(BUILD_DIR_MPI)
 	$(MPICXX) -c $(MPICXXFLAGS) -DENABLE_MPI $(DEP_FLAGS) $< -o $@
 
 $(BUILD_DIR):
@@ -96,6 +100,7 @@ print:
 	$(ECHO) $(SRCS)
 	$(ECHO) $(OBJS)
 	$(ECHO) $(DEPS)
+	$(ECHO) $(CURR_DIR)
 
 .PHONY: objclean
 objclean:
