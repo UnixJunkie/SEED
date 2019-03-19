@@ -3,11 +3,11 @@
 #SHELL = /bin/bash
 # Folders: 
 #SRC_DIR = .
-MKFILE_PATH = $(abspath $(lastword $(MAKEFILE_LIST)))
+MKFILE_PATH = $(abspath $(firstword $(MAKEFILE_LIST)))
 CURR_DIR = $(dir $(MKFILE_PATH))
 BIN_DIR = $(CURR_DIR)../bin
-BUILD_DIR = $(CURR_DIR)build
 
+BUILD_DIR = $(CURR_DIR)build
 BUILD_DIR_MPI = $(CURR_DIR)build/mpi
 BUILD_DIR_DEBUG = $(CURR_DIR)build/dbg
 
@@ -20,7 +20,7 @@ CXX = g++
 CXXFLAGS = -std=c++11 -O3 -pedantic -Wall -march=native
 LDFLAGS = -lm -O3 -static
 
-INC_FLAGS = -I. -I./lib/
+INC_FLAGS = -I$(CURR_DIR) -I$(CURR_DIR)../lib/
 
 # For seed MPI:
 MPICXX = mpic++
@@ -100,6 +100,10 @@ print:
 	$(ECHO) $(SRCS)
 	$(ECHO) $(OBJS)
 	$(ECHO) $(DEPS)
+	$(ECHO)
+	$(ECHO)
+	$(ECHO) $(MAKEFILE_LIST)
+	$(ECHO) $(MKFILE_PATH)
 	$(ECHO) $(CURR_DIR)
 
 .PHONY: objclean
