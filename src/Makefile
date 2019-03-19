@@ -1,7 +1,7 @@
 # Makefile for SEED 4.0.0
 # clangini 2016
 #SHELL = /bin/bash
-# Folders:
+# Folders: 
 #SRC_DIR = .
 BIN_DIR = ../bin
 BUILD_DIR = build
