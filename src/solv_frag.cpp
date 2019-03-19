@@ -1490,7 +1490,7 @@ int Get_Self_Vol_Re(int ReAtNu,double **ReCoor,int NFrNeigh,int *FrNeighList,
                     int NStartGridx,int NStartGridy,int NStartGridz,
                     int NGridx,int NGridy,int NGridz,
                     double UnitVol,char ***GridMat,double *SelfVol,
-		    double *SelfVol_corrB,char *EmpCorrB)
+		                double *SelfVol_corrB,char *EmpCorrB)
 /*##########################################
 For rec atoms: Add to the integral of 1/r^4 resulting from
 the isolated rec the contribution due to the presence of the frag
@@ -1525,7 +1525,7 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over
   double UnitVol27,cutoff,cutoff2,cutoff2_grid,r2,*SelfVolTmp,*SelfVolTmp_corrB;
 
   cutoff = 5.;      /* cutoff between fine and coarse 3D grid */
-  cutoff2 = cutoff * cutoff;
+  cutoff2 = cutoff * cutoff; /* 25.0 */
   cutoff2_grid = (cutoff+sqrt(3.)*GrSiSo)*(cutoff+sqrt(3.)*GrSiSo);
   UnitVol27 = UnitVol * 27.;
 
@@ -1759,23 +1759,22 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
                      r2 > FrRad2[iat] && r2 <= FrRadOut2[iat] ) {
                   r4 = r2 * r2;
                   SelfVol[iat] -= UnitVol / r4;
-		  if (EmpCorrB[0]=='y')
-		    SelfVol_corrB[iat] -= UnitVol / (r4*sqrt(r2));
-                }
-                else if ( (FrGridMat[ix][iy][iz] == 'o' ||
+		              if (EmpCorrB[0]=='y')
+		                SelfVol_corrB[iat] -= UnitVol / (r4*sqrt(r2));
+                } else if ( (FrGridMat[ix][iy][iz] == 'o' ||
                            GridMat[ix][iy][iz] == 'o') &&
                            r2 > FrRadOut2[iat] ) {
                   r4 = r2 * r2;
                   SelfVol[iat] += UnitVol / r4;
-		  if (EmpCorrB[0]=='y')
-		    SelfVol_corrB[iat] += UnitVol / (r4*sqrt(r2));
-                }
+		              if (EmpCorrB[0]=='y')
+		                SelfVol_corrB[iat] += UnitVol / (r4*sqrt(r2));
+                  }
               }
               else if ( (ix >= nxminFr && ix <= nxmaxFr+1 &&
                          iy >= nyminFr && iy <= nymaxFr+1 &&
                          iz >= nzminFr && iz <= nzmaxFr+1 &&
                          FrGridMat[ix][iy][iz] == 'o') ||
-                        GridMat[ix][iy][iz] == 'o' ) {
+                         GridMat[ix][iy][iz] == 'o' ) {
                 r2 = (XGrid[ix]-RoSFCo[iat][1]) *
                      (XGrid[ix]-RoSFCo[iat][1]) +
                      (YGrid[iy]-RoSFCo[iat][2]) *
@@ -1785,8 +1784,8 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
                 if ( r2 > FrRadOut2[iat] && r2 < cutoff1sq) {
                   r4 = r2 * r2;
                   SelfVol[iat] += UnitVol / r4;
-		  if (EmpCorrB[0]=='y')
-		    SelfVol_corrB[iat] += UnitVol / (r4*sqrt(r2));
+		            if (EmpCorrB[0]=='y')
+		              SelfVol_corrB[iat] += UnitVol / (r4*sqrt(r2));
                 }
               }
             }
