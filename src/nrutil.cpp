@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
+// #include <nrutil.h>
 #define NR_END 1
 #define FREE_ARG char*
 
@@ -504,11 +505,46 @@ void free_i3tensor(int ***t, long nrl, long nrh, long ncl, long nch,
 /* ------------------------- */
 
 /* ------ added by MS ------ */
-struct point {
+struct point{
   double x;
   double y;
   double z;
 };
+
+Point3D::Point3D()
+: x(0.0), y(0.0), z(0.0) { }
+
+Point3D::Point3D(double x_, double y_, double z_)
+: x(x_), y(y_), z(z_) { }
+
+Point3D::Point3D(const Point3D& p){
+    x = p.x;
+    y = p.y;
+    z = p.z;
+}
+
+const Point3D& Point3D::operator=(const Point3D& rhs){
+  x = rhs.x;
+  y = rhs.y;
+  z = rhs.z;
+  return *this;
+}
+
+const Point3D& Point3D::operator+=(const Point3D& q){
+  x += q.x;
+  y += q.y;
+  z += q.z;
+  return *this;
+}
+
+Point3D Point3D::operator*(double v){
+  return Point3D(x*v, y*v, z*v);
+}
+
+Point3D operator+(const Point3D& lhs, const Point3D& rhs){
+  return Point3D(lhs) += rhs;
+}
+
 struct point *structpointvect(long nl, long nh)
 /* allocate a float vector with subscript range v[nl..nh] */
 {

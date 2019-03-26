@@ -110,6 +110,23 @@ void free_ppdvector(double ***v, long nl, long nh);
 /*clangini end*/
 
 /* ------ added by MS ------ */
+struct Point3D 
+{
+    double x;
+    double y;
+    double z;
+
+    Point3D();
+    Point3D(double x_, double y_, double z_);
+    Point3D(const Point3D& p);
+    
+    const Point3D& operator=(const Point3D& rhs);
+    const Point3D& operator+=(const Point3D& q);
+    Point3D operator*(double v);
+
+    friend Point3D operator+(const Point3D& lhs, const Point3D& rhs);
+};
+
 struct point *structpointvect(long nl, long nh);
 char ***c3tensor(long nrl, long nrh, long ncl, long nch, long ndl, long ndh);
 double ***d3tensor(long nrl, long nrh, long ncl, long nch, long ndl, long ndh);

@@ -63,9 +63,9 @@ void Solvation(int ReAtNu,double **ReCoor,double *ReVdWE_sr,double *ReVdWR,
                int *PNapol_Vect_re,double **SelfVol,
                double *PKelec,double *PKsolv,double *PUnitVol,double pi4,
                double corr_re_desoco,double corr_re_desofd,double corr_fast_deso,
-	       int distrPointBSNumb,double **distrPointBS,double angle_rmin,
-	       double angle_rmax,double mult_fact_rmin,double mult_fact_rmax,
-	       FILE *FPaOut,double **SelfVol_corrB,char *EmpCorrB)
+	              int distrPointBSNumb,double **distrPointBS,double angle_rmin,
+	              double angle_rmax,double mult_fact_rmin,double mult_fact_rmax,
+	              FILE *FPaOut,double **SelfVol_corrB,char *EmpCorrB)
 
 /*#####################################################################################
 Continuum Electrostatics: It sets up grids and precalculates many quantities
@@ -348,7 +348,7 @@ struct point len ----------- ReMaxC - ReMinC
   printf("\tover the volume enclosed by the MS...\n");
   nn = Get_Self_Vol(ReAtNu,ReCoor,ReRadOut2,GrSiSo,*XGrid,*YGrid,*ZGrid,1,1,1,
                     NGridx,NGridy,NGridz,*PUnitVol,*GridMat,*SelfVol,
-		    *SelfVol_corrB,EmpCorrB);
+		                *SelfVol_corrB,EmpCorrB);
 
 /* Evaluation of the self energy */
   EffRad=dvector(1,ReAtNu);
@@ -364,33 +364,33 @@ struct point len ----------- ReMaxC - ReMinC
     else
     {
 
-	EffRad[iat] = 1./( (-1.*(1./ReRadOut[iat] - (*SelfVol)[iat]/pi4))
-			   + 3.0*sqrt( (1./(2.*ReRadOut[iat]*ReRadOut[iat])) -
-				       ((*SelfVol_corrB)[iat]/pi4) ) )
-	    + 0.215;
+	    EffRad[iat] = 1./( (-1.*(1./ReRadOut[iat] - (*SelfVol)[iat]/pi4))
+			              + 3.0*sqrt( (1./(2.*ReRadOut[iat]*ReRadOut[iat])) -
+				            ((*SelfVol_corrB)[iat]/pi4) ) )
+	                  + 0.215;
 
 
-	/*
-	  Dey exception handling :
-	  in rare cases the expression :
-	  (1./(2.*ReRadOut[iat]*ReRadOut[iat])) - ((*SelfVol_corrB)[iat]/pi4)
-	  can become < 0 -> the sqrt() function cannot be evaluated, which leads
-	  to "nan" values or the effective born radius is smaller than 0
+      /*
+        Dey exception handling :
+        in rare cases the expression :
+        (1./(2.*ReRadOut[iat]*ReRadOut[iat])) - ((*SelfVol_corrB)[iat]/pi4)
+        can become < 0 -> the sqrt() function cannot be evaluated, which leads
+        to "nan" values or the effective born radius is smaller than 0
 
-	*/
-	if(EffRad[iat] < ReEffRad_bound[iat] || isnan(EffRad[iat]))
-	{
+      */
+      if(EffRad[iat] < ReEffRad_bound[iat] || isnan(EffRad[iat]))
+      {
 #ifndef NOWARN
-	    /* fprintf(FPaOut,"WARNING could not calculate empirically-corrected 
-              effective born radius for receptor atom %d, using standard approach\n",iat);*/
-      fprintf(FPaOut, "WARNING could not calculate empirically-corrected effective born radius for receptor atom %d.\n", iat);
-      if (!isnan(EffRad[iat])){
-        fprintf(FPaOut, "Effective Born radius (%f) set to its lower bound (%f).\n", EffRad[iat], ReEffRad_bound[iat]);
+        /* fprintf(FPaOut,"WARNING could not calculate empirically-corrected 
+                effective born radius for receptor atom %d, using standard approach\n",iat);*/
+        fprintf(FPaOut, "WARNING could not calculate empirically-corrected effective born radius for receptor atom %d.\n", iat);
+        if (!isnan(EffRad[iat])){
+          fprintf(FPaOut, "Effective Born radius (%f) set to its lower bound (%f).\n", EffRad[iat], ReEffRad_bound[iat]);
       }
 #endif
 	    // EffRad[iat] = 1. / ( 1./ReRadOut[iat] - (*SelfVol)[iat]/pi4 );
       EffRad[iat] = ReEffRad_bound[iat];
-	}
+	    }
 
 
 
