@@ -521,9 +521,11 @@ struct point *surfpt_fr - Coor of points over frag SAS1 (relative to RoSFCo)
       if(isnan(ReEffRad[hVar_corrB]) || ReEffRad[hVar_corrB] <= ReEffRad_bound[hVar_corrB])
       {
 #ifndef NOWARN
-	      fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of receptor atom %d using standard approach\n",iat);
+	      // fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of receptor atom %d using standard approach\n",iat);
         if (!isnan(ReEffRad[hVar_corrB])){
-          fprintf(FPaOut, "Effective Born radius (%f) set to its lower bound (%f).\n", ReEffRad[hVar_corrB], ReEffRad_bound[hVar_corrB]);
+          fprintf(FPaOut, "Calculated effective Born radius of receptor atom %d (%f) set to its lower bound (%f).\n", iat, ReEffRad[hVar_corrB], ReEffRad_bound[hVar_corrB]);
+        } else {
+          fprintf(FPaOut, "WARNING empirically-corrected effective born radius of receptor atom %d is nan. Set to its estimated lower bound (%f).\n", iat, ReEffRad_bound[hVar_corrB]);
         }
 #endif
     //clangini debug start
@@ -582,9 +584,11 @@ struct point *surfpt_fr - Coor of points over frag SAS1 (relative to RoSFCo)
 	  if(isnan(FrEffRad[iat]) || (FrEffRad[iat] <= FrEffRad_bound[iat]))
 	  {
 #ifndef NOWARN
-	      fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of fragment atom %d, using standard approach\n",iat);
+	      // fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of fragment atom %d, using standard approach\n",iat);
         if(!isnan(FrEffRad[iat])){
-          fprintf(FPaOut, "Effective Born radius (%f) set to its lower bound (%f).\n", FrEffRad[iat], FrEffRad_bound[iat]);
+          fprintf(FPaOut, "Calculated effective Born radius of fragment atom %d (%f) set to its lower bound (%f).\n", iat, FrEffRad[iat], FrEffRad_bound[iat]);
+        } else {
+          fprintf(FPaOut, "WARNING empirically-corrected effective born radius of fragment atom %d is nan. Set to its estimated lower bound (%f).\n", iat, FrEffRad_bound[iat]);
         }
 #endif
         //clangini debug start

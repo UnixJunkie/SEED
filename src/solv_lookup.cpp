@@ -376,9 +376,11 @@ struct point len ----------- ReMaxC - ReMinC
 	  if(isnan(EffRad[iat]) || EffRad[iat] <= ReEffRad_bound[iat])
 	  {
 #ifndef NOWARN
-	    fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius for receptor atom %d\n",iat);
+	    // fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius for receptor atom %d\n",iat);
       if (!isnan(EffRad[iat])){
-        fprintf(FPaOut, "Effective Born radius (%f) set to its lower bound (%f).\n", EffRad[iat], ReEffRad_bound[iat]);
+        fprintf(FPaOut, "Calculated effective Born radius of receptor atom %d (%f) set to its lower bound (%f).\n", iat, EffRad[iat], ReEffRad_bound[iat]);
+      } else {
+        fprintf(FPaOut,"WARNING empirically-corrected effective born radius for receptor atom %d is nan. Set to its lower bound (%f).\n",iat,ReEffRad_bound[iat]);
       }
 #endif
 	    // EffRad[iat] = 1. / ( 1./ReRadOut[iat] - (*SelfVol)[iat]/pi4 );
