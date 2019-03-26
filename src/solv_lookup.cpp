@@ -37,6 +37,7 @@
 
 void Solvation(int ReAtNu,double **ReCoor,double *ReVdWE_sr,double *ReVdWR,
                double *ReRad,double *ReRad2,double *ReRadOut,double *ReRadOut2,
+               double *ReEffRad_bound,
                double *ReMaxC,double *ReMinC,double *RePaCh,double DielRe,
                double DielWa,double WaMoRa,double GrSiSo,double GrInSo,
                int NPtSphere,int *ReResN,int ReReNu,int BSResN,
@@ -301,8 +302,12 @@ struct point len ----------- ReMaxC - ReMinC
   printf("\n\tCharge radii...\n");
   nn = get_Ch_Rad(ReAtNu,ReCoor,ReVdWR,WaMoRa,ReRad,ReRad2,
                   ReRadOut,ReRadOut2,&Rmin,&Rmax);
-  /* GridMat is the matrix that tells us whether a gr pt is occupied */
+  /* setting lower bound for rec born radius */
+  for (iat=1; iat <= ReAtNu; iat++){
+    ReEffRad_bound[iat] = ReRad[iat];
+  }
 
+/* GridMat is the matrix that tells us whether a gr pt is occupied */
   *GridMat = c3tensor(1,NGridx+1,1,NGridy+1,1,NGridz+1);
 /* Initialize GridMat */
   for (i=1;i<=NGridx+1;i++)
@@ -350,42 +355,43 @@ struct point len ----------- ReMaxC - ReMinC
   *PKelec = 332.0716 / DielRe;
   SelfEnTot = 0.;
   for (iat=1;iat<=ReAtNu;iat++){
-
-
     if (EmpCorrB[0]!='y')
       EffRad[iat] = 1. / ( 1./ReRadOut[iat] - (*SelfVol)[iat]/pi4 );
-    else
-    {
-
-	EffRad[iat] = 1./( (-1.*(1./ReRadOut[iat] - (*SelfVol)[iat]/pi4))
-			   + 3.0*sqrt( (1./(2.*ReRadOut[iat]*ReRadOut[iat])) -
-				       ((*SelfVol_corrB)[iat]/pi4) ) )
-	    + 0.215;
-
-
+    else {
+      EffRad[iat] = 1./( (-1.*(1./ReRadOut[iat] - (*SelfVol)[iat]/pi4))
+			              + 3.0*sqrt( (1./(2.*ReRadOut[iat]*ReRadOut[iat])) -
+				            ((*SelfVol_corrB)[iat]/pi4) ) )
+	                  + 0.215;
 	/*
 	  Dey exception handling :
 	  in rare cases the expression :
 	  (1./(2.*ReRadOut[iat]*ReRadOut[iat])) - ((*SelfVol_corrB)[iat]/pi4)
 	  can become < 0 -> the sqrt() function cannot be evaluated, which leads
 	  to "nan" values or the effective born radius is smaller than 0
-
+    clangini modification:
+    we are able to define a lower bound for the Born radius. 
+    If the calculated effective born radius is smaller than the lower bound, 
+    we override it to the lower bound.
 	*/
-	if(EffRad[iat]<=0 || isnan(EffRad[iat]))
-	{
+	  if(isnan(EffRad[iat]) || EffRad[iat] <= ReEffRad_bound[iat])
+	  {
 #ifndef NOWARN
-	    fprintf(FPaOut,"WARNING could not calculate effective born radius for atom %d, using standard approach\n",iat);
+	    fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius for receptor atom %d\n",iat);
+      if (!isnan(EffRad[iat])){
+        fprintf(FPaOut, "Effective Born radius (%f) set to its lower bound (%f).\n", EffRad[iat], ReEffRad_bound[iat]);
+      }
 #endif
-	    EffRad[iat] = 1. / ( 1./ReRadOut[iat] - (*SelfVol)[iat]/pi4 );
-	}
+	    // EffRad[iat] = 1. / ( 1./ReRadOut[iat] - (*SelfVol)[iat]/pi4 );
+      EffRad[iat] = ReEffRad_bound[iat];
+	  }
 
 
 
-    }
+  }
 
 
-    SelfEn[iat] = *PKsolv * RePaCh[iat] * RePaCh[iat] / (2. * EffRad[iat]);
-    SelfEnTot += SelfEn[iat];
+  SelfEn[iat] = *PKsolv * RePaCh[iat] * RePaCh[iat] / (2. * EffRad[iat]);
+  SelfEnTot += SelfEn[iat];
 
   }
 
