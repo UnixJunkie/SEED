@@ -1,3 +1,4 @@
+bin/*
 bin/seed*
 src/build/*
 test_cases/bromodomains/BRD4/scratch/*
