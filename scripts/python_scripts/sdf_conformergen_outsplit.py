@@ -6,7 +6,7 @@ Uses the ETDKG function of RDKit
 http://pubs.acs.org/doi/abs/10.1021/acs.jcim.5b00654
 http://pubs.acs.org/doi/full/10.1021/acs.jcim.6b00613
 """
-
+from __future__ import print_function
 import os, sys
 from rdkit import Chem
 from rdkit.Chem import AllChem, TorsionFingerprints
@@ -15,7 +15,7 @@ from rdkit.ML.Cluster import Butina
 
 
 if len(sys.argv)!=6:
-	print "Usage = python script.py mol.sdf nb_of_conf rms_threshold output_folder/ nb_thread"
+	print("Usage = python script.py mol.sdf nb_of_conf rms_threshold output_folder/ nb_thread")
 
 output_folder=sys.argv[4]
 if not os.path.exists(output_folder):
@@ -32,17 +32,29 @@ mols=Chem.SDMolSupplier(file, removeHs=False)
 for mol in mols:
 	if mol != None:
 		mol=Chem.AddHs(mol)
-		conf=AllChem.EmbedMultipleConfs(mol, numConfs=int(N), pruneRmsThresh=float(RMS), useExpTorsionAnglePrefs=True, useBasicKnowledge=True, numThreads=int(nbthread))
-		Chem.rdMolAlign.AlignMolConformers(mol)
-		AllChem.UFFOptimizeMoleculeConfs(mol, numThreads=int(nbthread))
-		## Here new code to discard identical conformers around an axis of symmetry (not supported by pruneRmsThresh in the previous fct)
-		matrix=TorsionFingerprints.GetTFDMatrix(mol, useWeights=False, maxDev='equal', symmRadius=2, ignoreColinearBonds=True)
-		conf_clusters=Butina.ClusterData(matrix, len(conf), cutoff, True) 
-		confnb=1
-		for cluster in conf_clusters:
-			writer=Chem.SDWriter(output_folder+"/"+mol.GetProp("_Name")+"_conf_"+str(confnb)+".sdf")
-			writer.write(mol, confId=cluster[0]) # output only centroid
-			writer.close()
-			confnb+=1
+		conf=AllChem.EmbedMultipleConfs(mol, numConfs=int(N), 
+				pruneRmsThresh=float(RMS), 
+				useExpTorsionAnglePrefs=True, 
+				useBasicKnowledge=True, 
+				numThreads=int(nbthread))
+		if len(conf) > 0:
+			Chem.rdMolAlign.AlignMolConformers(mol)
+			AllChem.UFFOptimizeMoleculeConfs(mol, numThreads=int(nbthread))
+			## Here new code to discard identical conformers around an axis of symmetry (not supported by pruneRmsThresh in the previous fct)
+			matrix=TorsionFingerprints.GetTFDMatrix(mol, useWeights=False, maxDev='equal', symmRadius=2, ignoreColinearBonds=True)
+			conf_clusters=Butina.ClusterData(matrix, len(conf), cutoff, True) 
+			confnb=1
+			for cluster in conf_clusters:
+				writer=Chem.SDWriter(output_folder+"/"+mol.GetProp("_Name")+"_conf_"+str(confnb)+".sdf")
+				writer.write(mol, confId=cluster[0]) # output only centroid
+				writer.close()
+				confnb+=1
+		else:
+			# not able to make conformers
+			print("Could not generate any conformers for %s"%(mol.GetProp("_Name")))
+			# confnb = 1
+			# writer=Chem.SDWriter(output_folder+"/"+mol.GetProp("_Name")+"_conf_"+str(confnb)+".sdf")
+			# writer.write(mol)
+			# writer.close()
 		## End new code
 
