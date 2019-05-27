@@ -9,10 +9,11 @@ It has been validated on an input mol2 file from obabel
 SEED 4 modification => Sybyl atom types are kept, CGenFF atom types
 are added under the tag "@<TRIPOS>ALT_TYPE"
 """
+from __future__ import print_function
 import sys, os
 from math import sqrt
 if len(sys.argv)!=4:
-	print "Usage = python script.py lig.mol2 lig.str out.mol2"
+	print("Usage = python script.py lig.mol2 lig.str out.mol2")
 
 # Function to calculate the position of the LP
 # Takes as input a tuple with coordinates of the C atom, X atom and distance from
@@ -37,7 +38,7 @@ for lin in topology:
 	if "RESI" in lin:
 		good=True
 if good==False:
-	print "No parameters for", orimol2
+	print("No parameters for", orimol2)
 	sys.exit()
 
 # Process the CHARMM stream file (dictionaries of atom types; charges;
