@@ -31,6 +31,9 @@ understand the format for structural input read by SEED.
 To run the code provided in this tutorial as is, you should set the 
 ``PYTHONSCRIPTS`` variable to ``"SEED/scripts/python"``.
 
+**Note** that the Python scripts we provide were written in Python 2. A few of them
+will require minor modifications to be run with Python 3.
+
 .. _lig_from_pdb:
 
 Ligand Preparation from a PDB 
