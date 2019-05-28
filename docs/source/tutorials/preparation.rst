@@ -205,6 +205,11 @@ preliminary points which should be taken into account:
     with the format. Always remember that most docking software are not very 
     tolerant to mistakes in the input format.
 
+In order to make it easier to retrace results from output to the input structures
+we highly recommend to give unique names to the fragments in the input library.
+Our convention (which we will follow in this tutorial) is to append to the fragment 
+name an index for the tautomer/protomer and an index for the conformer.
+
 As starting point we assume to have a collection of ligands in a single SDF 
 file without defined conformations and protonation states.
 
