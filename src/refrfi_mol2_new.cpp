@@ -338,11 +338,10 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
 	  ++itItem; // skip the alternative atom type set name
 	  AtCount = 0;
 	  AtNu_flag = false;
-	  while (AtCount < *FrAtNu){
+	  while (itItem != tokens.end()){
 		  if (*itItem != "\\"){
 			  if (!AtNu_flag){
 				  CuAtNu =  boost::lexical_cast<int>(*itItem); // Current atom number
-          // std::cout << "Current atom number " << CuAtNu << std::endl;
 				  AtNu_flag = true;
 				  ++itItem;
 			  } else {
@@ -364,10 +363,44 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
 			  itItem = tokens.begin();
 		  }
 	  }
+    if (AtCount < *FrAtNu){
+      (*SkiFra)++;
+      (*CurFraTot)++;
+      std::cerr << "List of alternative atom types for fragment " << *CurFraTot
+                << " is not complete. "
+                << "Skipping!\n";
+      /* Once we will implement the resizing this part will not be needed any more */
+      free_cmatrix(*FrAtEl, 1, *FrAtNu, 1, 5);
+      free_dmatrix(*FrCoor, 1, *FrAtNu, 1, 3);
+      free_cmatrix(*FrSyAtTy, 1, *FrAtNu, 1, 7);
+      free_dvector(*FrPaCh, 1, *FrAtNu);
+      free_cmatrix(*SubNa, 1, *FrAtNu, 1, 10);
+      free_imatrix(*FrBdAr, 1, *FrBdNu, 1, 2);
+      free_cmatrix(*FrBdTy, 1, *FrBdNu, 1, 4);
+      free_cmatrix(*FrAtTy, 1, *FrAtNu, 1, 7);
+      continue;
+    }
+    else if (AtCount > *FrAtNu){
+      (*SkiFra)++;
+      (*CurFraTot)++;
+      std::cerr << "List of alternative atom types for fragment " << *CurFraTot
+                << " is too long. There might be duplicates. "
+                << "Skipping!\n";
+      /* Once we will implement the resizing this part will not be needed any more */
+      free_cmatrix(*FrAtEl, 1, *FrAtNu, 1, 5);
+      free_dmatrix(*FrCoor, 1, *FrAtNu, 1, 3);
+      free_cmatrix(*FrSyAtTy, 1, *FrAtNu, 1, 7);
+      free_dvector(*FrPaCh, 1, *FrAtNu);
+      free_cmatrix(*SubNa, 1, *FrAtNu, 1, 10);
+      free_imatrix(*FrBdAr, 1, *FrBdNu, 1, 2);
+      free_cmatrix(*FrBdTy, 1, *FrBdNu, 1, 4);
+      free_cmatrix(*FrAtTy, 1, *FrAtNu, 1, 7);
+      continue;
+    }
     //StrLin = getline(inStream); /* This has to be checked! */
 	  *strPos = inStream->tellg(); // Update the stream position indicator
     (*CurFraTot)++;
     //(*CurFra)++;
     return 0;
-  }
+  } // end of while(true)
 }

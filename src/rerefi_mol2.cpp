@@ -339,6 +339,12 @@ void ReReFi_mol2(char *RecFil,int *ReAtNu,int *ReBdNu,int *ReReNu,
               << "is not complete\nProgram exits!" << endl;
     exit(13);
   }
+  else if (AtCount > *ReAtNu){
+    std::cerr << "List of alternative atom types of receptor"
+              << "is too long. "
+              << "There might be duplicates.\nProgram exits!" << endl;
+    exit(13);
+  }
 
 // /* Read ReAtNu ReBdNu ReReNu */
 //   fgets_wrapper(StrLin,_STRLENGTH,FilePa);
