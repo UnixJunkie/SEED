@@ -1,7 +1,7 @@
 * SEED 4.0.0   Testcase:  CREBBP bromodomain (PDB code 5mqk)
 * Authors:  Valentina Ferri, Dimitrios Spiliotopoulos, J.R. Marchand, and Amedeo Caflisch
 * Date:     June 28, 2017
-* Revised: 
+* Revised:  June 17, 2019 by C. Langini
 *
 
 Test case with multiple CREBBP inhibitors and target pdb structure 5mqk.
@@ -21,8 +21,6 @@ Note that DElec is very unfavorable only for the compound with a formal charge (
 Thus, DElec should not be used for ranking charged compounds.
 From  outputs/seed_best.dat   
 Name                              Pose   Cluster     Fr_nu       Tot     ElinW   rec_des   frg_des       vdW     DElec   DG_hydr   Tot_eff   vdW_eff  Elec_eff       HAC        MW
-5QR_5ep7                             1         1       102    -15.83    -17.10     10.57     11.59    -20.89     25.16    -42.26     -0.79     -1.04     -0.86        20  271.2520
-
-
+5QR_5ep7                             1         1        33    -16.31    -17.53     10.64     11.47    -20.89     24.73    -42.26     -0.82     -1.04     -0.88        20  271.2520
 
 

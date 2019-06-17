@@ -56,7 +56,7 @@ w  ./scratch/desolvation.grid
 #           k x Number of fragment atoms, including hydrogen atoms
 -0.333333
 #           Solvation grid: grid margin / grid spacing
-24.0 0.5
+24.0 0.25
 #           Solvation: water radius / # points per sphere to generate SAS / 
 #                       solvent dielectric constant
 1.4 500 78.5

@@ -6,7 +6,7 @@
 ****
 USER_CHARGES
 INVALID_CHARGES
-Pose:   1 Cluster:   1 Fr_nu:    111 TotEn:   -25.97
+Pose:   1 Cluster:   1 Fr_nu:    111 TotEn:   -26.47
 @<TRIPOS>ATOM
       1 N         -25.0114   44.6750   10.4682 N.am   1 LIG      -0.29800
       2 C         -23.8711   44.3550    9.6071 C.3    1 LIG      -0.08800
@@ -90,7 +90,7 @@ CGenFF_4.0 1 NG2S0 2 CG331 3 OG2D1 4 CG2R61 5 NG311 6 CG2R61 7 CG2R61 8 CG2R61 9
 ****
 USER_CHARGES
 INVALID_CHARGES
-Pose:   1 Cluster:   1 Fr_nu:    117 TotEn:   -14.01
+Pose:   1 Cluster:   1 Fr_nu:    116 TotEn:   -13.74
 @<TRIPOS>ATOM
       1 N         -26.1858   53.5032    6.6495 N.am   1 LIG      -0.29800
       2 C         -26.1171   54.4465    7.7674 C.3    1 LIG      -0.08800
