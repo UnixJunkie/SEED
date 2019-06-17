@@ -4609,7 +4609,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
               Df_s_ro[ClusLi_sd[i1]]=SFDeso_fr*FrDesoElec;
               To_s_ro[ClusLi_sd[i1]]=VW_s_ro[ClusLi_sd[i1]]+In_s_ro[ClusLi_sd[i1]]+
                                      Dr_s_ro[ClusLi_sd[i1]]+Df_s_ro[ClusLi_sd[i1]];
-              fprintf(FPaOut ,"Total slow energy for pose %d is %f\n", ClusLi_sd[i1], To_s_ro[ClusLi_sd[i1]]); //clangini debug
+              // fprintf(FPaOut ,"Total slow energy for pose %d is %f\n", ClusLi_sd[i1], To_s_ro[ClusLi_sd[i1]]); //clangini debug
             }
 
           }
