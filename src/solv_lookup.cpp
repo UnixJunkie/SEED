@@ -2232,6 +2232,8 @@ int *Nsurfpt_re_apol_BS - Tot # of points over the rec SAS3
    angle_rmax_rad  angle cutoff for the reduction of vectors in radian
    mult_fact_rmin  multiplicative factor for the reduction of vectors
    mult_fact_rmax  multiplicative factor for the reduction of vectors
+   isAngleCritAppr are the params for the angle criterion appropriate? 
+                   if they are not, use the more lenient angle for all the vectors
    keptVect_angle  apolar vectors on receptor (0 if rejected, 1 if kept)
                    in case of angle cutoff criterion
    keptVect_angle_numb  number of rec apolar vectors kept after angle
@@ -2247,6 +2249,7 @@ int *Nsurfpt_re_apol_BS - Tot # of points over the rec SAS3
   double minSqDist,maxSqDist,vecPointSqDist,
 	distSqClosest,vecPointAngle,minSqDistCutoff,maxSqDistCutoff,
 	angleCutoff,angle_rmin_rad,angle_rmax_rad,*vect_angle_stored;
+  bool isAngleCritAppr;
   FILE *FilePa;
 
   Sphere_apol2 = (Sphere_apol+.3) * (Sphere_apol+.3);
@@ -2384,7 +2387,7 @@ int *Nsurfpt_re_apol_BS - Tot # of points over the rec SAS3
   }
   angle_rmin_rad=angle_rmin*3.1415927/180.0;
   angle_rmax_rad=angle_rmax*3.1415927/180.0;
-
+  isAngleCritAppr=true;
 
 
   if (distrPointBSNumb>0)
@@ -2421,15 +2424,15 @@ int *Nsurfpt_re_apol_BS - Tot # of points over the rec SAS3
           for (j=1;j<=distrPointBSNumb;j++)
           {
 
-	    vecPointSqDist=DistSq(surfpt_re[i].x,
+	          vecPointSqDist=DistSq(surfpt_re[i].x,
 	                          surfpt_re[i].y,
-				  surfpt_re[i].z,
-                                  distrPointBS[j][1],distrPointBS[j][2],
-		       	          distrPointBS[j][3]);
+				                    surfpt_re[i].z,
+                            distrPointBS[j][1],distrPointBS[j][2],
+		       	                distrPointBS[j][3]);
 
             if (vecPointSqDist<minSqDist)
-	      minSqDist=vecPointSqDist;
-  	    if (vecPointSqDist>maxSqDist)
+	            minSqDist=vecPointSqDist;
+  	        if (vecPointSqDist>maxSqDist)
               maxSqDist=vecPointSqDist;
 
           }
@@ -2445,11 +2448,11 @@ int *Nsurfpt_re_apol_BS - Tot # of points over the rec SAS3
 
     if (minSqDistCutoff>=maxSqDistCutoff)
     {
-      fprintf(FPaOut,"WARNING Parameters for reducing vectors ");
+      fprintf(FPaOut,"WARNING Parameters for reducing apolar vectors ");
       fprintf(FPaOut,"(angle criterion) not appropriate\n");
-      fclose(FPaOut);
-      printf("Program exits\n");
-      exit(0);
+      fprintf(FPaOut, "The angle for short distances (parameter p14_1) ");
+      fprintf(FPaOut, "will be used in all the cases\n");
+      isAngleCritAppr = false;
     }
 
 
@@ -2497,22 +2500,27 @@ int *Nsurfpt_re_apol_BS - Tot # of points over the rec SAS3
           vect_angle_stored[numbApolVectBSCounter]=vecPointAngle/3.1415927*180.0;
 
 /* find angle cutoff and apply criterion to keep or discard the vector */
-          if (distSqClosest<=minSqDistCutoff)
-            angleCutoff=angle_rmin_rad;
-          else if (distSqClosest>=maxSqDistCutoff)
-            angleCutoff=angle_rmax_rad;
-          else
-            angleCutoff=angle_rmin_rad+
-	                ((angle_rmax_rad-angle_rmin_rad)/
-	                (sqrt(maxSqDistCutoff)-sqrt(minSqDistCutoff)))*
-                        (sqrt(distSqClosest)-sqrt(minSqDistCutoff));
-
+          if (isAngleCritAppr)
+          {
+            if (distSqClosest<=minSqDistCutoff)
+              angleCutoff=angle_rmin_rad;
+            else if (distSqClosest>=maxSqDistCutoff)
+              angleCutoff=angle_rmax_rad;
+            else
+              angleCutoff=angle_rmin_rad+
+                    ((angle_rmax_rad-angle_rmin_rad)/
+                    (sqrt(maxSqDistCutoff)-sqrt(minSqDistCutoff)))*
+                    (sqrt(distSqClosest)-sqrt(minSqDistCutoff));
+          }
+          else /* angle criterion not appropriate -> use the more lenient angle */
+          {
+            angleCutoff = angle_rmin_rad;
+          }
           if (vecPointAngle<=angleCutoff)
           {
             keptVect_angle[numbApolVectBSCounter]=1;
- 	    keptVect_angle_numb++;
+ 	          keptVect_angle_numb++;
           }
-
         }
 
 /* Print the kept vectors after angle cutoff criterion in a file */
