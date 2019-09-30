@@ -400,12 +400,12 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   }
   /* Make the directory scratch (if it does not exist)*/
   if ((stat("scratch",&DirExist) != 0)||(stat("scratch", &DirExist) == 0 && !S_ISDIR(DirExist.st_mode))){
-    if(system("mkdir scratch") == -1)
+    if (system("mkdir scratch") == -1)
       std::cout << "Cannot create scratch directory" << std::endl;
   }
   #ifdef ENABLE_MPI
-  }
-  MPI_Barrier(MPI_COMM_WORLD); // Necessary to avoid problems with CheckFile function within ReInFi
+    }
+    MPI_Barrier(MPI_COMM_WORLD); // Necessary to avoid problems with CheckFile function within ReInFi
   #endif
   /* CLANGINI 2016 END */
   /* Read the input and parameters files */
@@ -433,7 +433,6 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
       EmpCorrB,gc_opt,&gc_reprke,&gc_cutclus,&gc_endifclus,&gc_weighneg,
       &gc_weighpos,&gc_maxwrite,write_pproc_opt,write_pproc_chm_opt,
       write_best_opt,write_sumtab_opt,write_best_sumtab_opt,&AtWei);/*clangini*/
-
   /* Check presence of parameter file */
   CheckFile(TREFiP,'r'); /* clangini This is superflous after already having read the parameters*/
 
@@ -457,12 +456,12 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   /* Open the input files, write informations and check the existence of some
      files */
   ChkExit=0;
+  CheckFile(OutFil, 'w'); /* check if possible to write. fails if folder
+                            does not exist */
   FPaOut=fopen(OutFil,"w"); /* OutFil is by default seed.out clangini */
-
 
   time(&runtime);
   fprintf (FPaOut,"Date and time: %s\n",ctime(&runtime)); //WARNING possible memory leak
-
   fprintf(FPaOut,"    ---------------------------------------------------------------------       \n");
   fprintf(FPaOut,"               Solvation Energy for Exhaustive Docking (SEED)                   \n");
   fprintf(FPaOut,"          N. Majeux, M. Scarsi, F. Dey, C. Langini and A. Caflisch              \n");
