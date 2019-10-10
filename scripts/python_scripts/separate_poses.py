@@ -21,6 +21,7 @@
 
 #import math
 #import re
+from __future__ import print_function
 import sys
 import string
 import getopt
@@ -68,30 +69,30 @@ def main(argv):
     try:
           opts, args = getopt.getopt(argv,"hi:t:n:",["imol2=","table=","nposes="])
     except getopt.GetoptError:
-        print 'separate_poses.py -i <pproc mol2> -t <seed summary table> -n <number of poses>'
+        print('separate_poses.py -i <pproc mol2> -t <seed summary table> -n <number of poses>')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print 'separate_poses.py reads the first n lines from a SEED output table (please remove header line!) and\n',\
+            print('separate_poses.py reads the first n lines from a SEED output table (please remove header line!) and\n',\
                     'extracts the corresponding poses from the concatenated mol2 saving them to ',\
-                    'separate mol2 files.\nUsage:'
-            print '\tpython separate_poses.py -i <pproc mol2> -t <seed summary table> -n <number of poses>'
-            print '\tpython separate_poses.py --imol2=<pproc mol2> --table=<seed summary table> --nposes=<number of poses>'
+                    'separate mol2 files.\nUsage:')
+            print('\tpython separate_poses.py -i <pproc mol2> -t <seed summary table> -n <number of poses>')
+            print('\tpython separate_poses.py --imol2=<pproc mol2> --table=<seed summary table> --nposes=<number of poses>')
             sys.exit()
         elif opt in ("-i", "--imol2"):
             inFn = arg
-            print "Input mol2: %s" % inFn
+            print("Input mol2: %s" % inFn)
         elif opt in ("-t", "--table"):
             tabFn = arg
-            print "SEED summary table: %s" % tabFn
+            print("SEED summary table: %s" % tabFn)
         elif opt in ("-n", "--nposes"):
             npos = int(arg)
-            print "Number of poses to extract: %d" % npos
+            print("Number of poses to extract: %d" % npos)
 
     if (inFn != '') and (tabFn != '') and (npos != ''):
         #print "Extracting poses"
         poseList = []
-        poseRank = range(1,npos+1)
+        poseRank = list(range(1,npos+1))
         with open(tabFn, 'r') as f:
             for line in islice(f,npos):
                 pose_split = line.strip().split()
@@ -136,7 +137,7 @@ def main(argv):
                     #print pose
                     if (pose == curPose):
                         nfound = nfound + 1
-                        print "Found pose: " + str(pose)
+                        print("Found pose: " + str(pose))
                         inNextMol = dump_mol2(fIn,header,pose,poseRank[pose_idx])
                         del poseList[pose_idx]
                         del poseRank[pose_idx]
@@ -153,22 +154,22 @@ def main(argv):
                 if (nfound == npos):
                     found_all = True
         if found_all:
-            print "All poses extracted"
+            print("All poses extracted")
         else:
-            print "EOF reached after extracting " + str(nfound) + " poses."
-            print "Missed poses: "
+            print("EOF reached after extracting " + str(nfound) + " poses.")
+            print("Missed poses: ")
             for pose in poseList:
-                print pose
+                print (pose)
 
 
 
     else:
-        print "Missing parameters."
-        print 'separate_poses.py reads the first n lines from a SEED output table (please remove header line!) and\n',\
+        print("Missing parameters.")
+        print('separate_poses.py reads the first n lines from a SEED output table (please remove header line!) and\n',\
                 'extracts the corresponding poses from the concatenated mol2 saving them to ',\
-                'separate mol2 files.\nUsage:'
-        print '\tpython separate_poses.py -i <pproc mol2> -t <seed summary table> -n <number of poses>'
-        print '\tpython separate_poses.py --imol2=<pproc mol2> --table=<seed summary table> --nposes=<number of poses>'
+                'separate mol2 files.\nUsage:')
+        print('\tpython separate_poses.py -i <pproc mol2> -t <seed summary table> -n <number of poses>')
+        print('\tpython separate_poses.py --imol2=<pproc mol2> --table=<seed summary table> --nposes=<number of poses>')
 
 
 
