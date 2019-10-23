@@ -4764,20 +4764,21 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                       SDFrRe_ps_elec,ChFrRe_ps_elec);
                   PsSpEE(FrAtNu,ReAtNu,ReVdWE_sr,FrVdWE_sr,
                          ReVdWR,FrVdWR,&VWEnEv_ps,SDFrRe_ps);
-                  ElecFrag(ReAtNu,ReCoor,RePaCh,ChFrRe_ps_elec,
-                      ReRad,ReRad2,ReRadOut,
-                      ReRadOut2,surfpt_re,nsurf_re,
-                      pointsrf_re,ReSelfVol,FrAtNu,RoSFCo,FrCoor,
-                      FrPaCh,FrRad,FrRad2,FrRadOut,FrRadOut2,
-                      Frdist2,SDFrRe_ps_elec,FrMinC,FrMaxC,&FrSolvEn,
-                      Nsurfpt_fr,surfpt_fr,
-                      nsurf_fr,pointsrf_fr,surfpt_ex,Tr,U1,U2,WaMoRa,
-                      GrSiSo,NPtSphere,Min,Max,XGrid,YGrid,ZGrid,
-                      NGridx,NGridy,NGridz,GridMat,
-                      DeltaPrDeso,Kelec,Ksolv,UnitVol,
-                      pi4,nxminBS,nyminBS,nzminBS,nxmaxBS,nymaxBS,
-                      nzmaxBS,corr_scrint,corr_fr_deso,&ReDesoElec,
-                      &ReFrIntElec,&FrDesoElec,ReSelfVol_corrB,EmpCorrB,FPaOut);
+                  ElecFrag(ReAtNu, ReCoor, RePaCh, ChFrRe_ps_elec,
+                           ReRad, ReRad2, ReRadOut,
+                           ReRadOut2, ReEffRad_bound, surfpt_re, nsurf_re,
+                           pointsrf_re, ReSelfVol, FrAtNu, RoSFCo, FrCoor,
+                           FrPaCh, FrRad, FrRad2, FrRadOut, FrRadOut2,
+                           FrEffRad_bound, Frdist2,
+                           SDFrRe_ps_elec, FrMinC, FrMaxC, &FrSolvEn,
+                           Nsurfpt_fr, surfpt_fr,
+                           nsurf_fr, pointsrf_fr, surfpt_ex, Tr, U1, U2, WaMoRa,
+                           GrSiSo, NPtSphere, Min, Max, XGrid, YGrid, ZGrid,
+                           NGridx, NGridy, NGridz, GridMat,
+                           DeltaPrDeso, Kelec, Ksolv, UnitVol,
+                           pi4, nxminBS, nyminBS, nzminBS, nxmaxBS, nymaxBS,
+                           nzmaxBS, corr_scrint, corr_fr_deso, &ReDesoElec,
+                           &ReFrIntElec, &FrDesoElec, ReSelfVol_corrB, EmpCorrB, FPaOut);
 
                   new_mc_en = SFVWEn*VWEnEv_ps + SFIntElec*ReFrIntElec +
                               SFDeso_re*ReDesoElec + SFDeso_fr*FrDesoElec;
