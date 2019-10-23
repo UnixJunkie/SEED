@@ -7,4 +7,7 @@ INC_FLAGS = -I. -I/home/clangini/software/boost_1_71_0 #-I../lib/
 # For seed MPI:
 MPICXX = mpic++
 MPICXXFLAGS = -std=c++11 -O3 -pedantic -Wall -march=native -DUSE_QUATERNION_ROTATION
-MPILDFLAGS = -lm -O3 -lmpi
+MPILDFLAGS = -lm -O3 -lmpi #-l:libmpi_cxx.so.1.0.2
+
+# For debug:
+DBGCXXFLAGS = -g3 -std=c++11 -O3 -pedantic -Wall -march=native -DUSE_QUATERNION_ROTATION #-DDEBUG_CL

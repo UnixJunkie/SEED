@@ -25,6 +25,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include "nrutil.h"
+//#include <typeinfo>
 #ifndef _STRLENGTH
 #define _STRLENGTH 500
 #endif
@@ -39,7 +40,7 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
                 char ***FrAtEl,double ***FrCoor,char ***FrAtTy,char ***FrSyAtTy,
                 double **FrPaCh,
                 int ***FrBdAr,char ***FrBdTy,char *FrSubN,char *FrSubC,
-                int *FrCoNu, char ***SubNa, std::string &AlTySp )
+                int *FrCoNu, char ***SubNa, std::string &AlTySp)
 /* This function reads the file of the current fragment (CurFra) in the mol2
    format :
    inStream pointer to the input file stream
@@ -68,7 +69,7 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
 {
 	typedef boost::tokenizer< boost::char_separator<char> > tokenizer;
 	//boost::char_separator<char> sep={" \t\n"};
-  boost::char_separator<char> sep(" \t\n");
+  boost::char_separator<char> sep(" \t\n\r");
 
 	char **FrAtEl_L,**FrAtTy_L,**FrBdTy_L, **SubNa_L, **FrSyAtTy_L;
   int i,**FrBdAr_L,/*FrAtNu_cn,FrBdNu_cn,*/ AtCount, CuAtNu /*insec isValid*/;
@@ -137,10 +138,10 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
     //std::cout << "StrLin is: " << StrLin << std::endl; /* clangini */
 	  boost::trim(StrLin);
 	  if (StrLin != "@<TRIPOS>ATOM"){
-		  std::cerr << "No @<TRIPOS>ATOM-tag found for fragment" << *CurFraTot
-			    << ". Skipping!\n";
       (*SkiFra)++;
       (*CurFraTot)++;
+      std::cerr << "No @<TRIPOS>ATOM-tag found for fragment" << *CurFraTot
+      << ". Skipping!\n";
 		  continue;
 	  }
     //std::cout << "TRIPOS ATOM tag was found" << std::endl; /* clangini */
@@ -159,7 +160,7 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
     for (i=1; i<=(*FrAtNu); i++ ){
 		  //StrLin = getline(inStream);
       std::getline(*inStream,StrLin);
-      //std::cout << "atom line "<<i<<": "<< StrLin << std::endl;
+      // std::cout << "atom line "<<i<<": "<< StrLin << std::endl;
 		  tokens.assign(StrLin, sep);
   		itItem = tokens.begin();
 	  	++itItem;
@@ -167,29 +168,30 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
   		//FrAtEl_L[i][1] = (*itItem).c_str();
       strcpy(&FrAtEl_L[i][1],(*itItem).c_str());
   		++itItem;
-      //std::cout << "X-coordinate "<<i<<": "<< *itItem << std::endl;
+      // std::cout << "X-coordinate "<<i<<": "<< *itItem << std::endl;
       FrCoor_L[i][1] = boost::lexical_cast<double> (*itItem);
-      //std::cout << "X-coordinate "<<i<<": "<<FrCoor_L[i][1]<< std::endl;
+      // std::cout << "X-coordinate "<<i<<": "<<FrCoor_L[i][1]<< std::endl;
       ++itItem;
-      //std::cout << "Y-coordinate "<<i<<": "<< *itItem << std::endl;
+      // std::cout << "Y-coordinate "<<i<<": "<< *itItem << std::endl;
       FrCoor_L[i][2] = boost::lexical_cast<double> (*itItem);
-      //std::cout << "Y-coordinate "<<i<<": "<<FrCoor_L[i][2]<< std::endl;
+      // std::cout << "Y-coordinate "<<i<<": "<<FrCoor_L[i][2]<< std::endl;
       ++itItem;
-      //std::cout << "Z-coordinate "<<i<<": "<< *itItem << std::endl;
+      // std::cout << "Z-coordinate "<<i<<": "<< *itItem << std::endl;
       FrCoor_L[i][3] = boost::lexical_cast<double> (*itItem);
-      //std::cout << "Z-coordinate "<<i<<": "<<FrCoor_L[i][3]<< std::endl;
+      // std::cout << "Z-coordinate "<<i<<": "<<FrCoor_L[i][3]<< std::endl;
       ++itItem;
-      //std::cout << "Sybyl atom type "<<i<<": "<< *itItem << std::endl;
-  		//FrSyAtTy_L[i][1] = (*itItem).c_str();
+      // std::cout << "Sybyl atom type "<<i<<": "<< *itItem << std::endl;
+  		// FrSyAtTy_L[i][1] = (*itItem).c_str();
       strcpy(&FrSyAtTy_L[i][1],(*itItem).c_str());
   		++itItem; ++itItem;
-      //std::cout << "Substructure name "<<i<<": "<< *itItem << std::endl;
-      //SubNa_L[i][1] = (*itItem).c_str();
+      // std::cout << "Substructure name "<<i<<": "<< *itItem << std::endl;
+      // SubNa_L[i][1] = (*itItem).c_str();
       strcpy(&SubNa_L[i][1],(*itItem).c_str());
       ++itItem;
-      //std::cout << "Partial charge "<<i<<": "<< (*itItem)<<"ebbasta" << std::endl;
+      // std::cout << "Partial charge "<<i<<": "<< (*itItem) << "end" << std::endl;
+      // std::cout << typeid(itItem).name() << "\n" << typeid(*itItem).name() << std::endl;
   		FrPaCh_L[i] = boost::lexical_cast<double> (*itItem);
-      //std::cout << "Charge "<<i<<": "<<FrPaCh_L[i]<< std::endl;
+      // std::cout << "Charge "<<i<<": "<<FrPaCh_L[i]<< std::endl;
 	  }
     //std::cout << "Atom Block was read!" << std::endl; /* clangini */
 	  /* Move to the @<TRIPOS>BOND block */
@@ -209,10 +211,10 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
   	}
 	  boost::trim(StrLin);
 	  if (StrLin != "@<TRIPOS>BOND"){
-		  std::cerr << "No @<TRIPOS>BOND-tag found for fragment " << *CurFraTot
-			    << ". Skipping!\n";
 		  (*SkiFra)++;
       (*CurFraTot)++;
+      std::cerr << "No @<TRIPOS>BOND-tag found for fragment " << *CurFraTot
+      << ". Skipping!\n";
       /* Once we will implement the resizing this part will not be needed any more */
 		  free_cmatrix(*FrAtEl,1,*FrAtNu,1,5);
       free_dmatrix(*FrCoor,1,*FrAtNu,1,3);
@@ -235,8 +237,10 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
 		  itItem = tokens.begin();
 		  ++itItem; // skip bond_id
 		  FrBdAr_L[i][1] = boost::lexical_cast<int>(*itItem);
+      // std::cout << "1st bond partner "<<i<<": "<<FrBdAr_L[i][1]<< std::endl;
 		  ++itItem;
 		  FrBdAr_L[i][2] = boost::lexical_cast<int>(*itItem);
+      // std::cout << "2nd bond partner "<<i<<": "<<FrBdAr_L[i][2]<< std::endl;
 		  ++itItem;
 		  //FrBdTy_L[i][1] = (*itItem).c_str();
       strcpy(&FrBdTy_L[i][1],(*itItem).c_str());
@@ -269,10 +273,10 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
 
 	  boost::trim(StrLin);
 	  if (StrLin != "@<TRIPOS>ALT_TYPE"){
-	    std::cerr << "No @<TRIPOS>ALT_TYPE-tag found for fragment " << *CurFraTot
-		            << ". Skipping!\n";
       (*SkiFra)++;
       (*CurFraTot)++;
+      std::cerr << "No @<TRIPOS>ALT_TYPE-tag found for fragment " << *CurFraTot
+      << ". Skipping!\n";
 		  /* Once we will implement the resizing this part will not be needed any more */
 		  free_cmatrix(*FrAtEl,1,*FrAtNu,1,5);
       free_dmatrix(*FrCoor,1,*FrAtNu,1,3);
@@ -291,10 +295,10 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
     /* std::transform(StrLin.begin(), StrLin.end(),StrLin.begin(), ::toupper); */
 	  found = StrLin.find("ALT_TYPE_SET");
 	  if (found == std::string::npos){
-		  std::cerr << "No standard ALT_TYPE_SET signature find for fragment "<< *CurFraTot
-                << "Skipping!\n";
       (*SkiFra)++;
       (*CurFraTot)++;
+      std::cerr << "No standard ALT_TYPE_SET signature find for fragment "<< *CurFraTot
+      << "Skipping!\n";
       /* Once we will implement the resizing this part will not be needed any more */
 		  free_cmatrix(*FrAtEl,1,*FrAtNu,1,5);
       free_dmatrix(*FrCoor,1,*FrAtNu,1,3);
@@ -315,10 +319,10 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
     //std::cout <<"Alternative atom type specification is: "<<firstToken<<std::endl;
 	  //boost::algorithm::to_upper(firstToken); // not needed
 	  if (firstToken != AlTySp){
-		  std::cerr << "Names of alternative atom type set do not coincide for fragment " << *CurFraTot
-                << ". Skipping!\n";
       (*SkiFra)++;
       (*CurFraTot)++;
+      std::cerr << "Names of alternative atom type set do not coincide for fragment " << *CurFraTot
+      << ". Skipping!\n";
        /* Once we will implement the resizing this part will not be needed any more */
 		  free_cmatrix(*FrAtEl,1,*FrAtNu,1,5);
       free_dmatrix(*FrCoor,1,*FrAtNu,1,3);
@@ -334,7 +338,7 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
 	  ++itItem; // skip the alternative atom type set name
 	  AtCount = 0;
 	  AtNu_flag = false;
-	  while (AtCount < *FrAtNu){
+	  while (itItem != tokens.end()){
 		  if (*itItem != "\\"){
 			  if (!AtNu_flag){
 				  CuAtNu =  boost::lexical_cast<int>(*itItem); // Current atom number
@@ -359,10 +363,44 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
 			  itItem = tokens.begin();
 		  }
 	  }
+    if (AtCount < *FrAtNu){
+      (*SkiFra)++;
+      (*CurFraTot)++;
+      std::cerr << "List of alternative atom types for fragment " << *CurFraTot
+                << " is not complete. "
+                << "Skipping!\n";
+      /* Once we will implement the resizing this part will not be needed any more */
+      free_cmatrix(*FrAtEl, 1, *FrAtNu, 1, 5);
+      free_dmatrix(*FrCoor, 1, *FrAtNu, 1, 3);
+      free_cmatrix(*FrSyAtTy, 1, *FrAtNu, 1, 7);
+      free_dvector(*FrPaCh, 1, *FrAtNu);
+      free_cmatrix(*SubNa, 1, *FrAtNu, 1, 10);
+      free_imatrix(*FrBdAr, 1, *FrBdNu, 1, 2);
+      free_cmatrix(*FrBdTy, 1, *FrBdNu, 1, 4);
+      free_cmatrix(*FrAtTy, 1, *FrAtNu, 1, 7);
+      continue;
+    }
+    else if (AtCount > *FrAtNu){
+      (*SkiFra)++;
+      (*CurFraTot)++;
+      std::cerr << "List of alternative atom types for fragment " << *CurFraTot
+                << " is too long. There might be duplicates. "
+                << "Skipping!\n";
+      /* Once we will implement the resizing this part will not be needed any more */
+      free_cmatrix(*FrAtEl, 1, *FrAtNu, 1, 5);
+      free_dmatrix(*FrCoor, 1, *FrAtNu, 1, 3);
+      free_cmatrix(*FrSyAtTy, 1, *FrAtNu, 1, 7);
+      free_dvector(*FrPaCh, 1, *FrAtNu);
+      free_cmatrix(*SubNa, 1, *FrAtNu, 1, 10);
+      free_imatrix(*FrBdAr, 1, *FrBdNu, 1, 2);
+      free_cmatrix(*FrBdTy, 1, *FrBdNu, 1, 4);
+      free_cmatrix(*FrAtTy, 1, *FrAtNu, 1, 7);
+      continue;
+    }
     //StrLin = getline(inStream); /* This has to be checked! */
 	  *strPos = inStream->tellg(); // Update the stream position indicator
     (*CurFraTot)++;
     //(*CurFra)++;
     return 0;
-  }
+  } // end of while(true)
 }

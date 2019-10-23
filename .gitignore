@@ -1,2 +1,8 @@
-bin/
-src/build/
+bin/*
+bin/seed*
+src/build/*
+test_cases/bromodomains/BRD4/scratch/*
+test_cases/bromodomains/CREBBP/scratch/*
+test_cases/kinase/epha3/scratch/*
+docs/build/*
+.vscode/

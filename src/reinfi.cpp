@@ -387,8 +387,7 @@ written in output file*/ //clangini
 
   if(CoGrAcc[0] != 'n') /* new : always calculate from scratch - don't read or write */
     CheckFile(CoGrFile,CoGrAcc[0]); /*dey new*/
-
-/* van der Waals grid access (write read or none) / name of the file */
+  /* van der Waals grid access (write read or none) / name of the file */
   SkipComLin(FilePa,StrLin);
   sscanf(StrLin,"%s%s",VWGrAcc,VWGrFile);
 
@@ -402,13 +401,13 @@ written in output file*/ //clangini
   if(DesoMapAcc[0] != 'n') /* new : always calculate from scratch - don't read or write */
     CheckFile(DesoMapFile,DesoMapAcc[0]); /*dey new*/
 
-/* Read the scaling factor used for computing the maximal number of tolerated
+  /* Read the scaling factor used for computing the maximal number of tolerated
    bumps, the factor for the checking of the bumps distances and the factor of
    bump evaluation */
   SkipComLin(FilePa,StrLin);
   sscanf(StrLin,"%lf%lf%lf",ScMaBump,VdWFaB,BuEvFa);
 
-/* Cutoff (maximal vdW energy) for bump checking with fast energy evaluation */
+  /* Cutoff (maximal vdW energy) for bump checking with fast energy evaluation */
   SkipComLin(FilePa,StrLin);
   sscanf(StrLin,"%lf",BumpFaCut);
 
@@ -592,7 +591,7 @@ written in output file*/ //clangini
   }
 /* CLANGINI 2016 END */
 
-/* Read NumbAT AtTyAr AtENAr VdWRad VdWEne */
+  /* Read NumbAT AtTyAr AtENAr VdWRad VdWEne */
   SkipComLin(FilePa,StrLin);
   sscanf(StrLin,"%d",NumbAT);
   AtTyAr_L=cmatrix(1,*NumbAT,1,7);
@@ -642,12 +641,12 @@ written in output file*/ //clangini
   }
 
 /* Print BLAtTy in a separate file */
-  #ifdef ENABLE_MPI
+#ifdef ENABLE_MPI
   int myrank;
   MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
   if(myrank == MASTERRANK){
   #endif
-  FilePa2=fopen("./outputs/length_hb.gen","w");
+  FilePa2 = fopen("./outputs/length_hb.gen","w");
   fprintf(FilePa2,"File containing the bond lengths between atom types ");
   fprintf(FilePa2,"in the hydrogen bond \n");
   fprintf(FilePa2,"making procedure\n\n");
@@ -658,7 +657,7 @@ written in output file*/ //clangini
     }
   }
   fclose(FilePa2);
-  #ifdef ENABLE_MPI
+#ifdef ENABLE_MPI
   }
   #endif
   /*clangini START Read atomic weights */

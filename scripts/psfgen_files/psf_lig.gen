@@ -1,0 +1,7 @@
+topology ./lig.rtf
+segment lig {
+  pdb lig.pdb
+}
+coordpdb lig.pdb  lig
+guesscoord
+writepdb rep_lig.pdb

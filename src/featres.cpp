@@ -113,9 +113,14 @@ void FeatRes(int ReAtNu,double **ReCoor,int ReReNu,int *ReResN,double *RePaCh,
 
 /* Write in the output file */
   fprintf(FPaOut,"Residue  First  Last  Tot_charge  Residue-representative\n");
-  for (i=1;i<=ReReNu;i++)
+  for (i=1;i<=ReReNu;i++){
+    if (i != ReResN[FiAtRes[i]]){
+      printf("ERROR: SEED residue numbering is not correct. This is a Bug!\n");
+      exit(13);
+    }
     fprintf(FPaOut,"%5d  %6d  %6d  %10.4f  %6d\n",i,FiAtRes[i],LaAtRes[i],
             TotChaRes[i],AtReprRes[i]);
+    }
   fprintf(FPaOut,"\n");
 
 }

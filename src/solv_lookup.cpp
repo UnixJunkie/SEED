@@ -37,6 +37,7 @@
 
 void Solvation(int ReAtNu,double **ReCoor,double *ReVdWE_sr,double *ReVdWR,
                double *ReRad,double *ReRad2,double *ReRadOut,double *ReRadOut2,
+               double *ReEffRad_bound,
                double *ReMaxC,double *ReMinC,double *RePaCh,double DielRe,
                double DielWa,double WaMoRa,double GrSiSo,double GrInSo,
                int NPtSphere,int *ReResN,int ReReNu,int BSResN,
@@ -301,8 +302,12 @@ struct point len ----------- ReMaxC - ReMinC
   printf("\n\tCharge radii...\n");
   nn = get_Ch_Rad(ReAtNu,ReCoor,ReVdWR,WaMoRa,ReRad,ReRad2,
                   ReRadOut,ReRadOut2,&Rmin,&Rmax);
-  /* GridMat is the matrix that tells us whether a gr pt is occupied */
+  /* setting lower bound for rec born radius */
+  for (iat=1; iat <= ReAtNu; iat++){
+    ReEffRad_bound[iat] = ReRad[iat];
+  }
 
+/* GridMat is the matrix that tells us whether a gr pt is occupied */
   *GridMat = c3tensor(1,NGridx+1,1,NGridy+1,1,NGridz+1);
 /* Initialize GridMat */
   for (i=1;i<=NGridx+1;i++)
@@ -350,46 +355,44 @@ struct point len ----------- ReMaxC - ReMinC
   *PKelec = 332.0716 / DielRe;
   SelfEnTot = 0.;
   for (iat=1;iat<=ReAtNu;iat++){
-
-
     if (EmpCorrB[0]!='y')
-      EffRad[iat] = 1. / ( 1./ReRadOut[iat] - (*SelfVol)[iat]/pi4 ); // eq. (14) from [Scarsi et al. 1997]. clangini
-    else
+      EffRad[iat] = 1. / (1. / ReRadOut[iat] - (*SelfVol)[iat] / pi4); // eq. (14) from [Scarsi et al. 1997]. clangini
+    else 
     {
-
-	     EffRad[iat] = 1./( (-1.*(1./ReRadOut[iat] - (*SelfVol)[iat]/pi4))
-			    + 3.0*sqrt( (1./(2.*ReRadOut[iat]*ReRadOut[iat])) -
-				       ((*SelfVol_corrB)[iat]/pi4) ) )
-	        + 0.215;
-
-
+      EffRad[iat] = 1./( (-1.*(1./ReRadOut[iat] - (*SelfVol)[iat]/pi4))
+			              + 3.0*sqrt( (1./(2.*ReRadOut[iat]*ReRadOut[iat])) -
+				            ((*SelfVol_corrB)[iat]/pi4) ) )
+	                  + 0.215;
 	/*
 	  Dey exception handling :
 	  in rare cases the expression :
 	  (1./(2.*ReRadOut[iat]*ReRadOut[iat])) - ((*SelfVol_corrB)[iat]/pi4)
 	  can become < 0 -> the sqrt() function cannot be evaluated, which leads
 	  to "nan" values or the effective born radius is smaller than 0
-
+    clangini modification:
+    we are able to define a lower bound for the Born radius. 
+    If the calculated effective born radius is smaller than the lower bound, 
+    we override it to the lower bound.
 	*/
-	     if(EffRad[iat]<=0 || isnan(EffRad[iat])) {
+	  if(isnan(EffRad[iat]) || EffRad[iat] <= ReEffRad_bound[iat])
+	  {
 #ifndef NOWARN
-	       fprintf(FPaOut,"WARNING could not calculate effective born radius for atom %d, using standard approach\n",iat);
+	    // fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius for receptor atom %d\n",iat);
+      if (!isnan(EffRad[iat])){
+        fprintf(FPaOut, "Calculated effective Born radius of receptor atom %d (%f) set to its lower bound (%f).\n", iat, EffRad[iat], ReEffRad_bound[iat]);
+      } else {
+        fprintf(FPaOut,"WARNING empirically-corrected effective born radius for receptor atom %d is nan. Set to its lower bound (%f).\n",iat,ReEffRad_bound[iat]);
+      }
 #endif
-	       EffRad[iat] = 1. / ( 1./ReRadOut[iat] - (*SelfVol)[iat]/pi4 );
-	     }
-
-
-
-    }
-
-
-    SelfEn[iat] = *PKsolv * RePaCh[iat] * RePaCh[iat] / (2. * EffRad[iat]); // eq. (12) in [Scarsi et al. 1997]. clangini
-    SelfEnTot += SelfEn[iat];
-
+	    // EffRad[iat] = 1. / ( 1./ReRadOut[iat] - (*SelfVol)[iat]/pi4 );
+      EffRad[iat] = ReEffRad_bound[iat];
+	  }
   }
 
+  SelfEn[iat] = *PKsolv * RePaCh[iat] * RePaCh[iat] / (2. * EffRad[iat]); // eq. (12) in [Scarsi et al. 1997]. clangini
+  SelfEnTot += SelfEn[iat];
 
-
+  }
 
   printf("\n\tSelf Energy %f\n",SelfEnTot);
 
@@ -408,7 +411,7 @@ struct point len ----------- ReMaxC - ReMinC
                    BSResN,BSReNu,NGridx,NGridy,NGridz,PnxminBS,
                    PnyminBS,PnzminBS,PnxmaxBS,PnymaxBS,PnzmaxBS,
                    ResFirstAtom,NAtom_per_Res);
-
+  
 /* Evaluation of the desolvation of the receptor due to the occupation
    of a grid cube in the binding site */
   printf("\n\tElectric Displacement and receptor desolvation...\n");
@@ -428,7 +431,8 @@ struct point len ----------- ReMaxC - ReMinC
                        *PnzmaxBS,*XGrid,*YGrid,*ZGrid,*GridMat,*PUnitVol,
                        corr_re_desofd,RecFilPDB,FDexe,FDdir,DesoMapAcc,
                        DesoMapFile,*DeltaPrDeso);
-    else if ( strcmp(ReDesoAlg,CO) == 0 ) {
+    else if ( strcmp(ReDesoAlg,CO) == 0 ) { 
+      // for the moment ReDesoAlg is hard-coded to "co" in reinfi. clangi
 /* Evaluation of the desolvation in the BS by Coulmomb approximation */
       nn = Calc_D_Coul(ReAtNu,ReCoor,ReRad2,Min,Max,RePaCh,DielRe,DielWa,
                        GrSiSo,pi4,*PnxminBS,*PnyminBS,*PnzminBS,
@@ -2039,22 +2043,22 @@ int *NAtom_per_Res --------- NAtom_per_Res[n] = # of atoms of residue n
 /* Make two arrays that given the number of a residue, give the number
    of the first atom of that residue and the number of atoms belonging
    to this residue */
-
   Natom = 0;
   Previous = 0;
   Nres = 0;
   for (iat=1;iat<=ReAtNu;iat++) {
-    if (ReResN[iat] == Previous+1 ) {
+    // if (ReResN[iat] == Previous+1 ) { // fixed clangini
+    if (ReResN[iat] != Previous ) {
       if (Nres != 0 )
         NAtom_per_Res[Nres] = Natom;
       ResFirstAtom[++Nres] = iat;
-      Previous++;
+      // Previous++;
+      Previous = ReResN[iat]; // fixed clangini
       Natom = 0;
     }
     Natom++;
   }
   NAtom_per_Res[Nres] = Natom;
-
 
 /*  Calculate the extremes in the grid space (*PnxminBS,*PnxmaxBS,...) of
     the cube containing the residues of the binding site */
@@ -2235,6 +2239,8 @@ int *Nsurfpt_re_apol_BS - Tot # of points over the rec SAS3
    angle_rmax_rad  angle cutoff for the reduction of vectors in radian
    mult_fact_rmin  multiplicative factor for the reduction of vectors
    mult_fact_rmax  multiplicative factor for the reduction of vectors
+   isAngleCritAppr are the params for the angle criterion appropriate? 
+                   if they are not, use the more lenient angle for all the vectors
    keptVect_angle  apolar vectors on receptor (0 if rejected, 1 if kept)
                    in case of angle cutoff criterion
    keptVect_angle_numb  number of rec apolar vectors kept after angle
@@ -2250,6 +2256,7 @@ int *Nsurfpt_re_apol_BS - Tot # of points over the rec SAS3
   double minSqDist,maxSqDist,vecPointSqDist,
 	distSqClosest,vecPointAngle,minSqDistCutoff,maxSqDistCutoff,
 	angleCutoff,angle_rmin_rad,angle_rmax_rad,*vect_angle_stored;
+  bool isAngleCritAppr;
   FILE *FilePa;
 
   Sphere_apol2 = (Sphere_apol+.3) * (Sphere_apol+.3);
@@ -2266,6 +2273,9 @@ int *Nsurfpt_re_apol_BS - Tot # of points over the rec SAS3
   for (ires=1;ires<=BSResN;ires++) {
     for (iat=ResFirstAtom[BSReNu[ires]];iat<=ResFirstAtom[BSReNu[ires]]+
          NAtom_per_Res[BSReNu[ires]]-1;iat++) {
+      // cl debug start      
+      // std::cout << ires << "  " << BSReNu[ires] << "  " << ResFirstAtom[BSReNu[ires]] << std::endl;
+      // cl debug end 
       for (i=pointsrf_re[iat];i<=pointsrf_re[iat]+nsurf_re[iat] - 1 ;
            i++,Ntot++) {
         (*Nsurfpt_re_apol_BS)++;
@@ -2328,7 +2338,7 @@ int *Nsurfpt_re_apol_BS - Tot # of points over the rec SAS3
   if(myrank == MASTERRANK){
   #endif
   FilePa=fopen("./outputs/apolar_rec.mol2","w");
-  fprintf(FilePa,"# TRIPOS MOL2 file generated by WITNOTP\n");
+  fprintf(FilePa,"# TRIPOS MOL2 file generated by SEED\n");
   fprintf(FilePa,"\n");
   fprintf(FilePa,"@<TRIPOS>MOLECULE\n");
   fprintf(FilePa,"apolar_rec\n");
@@ -2384,7 +2394,7 @@ int *Nsurfpt_re_apol_BS - Tot # of points over the rec SAS3
   }
   angle_rmin_rad=angle_rmin*3.1415927/180.0;
   angle_rmax_rad=angle_rmax*3.1415927/180.0;
-
+  isAngleCritAppr=true;
 
 
   if (distrPointBSNumb>0)
@@ -2421,15 +2431,15 @@ int *Nsurfpt_re_apol_BS - Tot # of points over the rec SAS3
           for (j=1;j<=distrPointBSNumb;j++)
           {
 
-	    vecPointSqDist=DistSq(surfpt_re[i].x,
+	          vecPointSqDist=DistSq(surfpt_re[i].x,
 	                          surfpt_re[i].y,
-				  surfpt_re[i].z,
-                                  distrPointBS[j][1],distrPointBS[j][2],
-		       	          distrPointBS[j][3]);
+				                    surfpt_re[i].z,
+                            distrPointBS[j][1],distrPointBS[j][2],
+		       	                distrPointBS[j][3]);
 
             if (vecPointSqDist<minSqDist)
-	      minSqDist=vecPointSqDist;
-  	    if (vecPointSqDist>maxSqDist)
+	            minSqDist=vecPointSqDist;
+  	        if (vecPointSqDist>maxSqDist)
               maxSqDist=vecPointSqDist;
 
           }
@@ -2445,11 +2455,11 @@ int *Nsurfpt_re_apol_BS - Tot # of points over the rec SAS3
 
     if (minSqDistCutoff>=maxSqDistCutoff)
     {
-      fprintf(FPaOut,"WARNING Parameters for reducing vectors ");
+      fprintf(FPaOut,"WARNING Parameters for reducing apolar vectors ");
       fprintf(FPaOut,"(angle criterion) not appropriate\n");
-      fclose(FPaOut);
-      printf("Program exits\n");
-      exit(0);
+      fprintf(FPaOut, "The angle for short distances (parameter p14_1) ");
+      fprintf(FPaOut, "will be used in all the cases\n");
+      isAngleCritAppr = false;
     }
 
 
@@ -2497,22 +2507,27 @@ int *Nsurfpt_re_apol_BS - Tot # of points over the rec SAS3
           vect_angle_stored[numbApolVectBSCounter]=vecPointAngle/3.1415927*180.0;
 
 /* find angle cutoff and apply criterion to keep or discard the vector */
-          if (distSqClosest<=minSqDistCutoff)
-            angleCutoff=angle_rmin_rad;
-          else if (distSqClosest>=maxSqDistCutoff)
-            angleCutoff=angle_rmax_rad;
-          else
-            angleCutoff=angle_rmin_rad+
-	                ((angle_rmax_rad-angle_rmin_rad)/
-	                (sqrt(maxSqDistCutoff)-sqrt(minSqDistCutoff)))*
-                        (sqrt(distSqClosest)-sqrt(minSqDistCutoff));
-
+          if (isAngleCritAppr)
+          {
+            if (distSqClosest<=minSqDistCutoff)
+              angleCutoff=angle_rmin_rad;
+            else if (distSqClosest>=maxSqDistCutoff)
+              angleCutoff=angle_rmax_rad;
+            else
+              angleCutoff=angle_rmin_rad+
+                    ((angle_rmax_rad-angle_rmin_rad)/
+                    (sqrt(maxSqDistCutoff)-sqrt(minSqDistCutoff)))*
+                    (sqrt(distSqClosest)-sqrt(minSqDistCutoff));
+          }
+          else /* angle criterion not appropriate -> use the more lenient angle */
+          {
+            angleCutoff = angle_rmin_rad;
+          }
           if (vecPointAngle<=angleCutoff)
           {
             keptVect_angle[numbApolVectBSCounter]=1;
- 	    keptVect_angle_numb++;
+ 	          keptVect_angle_numb++;
           }
-
         }
 
 /* Print the kept vectors after angle cutoff criterion in a file */
@@ -2520,7 +2535,7 @@ int *Nsurfpt_re_apol_BS - Tot # of points over the rec SAS3
     if(myrank == MASTERRANK){
     #endif
     FilePa=fopen("./outputs/apolar_rec_reduc_angle.mol2","w");
-    fprintf(FilePa,"# TRIPOS MOL2 file generated by WITNOTP\n");
+    fprintf(FilePa,"# TRIPOS MOL2 file generated by SEED\n");
     fprintf(FilePa,"\n");
     fprintf(FilePa,"@<TRIPOS>MOLECULE\n");
     fprintf(FilePa,"apolar_rec_reduc_angle\n");
@@ -3339,6 +3354,10 @@ double ***DeltaPrDeso --- Elec desolvation due to the occupation of a grid point
   double Wat,Size,Incr,epsre,epswa,Xfirst,Yfirst,Zfirst;
   char StrLin[_STRLENGTH],Alg[3];
   FILE *WriFile,*ReaFile;
+  
+  // hack clangini
+  bool PrntCompleteMap = true; 
+  // hack clangini
 
   if (DesoMapAcc[0] == 'w') {
     #ifdef ENABLE_MPI
@@ -3353,13 +3372,21 @@ double ***DeltaPrDeso --- Elec desolvation due to the occupation of a grid point
                                           DielRe,DielWa,ReDesoAlg);
     fprintf(WriFile,"%d %d %d %f %f %f\n",NGridx,NGridy,NGridz,
                                           XGrid[1],YGrid[1],ZGrid[1]);
+    if (PrntCompleteMap) {
+      fprintf(WriFile, "%f %f %f\n", XGrid[nxminBS], YGrid[nyminBS], ZGrid[nzminBS]);
+    }
     fprintf(WriFile,"%d %d %d %d %d %d\n",nxminBS,nyminBS,nzminBS,
                                           nxmaxBS,nymaxBS,nzmaxBS);
     for (ix=nxminBS;ix<=nxmaxBS;ix++)
       for (iy=nyminBS;iy<=nymaxBS;iy++)
-        for (iz=nzminBS;iz<=nzmaxBS;iz++)
-          if (GridMat[ix][iy][iz] != 'o' )
-            fprintf(WriFile,"%.12f\n",DeltaPrDeso[ix][iy][iz]);
+        for (iz=nzminBS;iz<=nzmaxBS;iz++){
+          if (PrntCompleteMap){
+            fprintf(WriFile,"%.12f\n", DeltaPrDeso[ix][iy][iz]);
+          } else {
+            if (GridMat[ix][iy][iz] != 'o' )
+              fprintf(WriFile,"%.12f\n",DeltaPrDeso[ix][iy][iz]);
+          }
+        }
     fclose(WriFile);
 #endif
     #ifdef ENABLE_MPI
@@ -3374,6 +3401,9 @@ double ***DeltaPrDeso --- Elec desolvation due to the occupation of a grid point
                                         &epsre,&epswa,Alg);
     fgets_wrapper(StrLin,_STRLENGTH,ReaFile);
     sscanf(StrLin,"%d%d%d%lf%lf%lf",&Nx,&Ny,&Nz,&Xfirst,&Yfirst,&Zfirst);
+    if (PrntCompleteMap){
+      fgets_wrapper(StrLin,_STRLENGTH,ReaFile);
+    }
     fgets_wrapper(StrLin,_STRLENGTH,ReaFile);
     sscanf(StrLin,"%d%d%d%d%d%d",&nminx,&nminy,&nminz,&nmaxx,&nmaxy,&nmaxz);
     if (fabs(Wat - WaMoRa) > 0.000001 || NPt != NPtSphere ||
@@ -3422,11 +3452,17 @@ double ***DeltaPrDeso --- Elec desolvation due to the occupation of a grid point
     }
     for (ix=nminx;ix<=nmaxx;ix++)
       for (iy=nminy;iy<=nmaxy;iy++)
-        for (iz=nminz;iz<=nmaxz;iz++)
-          if (GridMat[ix][iy][iz] != 'o' ) {
+        for (iz=nminz;iz<=nmaxz;iz++){
+          if (PrntCompleteMap){
             fgets_wrapper(StrLin,_STRLENGTH,ReaFile);
             sscanf(StrLin,"%lf",&(DeltaPrDeso)[ix][iy][iz]);
+          } else {
+            if (GridMat[ix][iy][iz] != 'o' ) {
+              fgets_wrapper(StrLin,_STRLENGTH,ReaFile);
+              sscanf(StrLin,"%lf",&(DeltaPrDeso)[ix][iy][iz]);
+            }
           }
+        }
     fclose(ReaFile);
   }
   else

@@ -144,7 +144,7 @@ void ReReFi_mol2(char *RecFil,int *ReAtNu,int *ReBdNu,int *ReReNu,
    ReBdAr  receptor bonds array */
 {
   typedef boost::tokenizer< boost::char_separator<char> > tokenizer;
-  boost::char_separator<char> sep(" \t\n");
+  boost::char_separator<char> sep(" \t\n\r");
 
   std::ifstream inStream;
   std::string StrLin, AlTySp, firstToken, ResNa_tmp, ResNa;
@@ -185,7 +185,7 @@ void ReReFi_mol2(char *RecFil,int *ReAtNu,int *ReBdNu,int *ReReNu,
   /* Read ReAtEl ReCoor ReAtTy ReResN RePaCh */
   ReAtEl_L=cmatrix(1,*ReAtNu,1,5);
   ReCoor_L=dmatrix(1,*ReAtNu,1,3);
-  ReAtTy_L=cmatrix(1,*ReAtNu,1,7); //Now read from ALT_TYPE
+  ReAtTy_L=cmatrix(1,*ReAtNu,1,7); //Now this is read from ALT_TYPE
   ReResN_L=ivector(1,*ReAtNu);
   RePaCh_L=dvector(1,*ReAtNu);
   *ReAtEl=ReAtEl_L;
@@ -236,12 +236,14 @@ void ReReFi_mol2(char *RecFil,int *ReAtNu,int *ReBdNu,int *ReReNu,
       ResNa = ResNa_tmp;
     }
     ++itItem;
+    ReResN_L[i] = ReReNu_count; // this way we renumber residues starting from 1
     //std::cout << "Partial charge "<<i<<": "<< (*itItem)<<"ebbasta" << std::endl;
     RePaCh_L[i] = boost::lexical_cast<double> (*itItem);
     //std::cout << "Charge "<<i<<": "<<FrPaCh_L[i]<< std::endl;
   }
   *ReReNu = ReReNu_count;
   cout << "\n\tNumber of Residues in receptor: " << (*ReReNu) << endl;
+
 
   while (!inStream.eof() && StrLin != "@<TRIPOS>BOND"){
     std::getline(inStream,StrLin);
@@ -251,6 +253,7 @@ void ReReFi_mol2(char *RecFil,int *ReAtNu,int *ReBdNu,int *ReReNu,
     std::cerr << "No Bonds in receptor found.\nProgram exits!\n" << std::endl;
     exit(13);
   }
+
   // Read bond section
   *ReBdAr=imatrix(1,*ReBdNu,1,2);
   for (i = 1; i <= *ReBdNu; i++) {
@@ -262,7 +265,6 @@ void ReReFi_mol2(char *RecFil,int *ReAtNu,int *ReBdNu,int *ReReNu,
     ++itItem;
     (*ReBdAr)[i][2] = boost::lexical_cast<int>(*itItem);
   }
-  //cout << "Receptor bonds read" << endl;
 
   // Move to ALT_TYPE section
   while (!inStream.eof() && StrLin != "@<TRIPOS>ALT_TYPE"){
@@ -297,33 +299,52 @@ void ReReFi_mol2(char *RecFil,int *ReAtNu,int *ReBdNu,int *ReReNu,
   ++itItem; // skip the alternative atom type set name
   AtCount = 0;
   AtNu_flag = false;
-  while (AtCount < *ReAtNu){
-    if (*itItem != "\\"){
-      if (!AtNu_flag){
-        CuAtNu =  boost::lexical_cast<int>(*itItem); // Current atom number
+  while (itItem != tokens.end())
+  {
+    if (*itItem != "\\")
+    {
+      if (!AtNu_flag)
+      {
+        CuAtNu = boost::lexical_cast<int>(*itItem); // Current atom number
         AtNu_flag = true;
         ++itItem;
-      } else {
+      }
+      else
+      {
         //FrAtTy_L[CuAtNu][1] = (*itItem).c_str();
         //std::cout<<"Atom type for atom "<<AtCount+1<<": "<<(*itItem)<<std::endl;
-        strcpy(&ReAtTy_L[CuAtNu][1],(*itItem).c_str());
-        //std::cout<<"Atom type for atom "<<CuAtNu<<": "<<(*FrAtTy)[CuAtNu][1]<<std::endl;
+        strcpy(&ReAtTy_L[CuAtNu][1], (*itItem).c_str());
+        // std::cout << "Atom type for atom " << CuAtNu << ": " << (*ReAtTy)[CuAtNu][1] << std::endl; // debug
         //std::cout<<"Atom type for atom "<<AtCount+1<<": "<<FrAtTy_L[CuAtNu][1]<<std::endl;
         ++AtCount;
         ++itItem;
         AtNu_flag = false;
       }
-    } else {
+    }
+    else
+    {
       //StrLin = getline(inStream);
-      std::getline(inStream,StrLin);
+      std::getline(inStream, StrLin);
       //tokenizer tokens(StrLin, sep);
       tokens.assign(StrLin, sep);
       //tokenizer::const_iterator itItem = tokens.begin();
       itItem = tokens.begin();
     }
+    // cout << *ReAtNu << "  " << CuAtNu << "   " << AtCount << endl; // debug
   }
-  //cout << "Receptor Atom Types read" << endl;
   inStream.close();
+
+  if (AtCount < *ReAtNu){
+    std::cerr << "List of alternative atom types of receptor"
+              << "is not complete\nProgram exits!" << endl;
+    exit(13);
+  }
+  else if (AtCount > *ReAtNu){
+    std::cerr << "List of alternative atom types of receptor"
+              << "is too long. "
+              << "There might be duplicates.\nProgram exits!" << endl;
+    exit(13);
+  }
 
 // /* Read ReAtNu ReBdNu ReReNu */
 //   fgets_wrapper(StrLin,_STRLENGTH,FilePa);

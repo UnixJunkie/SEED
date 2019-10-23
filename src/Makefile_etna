@@ -3,7 +3,8 @@
 #SHELL = /bin/bash
 # Folders:
 #SRC_DIR = .
-BIN_DIR = ../bin
+ARCH=Etna
+BIN_DIR = ../bin/${ARCH}
 BUILD_DIR = build
 BUILD_DIR_MPI = build/mpi
 TARGET_EXEC = $(BIN_DIR)/seed_4_mc

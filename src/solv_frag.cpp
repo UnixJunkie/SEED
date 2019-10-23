@@ -28,10 +28,13 @@
 void ElecFrag(int ReAtNu,double **ReCoor,double *RePaCh,
               double **RePaCh_Fr,double *ReRad,
               double *ReRad2,double *ReRadOut,double *ReRadOut2,
+              double *ReEffRad_bound,
               struct point *surfpt_re,int *nsurf_re,
               int *pointsrf_re,double *ReSelfVol,int FrAtNu,double **RoSFCo,
               double **FrCoor,double *FrPaCh,double *FrRad,double *FrRad2,
-              double *FrRadOut,double *FrRadOut2,double **Frdist2,double **dist2,
+              double *FrRadOut,double *FrRadOut2,
+              double *FrEffRad_bound,
+              double **Frdist2,double **dist2,
               double *FrMinC_orig,double *FrMaxC_orig,
               double *PFrSolvEn,int Nsurfpt_fr,struct point *surfpt_fr_orig,
               int *nsurf_fr,int *pointsrf_fr,struct point *surfpt_ex,
@@ -501,36 +504,39 @@ struct point *surfpt_fr - Coor of points over frag SAS1 (relative to RoSFCo)
       ReEffRad[hVar_corrB] = 1./( (-1.*(1./ReRadOut[hVar_corrB] -
 					(ReSelfVol[hVar_corrB]+ReSelfVol_add[hVar_corrB])/pi4))
 				  + 3.0*sqrt( (1./(2.*ReRadOut[hVar_corrB]*ReRadOut[hVar_corrB])) -
-					      ((ReSelfVol_corrB[hVar_corrB]+ReSelfVol_add_corrB[hVar_corrB])/pi4) ) )
+					((ReSelfVol_corrB[hVar_corrB]+ReSelfVol_add_corrB[hVar_corrB])/pi4) ) )
 	        + 0.215;
 
 
       /*
-	Dey exception handling :
-	in rare cases the expression :
-	(1./(2.*ReRadOut[iat]*ReRadOut[iat])) - ((*SelfVol_corrB)[iat]/pi4)
-	can become < 0 -> the sqrt() function cannot be evaluated, which leads
-	to "nan" values or the effective born radius is smaller than 0
-
+        Dey exception handling :
+        in rare cases the expression :
+        (1./(2.*ReRadOut[iat]*ReRadOut[iat])) - ((*SelfVol_corrB)[iat]/pi4)
+        can become < 0 -> the sqrt() function cannot be evaluated, which leads
+        to "nan" values or the effective born radius is smaller than 0
+        clangini modification:
+        we are able to define a lower bound on the receptor born radius.
+        If the effective born radius is smaller than teh lower bound, 
+        it is overridden to the lower bound.
       */
-      if(ReEffRad[hVar_corrB]<=0 || isnan(ReEffRad[hVar_corrB]))
+      if(isnan(ReEffRad[hVar_corrB]) || ReEffRad[hVar_corrB] <= ReEffRad_bound[hVar_corrB])
       {
 #ifndef NOWARN
-	  fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of receptor atom %d using standard approach\n",iat);
+	      // fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of receptor atom %d using standard approach\n",iat);
+        if (!isnan(ReEffRad[hVar_corrB])){
+          fprintf(FPaOut, "Calculated effective Born radius of receptor atom %d (%f) set to its lower bound (%f).\n", iat, ReEffRad[hVar_corrB], ReEffRad_bound[hVar_corrB]);
+        } else {
+          fprintf(FPaOut, "WARNING empirically-corrected effective born radius of receptor atom %d is nan. Set to its estimated lower bound (%f).\n", iat, ReEffRad_bound[hVar_corrB]);
+        }
 #endif
-    //clangini debug start
-    //std::cout << "Eff radius either none or zero" << std::cout;
-    //clangini debug end
-	      ReEffRad[NeighList3[iat]] = 1. / ( 1./ReRadOut[NeighList3[iat]] -
-					     (ReSelfVol[NeighList3[iat]]+ReSelfVol_add[NeighList3[iat]])/pi4 );
+        //clangini debug start
+        //std::cout << "Eff radius either none or zero" << std::cout;
+        //clangini debug end
+	      // ReEffRad[NeighList3[iat]] = 1. / ( 1./ReRadOut[NeighList3[iat]] -
+				// 	     (ReSelfVol[NeighList3[iat]]+ReSelfVol_add[NeighList3[iat]])/pi4 );
+        ReEffRad[hVar_corrB] = ReEffRad_bound[hVar_corrB];
       }
-
-
-
-
     }
-
-
   }
 
 /* Receptor desolvation calculated with GB (it could be useful one day...)
@@ -571,48 +577,24 @@ struct point *surfpt_fr - Coor of points over frag SAS1 (relative to RoSFCo)
 	    to "nan" values or the effective born radius is smaller than 0
 
 	  */
-	      if(FrEffRad[iat]<=0 || isnan(FrEffRad[iat])) {
+	  if(isnan(FrEffRad[iat]) || (FrEffRad[iat] <= FrEffRad_bound[iat]))
+	  {
 #ifndef NOWARN
-	         fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of fragment atom %d, using standard approach\n",iat);
+	      // fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of fragment atom %d, using standard approach\n",iat);
+        if(!isnan(FrEffRad[iat])){
+          fprintf(FPaOut, "Calculated effective Born radius of fragment atom %d (%f) set to its lower bound (%f).\n", iat, FrEffRad[iat], FrEffRad_bound[iat]);
+        } else {
+          fprintf(FPaOut, "WARNING empirically-corrected effective born radius of fragment atom %d is nan. Set to its estimated lower bound (%f).\n", iat, FrEffRad_bound[iat]);
+        }
 #endif
-          // std::cout << "========== atom " << iat << "\n";
-          // std::cout << "1/2R^2 = " << 1./(2.*FrRadOut2[iat]) << "  FrSelfVol_corrB[iat]/pi4 = " << (FrSelfVol_corrB[iat]/pi4) << std::endl;
-          // std::cout << "G0 = " << 1./FrRadOut[iat] - FrSelfVol[iat]/pi4 << std::endl;
-          // std::cout << "G1 = " << 3.0*sqrt( (1./(2.*FrRadOut[iat]*FrRadOut[iat])) - (FrSelfVol_corrB[iat]/pi4) ) << "\n";
-          // std::cout << "FrEffRad_corrB[" << iat << "] = " << FrEffRad[iat] << std::endl;
-          // std::cout << "1/R = " << 1./FrRadOut[iat] << "  FrSelfVol[iat]/pi4 = " << FrSelfVol[iat]/pi4 << std::endl;
-          // std::cout << "FrEffRad[" << iat << "] = " << 1. / ( 1./FrRadOut[iat] - FrSelfVol[iat]/pi4 ) << std::endl;
-          // std::cout << "Lower bound (Born radius) = " << FrRadOut[iat] - 1.4 << std::endl;
-          // std::cout << "Brooks -G0[15]: " << (-1.*(1./FrRadOut[15] - FrSelfVol[15]/pi4)) << "\n";
-          // std::cout << "Brooks G1[15]: " << 3.0*sqrt( (1./(2.*FrRadOut[15]*FrRadOut[15])) -
-          // (FrSelfVol_corrB[15]/pi4) )  << "\n";
-          // std::cout << "SelfVol(not corr and corr)[12]:" << FrSelfVol[15] << "  " << FrSelfVol_corrB[15] << "\n";
-          // std::cout << "FrEffRad_corrB[" << 15 << "] = " << FrEffRad[15] << "\n";
-          // std::cout << "FrEffRad[15]" << 1. / ( 1./FrRadOut[15] - FrSelfVol[15]/pi4 ) << "\n";
-          // std::cout << "=========" << "\n";
-          // std::cout << "Brooks -G0: " << (-1.*(1./FrRadOut[iat] - FrSelfVol[iat]/pi4)) << "\n";
-          // std::cout << "Brooks G1: " << 3.0*sqrt( (1./(2.*FrRadOut[iat]*FrRadOut[iat])) -
-          // (FrSelfVol_corrB[iat]/pi4) )  << "\n";
-
-           /*for (int iat2=1;iat2<=FrAtNu;iat2++){
-            std::cout << "SelfVol(not corr and corr):" << FrSelfVol[iat2] << "  " << FrSelfVol_corrB[iat2] << "\n";
-          }*/
-          // std::cout << "FrRadOut = " << FrRadOut[iat] << "  1/FrRadOut = " << 1./FrRadOut[iat] << "\n";
-          // std::cout << "SelfVol(not corr and corr):" << FrSelfVol[iat] << "  " << FrSelfVol_corrB[iat] << "\n";
-          // std::cout << "FrEffRad_corrB[" << iat << "] = " << FrEffRad[iat] << "\n";
-          FrEffRad[iat] = 1. / ( 1./FrRadOut[iat] - FrSelfVol[iat]/pi4 );
-          // std::cout << "FrEffRad = " << FrEffRad[iat] << std::endl;
-
-
-	      }
-
-        // Lower bound on Born Effective radius
-        // if (iat == 18 && FrEffRad[iat] < 0.28){
-        //   FrEffRad[iat] = 0.28;
-        //   std::cout << "Override of FrEffRad[" << iat << "]" << std::endl;
-        // }
-      } // end of else
-      FrSelfEn += Ksolv * FrPaCh[iat] * FrPaCh[iat] / (2. * FrEffRad[iat]);
+        //clangini debug start
+        //std::cout << "Eff radius either none or zero" << std::cout;
+        //clangini debug end
+	      // FrEffRad[iat] = 1. / ( 1./FrRadOut[iat] - FrSelfVol[iat]/pi4 );
+        FrEffRad[iat] = FrEffRad_bound[iat];
+	  }
+  }
+   FrSelfEn += Ksolv * FrPaCh[iat] * FrPaCh[iat] / (2. * FrEffRad[iat]);
   }
 
 /* Calculate the electrostatic intermolecular interactions
@@ -2236,7 +2218,8 @@ double *PFrIntEn -------- Tot rec intramolecular interaction energy
 
 int FragSolvEn(int FrAtNu,double **FrCoor,double *FrPaCh,
                double *FrVdWR,double *FrRadOut,
-               double *FrRadOut2,double **Frdist2,int Nsurfpt_fr,
+               double *FrRadOut2, double *FrEffRad_bound,
+               double **Frdist2,int Nsurfpt_fr,
                struct point *surfpt_fr_orig,double WaMoRa,double GrSiSo,
                double Ksolv,double pi4,double *PFrSolvEn,char *EmpCorrB,FILE*FPaOut)
 /*##########################################
@@ -2334,12 +2317,10 @@ char ***FrGridMat ------- Matrix telling if a grid point is occupied by the
                       XGrid,YGrid,ZGrid,UnitVol,Ksolv,pi4,FrGridMat,
                       1,1,1,NGridx,NGridy,NGridz,FrSelfVol,FrEffRad,&FrSelfEn,
 		                  FrSelfVol_corrB,EmpCorrB,FPaOut);
-
-  /*for (int jj=1;jj<=FrAtNu;jj++){
-    std::cout << "FrSelfVol_corrB[" << jj << "]= " << FrSelfVol_corrB[jj] << '\n';
-    std::cout << "FrSelfVol[" << jj << "]= " << FrSelfVol[jj] << '\n';
-  }*/
-
+  
+  for (iat=1;iat <= FrAtNu; iat++){ // set lower bound on frag bond radius
+    FrEffRad_bound[iat] = FrEffRad[iat];
+  }
 /* Calculate the frag interaction energy */
   nn = GB_int_fr(FrAtNu,Frdist2,FrPaCh,FrEffRad,Ksolv,&FrIntEn);
 

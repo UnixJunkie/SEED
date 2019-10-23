@@ -2,7 +2,9 @@
 
 SEED is a program for fragment docking with force-field based evaluation of binding energy.
 
-Please refer to the documentation (seed_4.0.0_doc.pdf) to understand how to set up a calculation in SEED.
+The new SEED documentation is now online at: [https://caflischlab-seed.readthedocs.io/en/latest/](https://caflischlab-seed.readthedocs.io/en/latest/)!
+
+For details about the energy models implemented in SEED please refer to the original publications and to the pdf user manual (seed_4.0.0_doc.pdf).
 
 ### Installation ###
 cd to directory src and make SEED with the following command (you may have to modify the Makefile.local):
@@ -13,18 +15,17 @@ The binary is compiled into the bin directory.
 ### Run SEED ###
 Run SEED with the following command:
 ```sh
-./seed_4.0.0 seed.inp >& log
+./seed_4 seed.inp >& log
 ```
 You can find an example seed.inp and seed.par, along with the results of simple study cases,
 in the test_cases folder.
 
-In the scripts directory you can find separate_poses.py, that can be used to extract selected poses from the concatenated
-mol2 output files. For using it type:
-```sh
-python separate_poses.py -h
-```
-### Citation ###
-Kindly reference the original paper if you use SEED:
+### Citations ###
+Review of the applications of SEED in the period 1999-2018, includes a discussion on its strenghts/weaknesses in light of our experience:
+ * J.-R. Marchand, and A. Caflisch. In silico fragment-based drug design with SEED.
+European Journal of Medicinal Chemistry, 156:907-917, 2018.
+
+Original paper describing SEED:
  * N. Majeux, M. Scarsi, J. Apostolakis, C. Ehrhardt, and A. Caflisch. Exhaustive docking of
 molecular fragments on protein binding sites with electrostatic solvation.
 Proteins: Structure, Function and Genetics, 37:88-105, 1999.

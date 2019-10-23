@@ -34,7 +34,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include <solv_frag_cl.h>
+#include <vector>
 
 #ifdef USE_QUATERNION_ROTATION
   #include <quaternion.h>
@@ -65,6 +65,8 @@ const double R_constant = 1.9872036e-3;
    allocation block size , avoid "do_not_touch_ener"
  */
 #define _ALLOCSIZE 100000
+
+using namespace std;
 
 int main(int argc,char *argv[])
   /* Main part of the program :
@@ -138,10 +140,10 @@ int main(int argc,char *argv[])
      reduced number of representatives
      ClusVa_4  variable used in the clustering process
      ReAtoTyp_nu  receptor atom type numbering
-  FrAtoTyp_nu  fragment atom type numbering
-  VdWCoff_ap  van der Waals energy cutoff in the seeding of apolar fragments
-  FrNuVdW_ap  number of fragments that passed vdW energy checking (only for
-      apolar fragments)
+     FrAtoTyp_nu  fragment atom type numbering
+     VdWCoff_ap  van der Waals energy cutoff in the seeding of apolar fragments
+     FrNuVdW_ap  number of fragments that passed vdW energy checking (only for
+     apolar fragments)
   FileTemp  temporary file used to write the energies during the generation
   of the fragment positions (before the sorting)  -> removed Dey
 ClusVa_wr  variable used in the clustering process (for writing)
@@ -227,7 +229,8 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
       *ClusLi_sd_01_reduc,/*unused variable RedRPV_nkv,*/ *PolVect_rec_01,*ReAtoTyp_nu,
       *FrAtoTyp_nu,FrNuVdW_ap,NuLiEnClus,ClusVa_wr,*FiAtRes,*LaAtRes,
       *AtReprRes,*LiChResEn,NuChResEn,ChkExit,FrCoNu,Ind_num_cn,*ConfArr,
-      /*unused variables *Index_both, :LoopTe,*/*ClusLi_sd_pproc,NuSdClKe,NuPosSdCl,*FrPosAr_pproc,
+      /*unused variables *Index_both, :LoopTe,*/*ClusLi_sd_pproc,NuSdClKe,NuPosSdCl,
+      *FrPosAr_pproc,
        *SdClusAr_pproc,IntVar1,IntVar2,*Index_pproc,*FrPosAr_sort,
        *SdClusAr_sort,*FlagAr,*ReprSdClAr,MaxPosClus,SFWrNu_init,PrintLev,
        ToNFrP_ap,ij,distrPointBSNumb,gc_reprke,gc_maxwrite,ChkInGrid; /*,CorrFiNumb; clangini*/
@@ -284,6 +287,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
                *surfpt_fr_deso_orig,*surfpt_fr_deso,*surfpt_ex,*surfpt_re_deso,
                cbmid_re;
   /* CLANGINI 2016 */
+  std::vector<int> PosToRem;
   struct stat DirExist;
   char TabLin[_STRLENGTH]; //clangini
   std::ofstream TabOutStream; //clangini
@@ -291,6 +295,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   double *AtWei; // list of atomic weights clangini
   double MolWei = 0.0; // Molecular Weight clangini
   int *CluIndex_sort; // Array Clu index number -> sorted Clu index number clangini
+  double *FrEffRad_bound, *ReEffRad_bound; // Lower bound for the Born Effective radius (frg and rec)
   std::string AlTySp;
   std::string FragNa_str; //C++ string equivalent to FragNa
   /* params for MC run */
@@ -412,12 +417,12 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   }
   /* Make the directory scratch (if it does not exist)*/
   if ((stat("scratch",&DirExist) != 0)||(stat("scratch", &DirExist) == 0 && !S_ISDIR(DirExist.st_mode))){
-    if(system("mkdir scratch") == -1)
+    if (system("mkdir scratch") == -1)
       std::cout << "Cannot create scratch directory" << std::endl;
   }
   #ifdef ENABLE_MPI
-  }
-  MPI_Barrier(MPI_COMM_WORLD); // Necessary to avoid problems with CheckFile function within ReInFi
+    }
+    MPI_Barrier(MPI_COMM_WORLD); // Necessary to avoid problems with CheckFile function within ReInFi
   #endif
   /* CLANGINI 2016 END */
   /* Read the input and parameters files */
@@ -469,12 +474,12 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   /* Open the input files, write informations and check the existence of some
      files */
   ChkExit=0;
+  CheckFile(OutFil, 'w'); /* check if possible to write. fails if folder
+                            does not exist */
   FPaOut=fopen(OutFil,"w"); /* OutFil is by default seed.out clangini */
-
 
   time(&runtime);
   fprintf (FPaOut,"Date and time: %s\n",ctime(&runtime)); //WARNING possible memory leak
-
   fprintf(FPaOut,"    ---------------------------------------------------------------------       \n");
   fprintf(FPaOut,"               Solvation Energy for Exhaustive Docking (SEED)                   \n");
   fprintf(FPaOut,"          N. Majeux, M. Scarsi, F. Dey, C. Langini and A. Caflisch              \n");
@@ -715,6 +720,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
     for (i=2;i <= ReAtNu; i++){
       if(ReResN[i-1] != ReResN[i] || ReResN[i]==1){ /* modified to cover also first  residue, dey */
         if(ReResN[i] == BSReNu[i2]){
+          // std::cout << i << "  " << ReResN[i] << "  " << i2 << "  " << BSReNu[i2] << std::endl; // NOTE fix case first resid != 1 clangini
           CheInpWroRe++;
         }
       }
@@ -866,6 +872,8 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
         fprintf(FPaOut,"        same input file parameters\n\n");
         exit(0);
       }
+      fgets_wrapper(StrLin,_STRLENGTH,FilePa);
+      fgets_wrapper(StrLin,_STRLENGTH,FilePa);
       for (i1=1;i1<=CoGPoN[1];i1++) {
         for (i2=1;i2<=CoGPoN[2];i2++) {
           for (i3=1;i3<=CoGPoN[3];i3++) {
@@ -889,7 +897,12 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
       if (CoGrAcc[0]=='w') {
         FilePa=fopen(CoGrFile,"w"); /* to change to "wb" for binray grids*/
         /* FilePa=fopen(CoGrFile,"wb"); /\* to change to "wb" for binray grids*\/ */
-        fprintf(FilePa,"%d %d %d\n",CoGPoN[1],CoGPoN[2],CoGPoN[3]);
+        // Now write all the info to be able to convert it to a .dx file for PyMOL visualization. clangini
+        fprintf(FilePa,"%d %d %d\n",CoGPoN[1],CoGPoN[2],CoGPoN[3]); // Number of voxels along x,y,z
+        fprintf(FilePa,"%.12f %.12f %.12f\n", BSMinC[1]-CoGrIn, BSMinC[2]-CoGrIn, BSMinC[3]-CoGrIn); // Origin of the grid 
+        fprintf(FilePa,"%f %f %f\n", CoGrSi, CoGrSi, CoGrSi); // grid spacing in x,y,z 
+        // hack clangini
+        
         /*
            fwrite(&CoGPoN[1],sizeof(int),1,FilePa);
            fwrite(&CoGPoN[2],sizeof(int),1,FilePa);
@@ -940,6 +953,8 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
         fprintf(FPaOut,"        same input file parameters\n\n");
         exit(0);
       }
+      fgets_wrapper(StrLin,_STRLENGTH,FilePa);
+      fgets_wrapper(StrLin,_STRLENGTH,FilePa);
       for (i1=1;i1<=VWGPoN[1];i1++) {
         for (i2=1;i2<=VWGPoN[2];i2++) {
           for (i3=1;i3<=VWGPoN[3];i3++) {
@@ -959,7 +974,10 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
       #endif
       if (VWGrAcc[0]=='w') {
         FilePa=fopen(VWGrFile,"w");
-        fprintf(FilePa,"%d %d %d\n",VWGPoN[1],VWGPoN[2],VWGPoN[3]);
+        fprintf(FilePa,"%d %d %d\n",VWGPoN[1],VWGPoN[2],VWGPoN[3]); // Number of voxels along x,y,z
+        fprintf(FilePa,"%.12f %.12f %.12f\n", BSMinC[1]-VWGrIn, BSMinC[2]-VWGrIn, BSMinC[3]-VWGrIn); // Origin of the grid 
+        fprintf(FilePa,"%f %f %f\n", VWGrSi, VWGrSi, VWGrSi); // grid spacing in x,y,z 
+        
         for (i1=1;i1<=VWGPoN[1];i1++) {
           for (i2=1;i2<=VWGPoN[2];i2++) {
             for (i3=1;i3<=VWGPoN[3];i3++) {
@@ -1175,6 +1193,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   ReRad2=dvector(1,ReAtNu);
   ReRadOut=dvector(1,ReAtNu);
   ReRadOut2=dvector(1,ReAtNu);
+  ReEffRad_bound = dvector(1,ReAtNu); // lower bound for rec Born radius
 
   surfpt_re=structpointvect(1,NPtSphere*ReAtNu);
   iatsrf_re=ivector(1,NPtSphere*ReAtNu);
@@ -1198,7 +1217,8 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
 
   /* Do all the precalculation necessary for continuum electrostatics */
   Solvation(ReAtNu,ReCoor,ReVdWE_sr,ReVdWR,ReRad,ReRad2,ReRadOut,ReRadOut2,
-      ReMaxC,ReMinC,RePaCh,DielRe,DielWa,WaMoRa,GrSiSo,GrInSo,
+      ReEffRad_bound,
+      ReMaxC,ReMinC,RePaCh, DielRe, DielWa,WaMoRa,GrSiSo,GrInSo,
       NPtSphere,ReResN,ReReNu,BSResN,BSReNu,ReDesoAlg,DesoMapAcc,
       DesoMapFile,RecFilPDB,FDexe,FDdir,&Min,&Max,&XGrid,
       &YGrid,&ZGrid,&GridMat,&NGridx,&NGridy,&NGridz,
@@ -1221,7 +1241,6 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   if (myrank == MASTERRANK){
 #endif
   FilePa=fopen("./outputs/apolar_rec_reduc.mol2","w");
-  /*fprintf(FilePa,"# TRIPOS MOL2 file generated by WITNOTP\n"); clangini */
   fprintf(FilePa,"# TRIPOS MOL2 file generated by SEED\n"); /* clangini */
   fprintf(FilePa,"\n");
   fprintf(FilePa,"@<TRIPOS>MOLECULE\n");
@@ -1579,6 +1598,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
           FrRadOut2,Frdist2,&Rmin,&FrRmax);
           //Frdist2 is passed as **double and not as ***double as it is
           //allocated in the main and not in get_Ch_Rad_Fr. clangini
+      FrEffRad_bound = dvector(1, FrAtNu); // lower bound on frag born radius
 
       /* Get the extremes of frag coor */
       vect=dvector(1,FrAtNu);
@@ -1616,8 +1636,8 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
 
         /* Calculate the solvation energy of the fragment without the receptor
            Use a very fine grid spacing (0.1) */
-        nn = FragSolvEn(FrAtNu,FrCoor,FrPaCh,FrVdWR, FrRadOut,
-            FrRadOut2,Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.1,
+        nn = FragSolvEn(FrAtNu,FrCoor,FrPaCh,FrVdWR,FrRadOut,
+            FrRadOut2, FrEffRad_bound,Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.1,
             Ksolv,pi4,&FrSolvEn,EmpCorrB,FPaOut);
         /* fprintf(FPaOut,"Dielectric value = %4.1f -> %4.1f transfer energy for the fragment (%s) : ",
             DielRe,DielWa,&ResN_fr[i][1]); */
@@ -1961,9 +1981,11 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
                          interaction (with screening effect) energies (slow method) */
                       ElecFrag(ReAtNu,ReCoor,RePaCh,ChFrRe_ps_elec,
                           ReRad,ReRad2,ReRadOut,
-                          ReRadOut2,surfpt_re,nsurf_re,
+                          ReRadOut2,ReEffRad_bound,
+                          surfpt_re,nsurf_re,
                           pointsrf_re,ReSelfVol,FrAtNu,RoSFCo,FrCoor,
                           FrPaCh,FrRad,FrRad2,FrRadOut,FrRadOut2,
+                          FrEffRad_bound,
                           Frdist2,SDFrRe_ps_elec,FrMinC,FrMaxC,&FrSolvEn,
                           Nsurfpt_fr,surfpt_fr,
                           nsurf_fr,pointsrf_fr,surfpt_ex,Tr,U1,U2,WaMoRa,
@@ -2472,9 +2494,11 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                            interaction (with screening effect) energies (slow method) */
                         ElecFrag(ReAtNu,ReCoor,RePaCh,ChFrRe_ps_elec,
                             ReRad,ReRad2,ReRadOut,
-                            ReRadOut2,surfpt_re,nsurf_re,
+                            ReRadOut2,ReEffRad_bound,
+                            surfpt_re,nsurf_re,
                             pointsrf_re,ReSelfVol,FrAtNu,RoSFCo,FrCoor,
                             FrPaCh,FrRad,FrRad2,FrRadOut,FrRadOut2,
+                            FrEffRad_bound,
                             Frdist2,SDFrRe_ps_elec,FrMinC,FrMaxC,
                             &FrSolvEn,Nsurfpt_fr,surfpt_fr,
                             nsurf_fr,pointsrf_fr,surfpt_ex,Tr,U1,U2,WaMoRa,
@@ -2995,9 +3019,11 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                          interaction (with screening effect) energies (slow method) */
                       ElecFrag(ReAtNu,ReCoor,RePaCh,ChFrRe_ps_elec,
                           ReRad,ReRad2,ReRadOut,
-                          ReRadOut2,surfpt_re,nsurf_re,
+                          ReRadOut2,ReEffRad_bound,
+                          surfpt_re,nsurf_re,
                           pointsrf_re,ReSelfVol,FrAtNu,RoSFCo,FrCoor,
                           FrPaCh,FrRad,FrRad2,FrRadOut,FrRadOut2,
+                          FrEffRad_bound,
                           Frdist2,SDFrRe_ps_elec,FrMinC,FrMaxC,&FrSolvEn,
                           Nsurfpt_fr,surfpt_fr,
                           nsurf_fr,pointsrf_fr,surfpt_ex,Tr,U1,U2,WaMoRa,
@@ -3363,9 +3389,11 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                            interaction (with screening effect) energies (slow method) */
                         ElecFrag(ReAtNu,ReCoor,RePaCh,ChFrRe_ps_elec,
                             ReRad,ReRad2,ReRadOut,
-                            ReRadOut2,surfpt_re,nsurf_re,
+                            ReRadOut2,ReEffRad_bound,
+                            surfpt_re,nsurf_re,
                             pointsrf_re,ReSelfVol,FrAtNu,RoSFCo,FrCoor,
                             FrPaCh,FrRad,FrRad2,FrRadOut,FrRadOut2,
+                            FrEffRad_bound,
                             Frdist2,SDFrRe_ps_elec,FrMinC,FrMaxC,
                             &FrSolvEn,Nsurfpt_fr,surfpt_fr,
                             nsurf_fr,pointsrf_fr,surfpt_ex,Tr,U1,U2,WaMoRa,
@@ -3727,9 +3755,11 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           /* Compute receptor desolvation, fragment desolvation and receptor-fragment
              interaction (with screening effect) energies (slow method) */
           ElecFrag(ReAtNu,ReCoor,RePaCh,ChFrRe_ps_elec,ReRad,ReRad2,
-              ReRadOut,ReRadOut2,surfpt_re,nsurf_re,
+              ReRadOut,ReRadOut2,ReEffRad_bound,
+              surfpt_re,nsurf_re,
               pointsrf_re,ReSelfVol,FrAtNu,RoSFCo,FrCoor,
-              FrPaCh,FrRad,FrRad2,FrRadOut,FrRadOut2,Frdist2,
+              FrPaCh,FrRad,FrRad2,FrRadOut,FrRadOut2,
+              FrEffRad_bound, Frdist2,
               SDFrRe_ps_elec,FrMinC,FrMaxC,&FrSolvEn,Nsurfpt_fr,
               surfpt_fr,nsurf_fr,pointsrf_fr,surfpt_ex,Tr,U1,U2,
               WaMoRa,GrSiSo,NPtSphere,Min,Max,XGrid,YGrid,ZGrid,
@@ -3882,6 +3912,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
       free_dvector(FrRadOut,1,FrAtNu);
       free_dvector(FrRad2,1,FrAtNu);
       free_dvector(FrRad,1,FrAtNu);
+      free_dvector(FrEffRad_bound,1,FrAtNu);
       if ((Solv_typ[0]=='s')||(Solv_typ[0]=='b')) {
         free_structpointvect(surfpt_fr,1,NPtSphere*FrAtNu);
         free_ivector(iatsrf_fr,1,NPtSphere*FrAtNu);
@@ -4414,6 +4445,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
       /* (time_10-time_9)*0.01); */
       fclose(FPaOut);
 
+
       if (Solv_typ[0]!='p')     /* Modification NM 26-05-2004 */ /* This has to be modified. clangini */
       {
         /*for (i1=1;i1<=((SFWrNu<FiNuMa)?SFWrNu:FiNuMa);i1++) {
@@ -4485,7 +4517,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           Frdist2=dmatrix(1,FrAtNu,1,FrAtNu);
           nn = get_Ch_Rad_Fr(FrAtNu,FrCoor,FrVdWR,WaMoRa,FrRad,FrRad2,FrRadOut,
               FrRadOut2,Frdist2,&Rmin,&FrRmax);
-
+          FrEffRad_bound = dvector(1, FrAtNu); // lower bound on Born Radius for fragment
           /* Get the extremes of frag coor */
           vect=dvector(1,FrAtNu);
           getColumnFrom2DArray(FrCoor, 1, 1, FrAtNu, vect);
@@ -4519,8 +4551,8 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
 
           /* Calculate the solvation energy of the fragment without the receptor
              Use a very fine grid spacing (0.1) */
-          nn = FragSolvEn(FrAtNu,FrCoor,FrPaCh,FrVdWR, FrRadOut,
-              FrRadOut2,Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.1, // 0.1
+          nn = FragSolvEn(FrAtNu,FrCoor,FrPaCh,FrVdWR,FrRadOut,
+              FrRadOut2,FrEffRad_bound, Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.1,
               Ksolv,pi4,&FrSolvEn,EmpCorrB,FPaOut);
           /*fprintf(FPaOut,"Dielectric value = %4.1f -> %4.1f transfer energy for the fragment (%s) : ",
               DielRe,DielWa,&FrFiNa_out[CurFra][1]);*/
@@ -4593,9 +4625,11 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                  interaction (with screening effect) energies (slow method) */
               ElecFrag(ReAtNu,ReCoor,RePaCh,ChFrRe_ps_elec,
                   ReRad,ReRad2,ReRadOut,
-                  ReRadOut2,surfpt_re,nsurf_re,
+                  ReRadOut2, ReEffRad_bound,
+                  surfpt_re,nsurf_re,
                   pointsrf_re,ReSelfVol,FrAtNu,RoSFCo,FrCoor,
                   FrPaCh,FrRad,FrRad2,FrRadOut,FrRadOut2,
+                  FrEffRad_bound,
                   Frdist2,SDFrRe_ps_elec,FrMinC,FrMaxC,&FrSolvEn,
                   Nsurfpt_fr,surfpt_fr,
                   nsurf_fr,pointsrf_fr,surfpt_ex,Tr,U1,U2,WaMoRa,
@@ -4843,6 +4877,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           free_dvector(FrRadOut,1,FrAtNu);
           free_dvector(FrRad2,1,FrAtNu);
           free_dvector(FrRad,1,FrAtNu);
+          free_dvector(FrEffRad_bound, 1, FrAtNu);
           free_structpointvect(surfpt_fr,1,NPtSphere*FrAtNu);
           free_ivector(iatsrf_fr,1,NPtSphere*FrAtNu);
           free_ivector(pointsrf_fr,1,FrAtNu);
@@ -4882,7 +4917,9 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
 
         IntVar1=0;
         IntVar2=0;
-        for (j=1;j<=SFWrNu;j++) { // Fragments are ordered by cluster
+        for (j=1;j<=SFWrNu;j++) {
+          // cout << "j= " << j << endl;
+          // cout << "ClusLi_sd_pproc[j] " << ClusLi_sd_pproc[j] << endl;
           if (ClusLi_sd_pproc[j]==2) { // if representative of first clustering
                                        //(and hence of second as well) clangini
             IntVar1=IntVar1+1;
@@ -4890,13 +4927,19 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
             FrPosAr_pproc[IntVar1]=ClusLi_sd[j];
             SdClusAr_pproc[IntVar1]=IntVar2;
             TotEnSdClus_pproc[IntVar1]=To_s_ro[ClusLi_sd[j]];
+            if(To_s_ro[ClusLi_sd[j]] > FrMaEn){
+              PosToRem.push_back(IntVar1);
+            }
           }
           if (ClusLi_sd_pproc[j]==1) {// if representative of second clustering
                                       //only but not of first. clangini
             IntVar1=IntVar1+1;
-            FrPosAr_pproc[IntVar1] = ClusLi_sd[j];
-            SdClusAr_pproc[IntVar1] = IntVar2;
-            TotEnSdClus_pproc[IntVar1] = To_s_ro[ClusLi_sd[j]];
+            FrPosAr_pproc[IntVar1]=ClusLi_sd[j];
+            SdClusAr_pproc[IntVar1]=IntVar2;
+            TotEnSdClus_pproc[IntVar1]=To_s_ro[ClusLi_sd[j]];
+            if(To_s_ro[ClusLi_sd[j]] > FrMaEn){
+              PosToRem.push_back(IntVar1);
+            }
           }
         }
 
@@ -4912,6 +4955,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
         // Sort is sorting all the kept positions, here we split the ordered poses
         // into the clusters they belong to. clangini
         CluIndex_sort=ivector(1,NuSdClKe);// clangini
+
         for (j=1;j<= NuSdClKe;j++){
           CluIndex_sort[j] = j; // clangini
         }
@@ -4923,14 +4967,15 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           FlagAr[j]=1;
         }
 
-        IntVar1=0;
-        IntVar2=0;
+        IntVar1=0; // index of cluster (energy ordered)
+        IntVar2=0; // index
         for (i1=1;i1<=NuPosSdCl;i1++) {
           if (FlagAr[Index_pproc[i1]]) {
             IntVar2=IntVar2+1;
+            // std::cout << "IntVar2 " << IntVar2 << "\n";
             CluIndex_sort[SdClusAr_pproc[Index_pproc[i1]]]=IntVar2; //clangini
-            //std::cout<<"CluIndex_sort["<<SdClusAr_pproc[Index_pproc[i1]]<<"] = "
-            //         <<IntVar2<<std::endl;//clangini
+            // std::cout<<"CluIndex_sort["<<SdClusAr_pproc[Index_pproc[i1]]<<"] = "
+                    //  <<IntVar2<<std::endl;//clangini
             for (i2=1;i2<=NuPosSdCl;i2++) {
               if ((FlagAr[Index_pproc[i2]])&&
                   (SdClusAr_pproc[Index_pproc[i2]]==SdClusAr_pproc[Index_pproc[i1]])) {
@@ -4938,6 +4983,9 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                 FrPosAr_sort[IntVar1]=FrPosAr_pproc[Index_pproc[i2]];
                 SdClusAr_sort[IntVar1]=IntVar2;
                 FlagAr[Index_pproc[i2]]=0;
+                // std::cout << "IntVar1 " << IntVar1 << "\n";
+                // std::cout << "FrPosAr_sort[IntVar1] " << FrPosAr_sort[IntVar1] << "\n";
+                // std::cout << "SdClusAr_sort[IntVar1] " << SdClusAr_sort[IntVar1] << "\n";
               }
             }
           }
@@ -5027,6 +5075,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           //  IntVar1=SdClusAr_sort[j];
           //  fprintf(FPaOut,"%5d\n",IntVar1);
           //}
+
           fprintf(FPaOut,
               "%6d%6d%9d%6d%13.2f%11.2f%13.2f%11.2f%13.2f\n",
               j, CluIndex_sort[SdClusAr_pproc[Index_pproc[j]]],
@@ -5038,6 +5087,14 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
         fprintf(FPaOut,"\n");
         /* END modification clangini 17/01/17 */
 
+        if (PosToRem.size() > 0){
+          fprintf(FPaOut,"The poses ");
+          for(std::vector<int>::iterator it = PosToRem.begin(); it != PosToRem.end(); ++it) {
+            fprintf(FPaOut, "%d, ", FrPosAr_pproc[*it]);
+          }
+          fprintf(FPaOut, "will not be written to the output files as they have a total slow energy > %lf\n", FrMaEn);
+        }
+        PosToRem.clear();
 
         /* Append lines to summary table. START clangini */
         /* Calculate HAC (Heavy Atom Count) and MW (Molecular Weight)*/
@@ -5055,7 +5112,8 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           TabOutStream.open (TabFil, std::ios::out | std::ios::app); // append mode
           if(TabOutStream.is_open()){
             for (j=1;j<=((NuLiEnClus<NuPosSdCl)?NuLiEnClus:NuPosSdCl);j++) {
-              sprintf(TabLin,
+              if(To_s_ro[FrPosAr_sort[j]] <= FrMaEn){
+                sprintf(TabLin,
                     "%-30s%8d%10d%10d%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10d%10.4f",
                     FragNa,j,SdClusAr_sort[j],FrPosAr_sort[j],To_s_ro[FrPosAr_sort[j]],In_s_ro[FrPosAr_sort[j]],
                     Dr_s_ro[FrPosAr_sort[j]],Df_s_ro[FrPosAr_sort[j]],
@@ -5063,7 +5121,8 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                     FrSolvEn,(To_s_ro[FrPosAr_sort[j]]/HeAtCo),
                     (VW_s_ro[FrPosAr_sort[j]]/HeAtCo),(In_s_ro[FrPosAr_sort[j]]/HeAtCo),
                     HeAtCo,MolWei);
-              TabOutStream << TabLin << std::endl;
+                TabOutStream << TabLin << std::endl;
+              }
             }
           } else {
             std::cerr << "Unable to write to file "<< TabFil << std::endl;
@@ -5081,7 +5140,8 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           TabOutStream.open (TabFil, std::ios::out | std::ios::app); // append mode
           if(TabOutStream.is_open()){
             for (j=1;j<=((NuPosMem<NuPosSdCl)?NuPosMem:NuPosSdCl);j++) {
-              sprintf(TabLin,
+              if(To_s_ro[FrPosAr_pproc[Index_pproc[j]]] <= FrMaEn){
+                sprintf(TabLin,
                     "%-30s%8d%10d%10d%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10d%10.4f",
                     FragNa,j,
                     CluIndex_sort[SdClusAr_pproc[Index_pproc[j]]],
@@ -5096,7 +5156,8 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                     (VW_s_ro[FrPosAr_pproc[Index_pproc[j]]]/HeAtCo),
                     (In_s_ro[FrPosAr_pproc[Index_pproc[j]]]/HeAtCo),
                     HeAtCo,MolWei);
-              TabOutStream << TabLin << std::endl;
+                TabOutStream << TabLin << std::endl;
+              }
             }
           } else {
             std::cerr << "Unable to write to file "<< TabFil << std::endl;
@@ -5132,11 +5193,13 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                                 FrBdTy,SdClusAr_sort[j],To_s_ro[FrPosAr_sort[j]],
                                 FrPaCh,SubNa,AlTySp);
 #else
-            append_pose_to_mol2(FilePa,FragNa,/*FragNa_map[FragNa_str],*/FrAtNu,
-                                FrBdNu,j,FrAtEl,FrCoPo,
-                                FrPosAr_sort[j],FrSyAtTy,FrAtTy,CurFra,FrBdAr,
-                                FrBdTy,SdClusAr_sort[j],To_s_ro[FrPosAr_sort[j]],
-                                FrPaCh,SubNa,AlTySp);
+            if(To_s_ro[FrPosAr_sort[j]] <= FrMaEn){
+              append_pose_to_mol2(FilePa,FragNa,/*FragNa_map[FragNa_str],*/FrAtNu,
+                                  FrBdNu,j,FrAtEl,FrCoPo,
+                                  FrPosAr_sort[j],FrSyAtTy,FrAtTy,CurFra,FrBdAr,
+                                  FrBdTy,SdClusAr_sort[j],To_s_ro[FrPosAr_sort[j]],
+                                  FrPaCh,SubNa,AlTySp);
+            }
 #endif
           }
           fclose(FilePa);
@@ -5162,41 +5225,47 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                                 To_s_ro[FrPosAr_pproc[Index_pproc[j]]],
                                 FrPaCh,SubNa,AlTySp);
 #else
-            append_pose_to_mol2(FilePa,FragNa,/*FragNa_map[FragNa_str],*/FrAtNu,
-                                FrBdNu,j,FrAtEl,FrCoPo,
-                                FrPosAr_pproc[Index_pproc[j]],FrSyAtTy,
-                                FrAtTy,CurFra,FrBdAr,FrBdTy,
-                                CluIndex_sort[SdClusAr_pproc[Index_pproc[j]]],
-                                To_s_ro[FrPosAr_pproc[Index_pproc[j]]],
-                                FrPaCh,SubNa,AlTySp);
+            if(To_s_ro[FrPosAr_pproc[Index_pproc[j]]] <= FrMaEn){
+              append_pose_to_mol2(FilePa,FragNa,/*FragNa_map[FragNa_str],*/FrAtNu,
+                                  FrBdNu,j,FrAtEl,FrCoPo,
+                                  FrPosAr_pproc[Index_pproc[j]],FrSyAtTy,
+                                  FrAtTy,CurFra,FrBdAr,FrBdTy,
+                                  CluIndex_sort[SdClusAr_pproc[Index_pproc[j]]],
+                                  To_s_ro[FrPosAr_pproc[Index_pproc[j]]],
+                                  FrPaCh,SubNa,AlTySp);
+            }
 #endif
           }
           fclose(FilePa);
         }
         // clangini 18/01/17 END
 
-        ReprSdClAr=ivector(1,NuSdClKe);
-        IntVar1=1;
-        ReprSdClAr[IntVar1]=FrPosAr_sort[1];
-        for (j=1;j<=NuPosSdCl;j++) {
-          if (SdClusAr_sort[j]!=IntVar1) {
-            IntVar1=SdClusAr_sort[j];
-            ReprSdClAr[IntVar1]=FrPosAr_sort[j];
-          }
-        }
-        if (write_pproc_opt[0]=='y'&& write_pproc_chm_opt[0]=='y') {
-
-          /*write_chm_clus_pprocr(CurFra,NuSdClKe,FrAtNu,FrAtTy,FrCoPo,ResN_fr,
-              FrFiNa_out,ReprSdClAr); no longer used clangini*/ /*Needs to be removed clangini*/
-        }
-        if (gc_opt[0]=='y')
-        {
-          /*GeomCenter_FFLD(CurFra,FrFiNa_out,FrAtNu,FrAtEl_nu,NuSdClKe,ReprSdClAr,
-              To_s_ro,FrCoPo,ResN_fr,FragNa,gc_reprke,gc_cutclus,
-              gc_endifclus,gc_weighneg,gc_weighpos,gc_maxwrite);
-              Do we want to keep support for FFLD? clangini */
-        }
-        free_ivector(ReprSdClAr,1,NuSdClKe);
+        // // clangini 23/05/2018 START
+        // // The following section of code appears to be no longer used -> commented
+        // ReprSdClAr=ivector(1,NuSdClKe);
+        // IntVar1=1;
+        // ReprSdClAr[IntVar1]=FrPosAr_sort[1];
+        //
+        // for (j=1;j<=NuPosSdCl;j++) {
+        //   if (SdClusAr_sort[j]!=IntVar1) {
+        //     IntVar1=SdClusAr_sort[j];
+        //     ReprSdClAr[IntVar1]=FrPosAr_sort[j];
+        //   }
+        // }
+        // if (write_pproc_opt[0]=='y'&& write_pproc_chm_opt[0]=='y') {
+        //
+        //   /*write_chm_clus_pprocr(CurFra,NuSdClKe,FrAtNu,FrAtTy,FrCoPo,ResN_fr,
+        //       FrFiNa_out,ReprSdClAr); no longer used clangini*/ /*Needs to be removed clangini*/
+        // }
+        // if (gc_opt[0]=='y')
+        // {
+        //   /*GeomCenter_FFLD(CurFra,FrFiNa_out,FrAtNu,FrAtEl_nu,NuSdClKe,ReprSdClAr,
+        //       To_s_ro,FrCoPo,ResN_fr,FragNa,gc_reprke,gc_cutclus,
+        //       gc_endifclus,gc_weighneg,gc_weighpos,gc_maxwrite);
+        //       Do we want to keep support for FFLD? clangini */
+        // }
+        // free_ivector(ReprSdClAr,1,NuSdClKe);
+        // // clangini 23/05/2018 END of commented part
 
 
         /* times(&timevar); */
@@ -5370,6 +5439,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
     free_dvector(ReRadOut,1,ReAtNu);
     free_dvector(ReRad2,1,ReAtNu);
     free_dvector(ReRad,1,ReAtNu);
+    free_dvector(ReEffRad_bound,1,ReAtNu);
     free_ivector(nsurf_re,1,ReAtNu);
     free_ivector(pointsrf_re,1,ReAtNu);
     free_ivector(iatsrf_re,1,NPtSphere*ReAtNu);
