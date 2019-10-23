@@ -7,8 +7,8 @@ BIN_DIR = ../bin
 BUILD_DIR = build
 
 BUILD_DIR_MPI = build/mpi
-TARGET_EXEC = $(BIN_DIR)/seed_4
-TARGET_EXEC_MPI = $(BIN_DIR)/seed_4_mpi
+TARGET_EXEC = $(BIN_DIR)/seed_4_mc
+TARGET_EXEC_MPI = $(BIN_DIR)/seed_4_mc_mpi
 
 # Flags:
 CXX = g++
