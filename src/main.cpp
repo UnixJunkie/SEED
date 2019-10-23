@@ -1438,7 +1438,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
     /*for (i=1;i<=FragNu;i++) */ /* open loop over fragments (has to be removed) clangini */
     /* control amount of printed "out of grid" error messages */
 
-    //std::cout << "Entered loop over fragments!" << std::endl; /*clangini OK*/
+    // std::cout << "Entered loop over fragments!" << std::endl; /*clangini OK*/
 
     vdwErr = 0;
     clbErr = 0;
@@ -1465,6 +1465,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
                            &FrAtNu,&FrBdNu,&FrAtEl,&FrCoor,&FrAtTy,&FrSyAtTy,
                            &FrPaCh,&FrBdAr,&FrBdTy,FrSubN,FrSubC,&FrCoNu,
                            &SubNa,AlTySp);
+
     if (LstFra_f){
       std::cerr << "\tNo more fragments in input file " << FrFiNa << std::endl;
       fclose(FPaOut);

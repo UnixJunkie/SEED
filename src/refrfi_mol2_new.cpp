@@ -231,7 +231,8 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
 	  for (i = 1; i <= *FrBdNu; i++) {
 		  //StrLin = getline(isStream);
       std::getline(*inStream,StrLin);
-		  //tokenizer tokens(StrLin, sep);
+      // std::cout << "bond line " << i << ": " << StrLin << std::endl;
+      //tokenizer tokens(StrLin, sep);
 		  tokens.assign(StrLin,sep);
 		  //tokenizer::const_iterator itItem = tokens.begin();
 		  itItem = tokens.begin();
