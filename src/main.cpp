@@ -4653,20 +4653,20 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
 
                     do_rot_move = rnd_gen::get_bernoulli(seed_par.mc_rot_freq); // doing a rotational move?
                     if (do_rot_move){
-                      // n_rot++;
+                      n_rot++;
                       do_fine_move = rnd_gen::get_bernoulli(seed_par.mc_rot_fine_freq);
                       if(do_fine_move){//fine or coarse?
-                        // n_rot_fine++;
+                        n_rot_fine++;
                         rot_move(RoSFCo, FrAtNu, seed_par.mc_max_rot_step_fine);
                       } else {
                         rot_move(RoSFCo, FrAtNu, seed_par.mc_max_rot_step);
                       }
                     }
                     else {
-                      // n_trans++;
+                      n_trans++;
                       do_fine_move = rnd_gen::get_bernoulli(seed_par.mc_tran_fine_freq);
                       if(do_fine_move){//fine or coarse?
-                        // n_trans_fine++;
+                        n_trans_fine++;
                         trans_move(RoSFCo, FrAtNu, seed_par.mc_max_tran_step_fine);
                       } else {
                         trans_move(RoSFCo, FrAtNu, seed_par.mc_max_tran_step);
@@ -4686,16 +4686,16 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                     if (rnd_gen::get_uniform(0, 1) <= accept_prob_in){
                       old_mc_vdW = new_mc_vdW;
                       copy_dmatrix(RoSFCo, old_mc_FrCoor_in, 1, FrAtNu, 1, 3);
-                      // if (do_rot_move) {
-                      //   n_accept_rot++;
-                      //   if(do_fine_move)
-                      //     n_accept_rot_fine++;
-                      // }
-                      // else {
-                      //   n_accept_trans++;
-                      //   if(do_fine_move)
-                      //     n_accept_trans_fine++;
-                      // }
+                      if (do_rot_move) {
+                        n_accept_rot++;
+                        if(do_fine_move)
+                          n_accept_rot_fine++;
+                      }
+                      else {
+                        n_accept_trans++;
+                        if(do_fine_move)
+                          n_accept_trans_fine++;
+                      }
                       // fprintf(FPaOut, "ACCEPT %d\n", cyc_out + 1);
                       // /* dump pose for checking */
                       // sprintf(WriPat,"%s","outputs/mc_poses.mol2\0"); // clangini
@@ -4710,7 +4710,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                       copy_dmatrix(old_mc_FrCoor_in, RoSFCo, 1, FrAtNu, 1, 3);
                       new_mc_vdW = old_mc_vdW;
                     }
-                    // /* print MC cyc_out summary */
+                    // /* print MC cyc_in summary */
                     // // fprintf(FPaOut,"%8d%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f\n",
                     // fprintf(FPaOut,"%8d%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f\n",
                     //         cyc_out+1, sa_temp, new_mc_en, In_s_ro[ClusLi_sd[i1]],
@@ -4751,7 +4751,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                   accept_prob = exp(-1/(R_constant*sa_temp) * (new_mc_en - old_mc_en));
                   if (rnd_gen::get_uniform(0, 1) <= accept_prob){
 
-                    fprintf(FPaOut, "ACCEPT %d with fr_desolv jump to %f\n", cyc_out + 1, SFDeso_fr*FrDesoElec);
+                    // fprintf(FPaOut, "ACCEPT %d with fr_desolv jump to %f\n", cyc_out + 1, SFDeso_fr*FrDesoElec);
                     old_mc_en = new_mc_en;
                     copy_dmatrix(RoSFCo, old_mc_FrCoor, 1, FrAtNu, 1, 3);
                     /* Update energies */

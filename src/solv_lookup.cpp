@@ -757,11 +757,11 @@ double *PRmax ----------- Largest charge radius
       d = sqrtf (dist2[i][j]);
       if ( d + ReVdWR[i] < ReVdWR[j] ){
         ReRad[i] = ReVdWR[j] - d;
-        std::cout << "Correction for atom "<< i <<std::endl;
+        // std::cout << "Correction for atom "<< i <<std::endl;
       }
       else if ( d + ReVdWR[j] < ReVdWR[i] ){
         ReRad[j] = ReVdWR[i] - d;
-        std::cout << "Correction for atom "<< j <<std::endl;
+        // std::cout << "Correction for atom "<< j <<std::endl;
       }
     }
     *PRmin = (*PRmin < ReRad[i]) ? *PRmin : ReRad[i];
