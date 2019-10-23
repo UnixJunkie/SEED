@@ -24,6 +24,10 @@ Two implicit solvation models based on the Generalized Born methodology
 are employed to efficiently evaluate the protein and fragment desolvation
 upon binding and the screened electrostatic interaction.
 
+**NEW!** The best generated poses can now be stochastically minimized with 
+Monte Carlo simulated annealing. Beware that this new feature is experimental and
+has not been tested thoroughly yet. See :ref:`mc_minimization` for details.
+
 |
 
 SEED is developed in the `Caflisch Lab <http://www.biochem-caflisch.uzh.ch/>`_ at 
