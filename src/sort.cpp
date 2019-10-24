@@ -43,22 +43,22 @@ void Sort(int N,int *IndArr,double *SorArr)
         l=i+m;
 
 /* 	//DEBUG CHECK */
-	if(isnan(SorArr[i]) || SorArr[i] != SorArr[i] )
+	if(std::isnan(SorArr[i]) || SorArr[i] != SorArr[i] )
 	{
 	    SorArr[i]=FLT_MAX;
 	    printf("NAN sort() 1 : %f\n",SorArr[i]);
 	}
-	if(SorArr[l]!=SorArr[l] || isnan(SorArr[l]))
+	if(SorArr[l]!=SorArr[l] || std::isnan(SorArr[l]))
 	{
 	    SorArr[l]=FLT_MAX;
 	    printf("NAN sort() 2 : %f\n",SorArr[l]);
 	}
-/* 	if(isnan(IndArr[i]) || IndArr[i] != IndArr[i] ) */
+/* 	if(std::isnan(IndArr[i]) || IndArr[i] != IndArr[i] ) */
 /* 	{ */
 /* 	    printf("NAN sort() 3 : %lf\n",IndArr[i]); */
 /* 	    IndArr[i]=FLT_MAX; */
 /* 	} */
-/* 	if(IndArr[l]!=IndArr[l] || isnan(IndArr[l])) */
+/* 	if(IndArr[l]!=IndArr[l] || std::isnan(IndArr[l])) */
 /* 	{ */
 /* 	    printf("NAN sort() 4 : %lf\n",IndArr[l]); */
 /* 	    IndArr[l]=FLT_MAX;	     */

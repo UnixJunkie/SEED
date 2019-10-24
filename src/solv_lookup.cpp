@@ -374,11 +374,11 @@ struct point len ----------- ReMaxC - ReMinC
     If the calculated effective born radius is smaller than the lower bound, 
     we override it to the lower bound.
 	*/
-	  if(isnan(EffRad[iat]) || EffRad[iat] <= ReEffRad_bound[iat])
+	  if(std::isnan(EffRad[iat]) || EffRad[iat] <= ReEffRad_bound[iat])
 	  {
 #ifndef NOWARN
 	    // fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius for receptor atom %d\n",iat);
-      if (!isnan(EffRad[iat])){
+      if (!std::isnan(EffRad[iat])){
         fprintf(FPaOut, "Calculated effective Born radius of receptor atom %d (%f) set to its lower bound (%f).\n", iat, EffRad[iat], ReEffRad_bound[iat]);
       } else {
         fprintf(FPaOut,"WARNING empirically-corrected effective born radius for receptor atom %d is nan. Set to its lower bound (%f).\n",iat,ReEffRad_bound[iat]);

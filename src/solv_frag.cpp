@@ -519,11 +519,11 @@ struct point *surfpt_fr - Coor of points over frag SAS1 (relative to RoSFCo)
         If the effective born radius is smaller than teh lower bound, 
         it is overridden to the lower bound.
       */
-      if(isnan(ReEffRad[hVar_corrB]) || ReEffRad[hVar_corrB] <= ReEffRad_bound[hVar_corrB])
+      if(std::isnan(ReEffRad[hVar_corrB]) || ReEffRad[hVar_corrB] <= ReEffRad_bound[hVar_corrB])
       {
 #ifndef NOWARN
 	      // fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of receptor atom %d using standard approach\n",iat);
-        if (!isnan(ReEffRad[hVar_corrB])){
+        if (!std::isnan(ReEffRad[hVar_corrB])){
           fprintf(FPaOut, "Calculated effective Born radius of receptor atom %d (%f) set to its lower bound (%f).\n", iat, ReEffRad[hVar_corrB], ReEffRad_bound[hVar_corrB]);
         } else {
           fprintf(FPaOut, "WARNING empirically-corrected effective born radius of receptor atom %d is nan. Set to its estimated lower bound (%f).\n", iat, ReEffRad_bound[hVar_corrB]);
@@ -577,11 +577,11 @@ struct point *surfpt_fr - Coor of points over frag SAS1 (relative to RoSFCo)
 	    to "nan" values or the effective born radius is smaller than 0
 
 	  */
-	  if(isnan(FrEffRad[iat]) || (FrEffRad[iat] <= FrEffRad_bound[iat]))
+	  if(std::isnan(FrEffRad[iat]) || (FrEffRad[iat] <= FrEffRad_bound[iat]))
 	  {
 #ifndef NOWARN
 	      // fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of fragment atom %d, using standard approach\n",iat);
-        if(!isnan(FrEffRad[iat])){
+        if(!std::isnan(FrEffRad[iat])){
           fprintf(FPaOut, "Calculated effective Born radius of fragment atom %d (%f) set to its lower bound (%f).\n", iat, FrEffRad[iat], FrEffRad_bound[iat]);
         } else {
           fprintf(FPaOut, "WARNING empirically-corrected effective born radius of fragment atom %d is nan. Set to its estimated lower bound (%f).\n", iat, FrEffRad_bound[iat]);
@@ -2454,7 +2454,7 @@ double *PFrSelfEn ------- Tot frag self-energy
     	    to "nan" values or the effective born radius is smaller than 0
 
     	  */
-    	  if(FrEffRad[iat]<=0 || isnan(FrEffRad[iat]))
+    	  if(FrEffRad[iat]<=0 || std::isnan(FrEffRad[iat]))
     	  {
     #ifndef NOWARN
     	    fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius of fragment atom %d, using standard approach\n",iat);
