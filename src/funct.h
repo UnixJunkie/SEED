@@ -456,6 +456,17 @@ int Desol_Surf(int ReAtNu,struct point Min,double Sphere_apol,
 	       int *iatsrf_re_apol,int distrPointBSNumb,double **distrPointBS,
 	       double angle_rmin,double angle_rmax,double mult_fact_rmin,
 	       double mult_fact_rmax,double **ReCoor,FILE *FPaOut);
+int Desol_Surf_BS(int ReAtNu, struct point Min, double Sphere_apol,
+               double GrSiSo, int nxminBS, int nyminBS, int nzminBS, 
+               int NGridx, int NGridy, int NGridz, int BSResN,
+               int *BSReNu, int *NAtom_per_Res, int *ResFirstAtom,
+               struct point *surfpt_re, int *nsurf_re, int *pointsrf_re,
+               double ***DeltaPrDeso, double *ReSurf_apol, double NCutapol, /*int NCutapol,*/
+               double ScaleDeso, int *isurf_More_apol,
+               int *PNapol_Vect_re, int *Nsurfpt_re_apol_BS,
+               int *iatsrf_re_apol, int distrPointBSNumb, double **distrPointBS,
+               double angle_rmin, double angle_rmax, double mult_fact_rmin,
+               double mult_fact_rmax, double **ReCoor, FILE *FPaOut);
 int vdW_Surf(int ReAtNu,double **ReCoor,double *ReVdWE_sr,double *ReVdWR,
              double Sphere_apol,int BSResN,int *BSReNu,int *NAtom_per_Res,
              int *ResFirstAtom,struct point *surfpt_re,int *nsurf_re,
