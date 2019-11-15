@@ -326,20 +326,52 @@ struct point *surfpt_fr - Coor of points over frag SAS1 (relative to RoSFCo)
                     nymaxFr,nzmaxFr,FrGridMat,Nsurfpt_ex,surfpt_ex);
 /*  printf("\tExcl_Grid_Fr %lf\n",1e-6 * (clock()-ntime)); */
 
-/* Check if fragment is out of the grid: if yes cut the part that is out */
-  nxmin_sma = (nxminFr > nxminBS) ? nxminFr : nxminBS;
-  nymin_sma = (nyminFr > nyminBS) ? nyminFr : nyminBS;
-  nzmin_sma = (nzminFr > nzminBS) ? nzminFr : nzminBS;
-  nxmax_sma = (nxmaxFr < nxmaxBS) ? nxmaxFr : nxmaxBS;
-  nymax_sma = (nymaxFr < nymaxBS) ? nymaxFr : nymaxBS;
-  nzmax_sma = (nzmaxFr < nzmaxBS) ? nzmaxFr : nzmaxBS;
+// printout number of empty grid cubes:
+int tot_empty, tot_full;
+tot_empty = 0;
+tot_full = 0;
+for (ix = 1; ix <= NGridx + 1; ix++)
+  for (iy = 1; iy <= NGridy + 1; iy++)
+    for (iz = 1; iz <= NGridz + 1; iz++)
+      if(GridMat[ix][iy][iz] == 'e'){
+        tot_empty++;
+      } else{
+        tot_full++;
+      }
+std::cout << "Receptor Gridmat:\nEmpty: " << tot_empty 
+          << "\nFull: " << tot_full << std::endl;
 
-  nxmin_big = (nxminFr < 1) ? nxminFr : 1;
-  nymin_big = (nyminFr < 1) ? nyminFr : 1;
-  nzmin_big = (nzminFr < 1) ? nzminFr : 1;
-  nxmax_big = (nxmaxFr > NGridx) ? nxmaxFr : NGridx;
-  nymax_big = (nymaxFr > NGridy) ? nymaxFr : NGridy;
-  nzmax_big = (nzmaxFr > NGridz) ? nzmaxFr : NGridz;
+tot_empty = 0;
+tot_full = 0;
+for (ix = nxminFr; ix <= nxmaxFr + 1; ix++)
+  for (iy = nyminFr; iy <= nymaxFr + 1; iy++)
+    for (iz = nzminFr; iz <= nzmaxFr + 1; iz++)
+      if (FrGridMat[ix][iy][iz] == 'e')
+      {
+        tot_empty++;
+      }
+      else
+      {
+        tot_full++;
+      }
+
+std::cout << "Fragment Gridmat:\nEmpty: " << tot_empty
+          << "\nFull: " << tot_full << std::endl;
+
+/* Check if fragment is out of the grid: if yes cut the part that is out */
+nxmin_sma = (nxminFr > nxminBS) ? nxminFr : nxminBS;
+nymin_sma = (nyminFr > nyminBS) ? nyminFr : nyminBS;
+nzmin_sma = (nzminFr > nzminBS) ? nzminFr : nzminBS;
+nxmax_sma = (nxmaxFr < nxmaxBS) ? nxmaxFr : nxmaxBS;
+nymax_sma = (nymaxFr < nymaxBS) ? nymaxFr : nymaxBS;
+nzmax_sma = (nzmaxFr < nzmaxBS) ? nzmaxFr : nzmaxBS;
+
+nxmin_big = (nxminFr < 1) ? nxminFr : 1;
+nymin_big = (nyminFr < 1) ? nyminFr : 1;
+nzmin_big = (nzminFr < 1) ? nzminFr : 1;
+nxmax_big = (nxmaxFr > NGridx) ? nxmaxFr : NGridx;
+nymax_big = (nymaxFr > NGridy) ? nymaxFr : NGridy;
+nzmax_big = (nzmaxFr > NGridz) ? nzmaxFr : NGridz;
 //clangini debug start
 /* Check if fragment is out of the grid: if yes cut the part that is out */
   // //nxmin_sma = (nxminFr > nxminBS) ? nxminFr : nxminBS;
