@@ -5437,7 +5437,12 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
 
     /* Free the dynamically allocated memory */
     free_dvector(ReSelfVol,1,ReAtNu);
-    free_c3tensor(GridMat,1,NGridx+1,1,NGridy+1,1,NGridz+1);
+    // free_c3tensor(GridMat,1,NGridx+1,1,NGridy+1,1,NGridz+1);
+    for (k=0; k <= NGridz; k++)
+    {
+      delete GridMat_sp[k];
+    }
+    delete[] GridMat_sp;
     free_ivector(ReApAt,1,Napol_Vect_re);
     free_dmatrix(apol_Vect_re,1,Napol_Vect_re,1,6);
     free_dvector(ReSurf_apol,1,Nsurfpt_re_apol);
