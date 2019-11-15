@@ -320,9 +320,9 @@ struct point len ----------- ReMaxC - ReMinC
   //       (*GridMat)[i][j][k] = 'e';
 
 /* Sparse GridMat (array of sparse matrices) */
-  (*GridMat_sp) = new sparse_3D<char>* [NGridz + 1];
-  for (k = 0; k <= NGridz; k++){
-    (*GridMat_sp)[k] = new sparse_3D<char>(NGridx+1,NGridy+1);  
+  (*GridMat_sp) = new sparse_3D<char>* [NGridx + 1];
+  for (k = 0; k <= NGridx; k++){
+    (*GridMat_sp)[k] = new sparse_3D<char>(NGridy+1,NGridz+1);  
   }
 
   /* Make the map (GridMat) of the 3D grid points occupied by the volume
@@ -910,11 +910,11 @@ char ****GridMat -------- Matrix telling if a grid point is occupied (o),
           ztemp = GrSiSo * (izmin - 1.5) + Min.z - ReCoor[iat][3];
           for (iz=izmin;iz<=izmax;iz++) {
             ztemp += GrSiSo;
-            if ((*GridMat_sp[iz-1])(ix-1,iy-1) != 'o') {
+            if ((*GridMat_sp[ix-1])(iy-1,iz-1) != 'o') {
               r2 = ztemp * ztemp + xy2temp;
               if (ReRadOut2[iat] > r2){
                 // GridMat[ix][iy][iz] = 'o';
-                (*GridMat_sp[iz-1])(ix-1,iy-1) = 'o';
+                (*GridMat_sp[ix-1])(iy-1,iz-1) = 'o';
               }
             }
           }
@@ -1883,14 +1883,14 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
           for (iz=izmin;iz<=izmax;iz++) {
             ztemp += GrSiSo;
             // if (GridMat[ix][iy][iz] == 'o') {
-            if ((*GridMat_sp[iz-1])(ix-1, iy-1) == 'o') {
+            if ((*GridMat_sp[ix-1])(iy-1, iz-1) == 'o') {
               r2 = ztemp * ztemp + xy2temp;
 
 /* Check if our grid point is inside the sphere. If yes change GridMat */
 
               if (WaMoRa2 > r2){
                 // GridMat[ix][iy][iz] = 's';//'s';
-                (*GridMat_sp[iz-1])(ix-1, iy-1) = 's';
+                (*GridMat_sp[ix-1])(iy-1, iz-1) = 's';
               }
             }
           }
@@ -1935,7 +1935,7 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
             r2 = ztemp * ztemp + xy2temp;
             if (ReRadOut2[iat] > r2) {
               // if (GridMat[ix][iy][iz] == 's') { // 's'
-              if ((*GridMat_sp[iz-1])(ix-1,iy-1) == 's') 
+              if ((*GridMat_sp[ix-1])(iy-1,iz-1) == 's') 
               { // 's'
                 r4 = r2 * r2;
                 SelfVol[iat] -= UnitVol/r4;
@@ -2188,7 +2188,7 @@ point or not.
         filled = 0;
         dolist = 0;
         // if (GridMat[ix][iy][iz] == 'o') {
-        if ((*GridMat_sp[iz-1])(ix-1, iy-1) == 'o')
+        if ((*GridMat_sp[ix-1])(iy-1, iz-1) == 'o')
         {
           filled = 1;
           dolist = 1;
@@ -2199,7 +2199,7 @@ point or not.
             for (iyf=iy-1;iyf<=iy+1;iyf++) {
               for (izf=iz-1;izf<=iz+1;izf++) {
                 // if (GridMat[ixf][iyf][izf] == 'o') {
-                if ((*GridMat_sp[izf-1])(ixf-1, iyf-1) == 'o')
+                if ((*GridMat_sp[ixf-1])(iyf-1, izf-1) == 'o')
                 {
                   dolist = 1;
                   goto do_neigh_list; // I think this goto is simply a "multiple break to get out of the nested loops. clangini
@@ -2244,7 +2244,7 @@ to the integral of 1/r^4 */
             for (iyf=iy-1;iyf<=iy+1;iyf++) {
               for (izf=iz-1;izf<=iz+1;izf++) {
                 // if (GridMat[ixf][iyf][izf] == 'o') {
-                if ((*GridMat_sp[izf-1])(ixf-1, iyf-1) == 'o')
+                if ((*GridMat_sp[ixf-1])(iyf-1, izf-1) == 'o')
                 {
                   for (jat=1;jat<=Neigh;jat++) {
                     r2 = (XGrid[ixf]-ReCoor[NeighList[jat]][1]) *
@@ -3724,7 +3724,7 @@ double ***DeltaPrDeso --- Elec rec (frag) desolvation due to the occupation
         {
           for (iz = izmin; iz <= izmax; iz++)
           {
-            if ((*GridMat_sp[iz-1])(ix-1,iy-1) != 'o')
+            if ((*GridMat_sp[ix-1])(iy-1,iz-1) != 'o')
             {
               r2 = (XGrid[ix] - ReCoor[iat][1]) *
                        (XGrid[ix] - ReCoor[iat][1]) +
@@ -3756,7 +3756,7 @@ double ***DeltaPrDeso --- Elec rec (frag) desolvation due to the occupation
   for (ix = nxminBS; ix <= nxmaxBS; ix++)
     for (iy = nyminBS; iy <= nymaxBS; iy++)
       for (iz = nzminBS; iz <= nzmaxBS; iz++)
-        if ((*GridMat_sp[iz-1])(ix-1, iy-1) != 'o')
+        if ((*GridMat_sp[ix-1])(iy-1, iz-1) != 'o')
           DeltaPrDeso[ix][iy][iz] = Kdesol *
                                     (Dx[ix][iy][iz] * Dx[ix][iy][iz] +
                                      Dy[ix][iy][iz] * Dy[ix][iy][iz] +
@@ -3852,7 +3852,7 @@ double ***DeltaPrDeso --- Elec desolvation due to the occupation of a grid point
           if (PrntCompleteMap){
             fprintf(WriFile,"%.12f\n", DeltaPrDeso[ix][iy][iz]);
           } else {
-            if ((*GridMat_sp[iz-1])(ix-1, iy-1) != 'o')
+            if ((*GridMat_sp[ix-1])(iy-1, iz-1) != 'o')
               fprintf(WriFile,"%.12f\n",DeltaPrDeso[ix][iy][iz]);
           }
         }
@@ -3926,7 +3926,7 @@ double ***DeltaPrDeso --- Elec desolvation due to the occupation of a grid point
             fgets_wrapper(StrLin,_STRLENGTH,ReaFile);
             sscanf(StrLin,"%lf",&(DeltaPrDeso)[ix][iy][iz]);
           } else {
-            if ((*GridMat_sp[iz-1])(ix-1, iy-1) != 'o')
+            if ((*GridMat_sp[ix-1])(iy-1, iz-1) != 'o')
             {
               fgets_wrapper(StrLin,_STRLENGTH,ReaFile);
               sscanf(StrLin,"%lf",&(DeltaPrDeso)[ix][iy][iz]);

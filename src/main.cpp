@@ -5438,7 +5438,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
     /* Free the dynamically allocated memory */
     free_dvector(ReSelfVol,1,ReAtNu);
     // free_c3tensor(GridMat,1,NGridx+1,1,NGridy+1,1,NGridz+1);
-    for (k=0; k <= NGridz; k++)
+    for (k=0; k <= NGridx; k++)
     {
       delete GridMat_sp[k];
     }
