@@ -1134,7 +1134,7 @@ int FrOut --------------- Flag telling the position of the frag respect
               for (iz=izmin;iz<=izmax;iz++) {
                 ztemp += GrSiSo;
                 if (FrGridMat[ix][iy][iz] != 'o' &&
-                    (*GridMat_sp[iz])(ix,iy) != 'o') {
+                    (*GridMat_sp[iz-1])(ix-1,iy-1) != 'o') {
                   r2 = ztemp * ztemp + xy2temp;
                   if (ExFrRadOut2[iat] > r2)
                     FrGridMat[ix][iy][iz] = 'o';
@@ -1830,7 +1830,7 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
                      (ZGrid[iz]-RoSFCo[iat][3]) *
                      (ZGrid[iz]-RoSFCo[iat][3]);
                 if ( FrGridMat[ix][iy][iz] != 'o' &&
-                     (*GridMat_sp[iz])(ix,iy) != 'o' &&
+                     (*GridMat_sp[iz-1])(ix-1,iy-1) != 'o' &&
                      r2 > FrRad2[iat] && r2 <= FrRadOut2[iat] ) {
                   r4 = r2 * r2;
                   SelfVol[iat] -= UnitVol / r4;
@@ -1839,7 +1839,7 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
                   //std::cout << "may be some problem with atom iat =" << iat << std::endl; // clangini debug
                 }
                 else if ((FrGridMat[ix][iy][iz] == 'o' ||
-                          (*GridMat_sp[iz])(ix, iy) == 'o') &&
+                          (*GridMat_sp[iz-1])(ix-1, iy-1) == 'o') &&
                          r2 > FrRadOut2[iat])
                 {
                   r4 = r2 * r2;
@@ -1852,7 +1852,7 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
                         iy >= nyminFr && iy <= nymaxFr + 1 &&
                         iz >= nzminFr && iz <= nzmaxFr + 1 &&
                         FrGridMat[ix][iy][iz] == 'o') ||
-                       (*GridMat_sp[iz])(ix, iy) == 'o')
+                       (*GridMat_sp[iz-1])(ix-1, iy-1) == 'o')
               {
                 r2 = (XGrid[ix]-RoSFCo[iat][1]) *
                      (XGrid[ix]-RoSFCo[iat][1]) +
@@ -1907,7 +1907,7 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
                    iy >= nyminFr && iy <= nymaxFr + 1 &&
                    iz >= nzminFr && iz <= nzmaxFr + 1 &&
                    FrGridMat[ix][iy][iz] == 'o') ||
-                  (*GridMat_sp[iz])(ix, iy) == 'o')
+                  (*GridMat_sp[iz-1])(ix-1, iy-1) == 'o')
               {
                 r2 = (XGrid[ix]-RoSFCo[iat][1]) *
                      (XGrid[ix]-RoSFCo[iat][1]) +
@@ -1936,7 +1936,7 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
                iy >= nyminFr && iy <= nymaxFr + 1 &&
                iz >= nzminFr && iz <= nzmaxFr + 1 &&
                FrGridMat[ix][iy][iz] == 'o') ||
-              (*GridMat_sp[iz])(ix, iy) == 'o')
+              (*GridMat_sp[iz-1])(ix-1, iy-1) == 'o')
             for (iat=1;iat<=FrAtNu;iat++)
               if (FrPaCh[iat] != 0. ) {
                 r2 = (XGrid[ix]-RoSFCo[iat][1]) *
@@ -1998,7 +1998,7 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
                      (ZGrid[iz]-RoSFCo[iat][3]) *
                      (ZGrid[iz]-RoSFCo[iat][3]);
                 if (FrGridMat[ix][iy][iz] != 'o' &&
-                    (*GridMat_sp[iz])(ix, iy) != 'o' &&
+                    (*GridMat_sp[iz-1])(ix-1, iy-1) != 'o' &&
                     r2 > FrRad2[iat] && r2 < FrRadOut2[iat])
                 {
                   r4 = r2 * r2;
@@ -2007,7 +2007,7 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
 		    SelfVol_corrB[iat] -= UnitVol / (r4*sqrt(r2));
                 }
                 else if ((FrGridMat[ix][iy][iz] == 'o' ||
-                          (*GridMat_sp[iz])(ix, iy) == 'o') &&
+                          (*GridMat_sp[iz-1])(ix-1, iy-1) == 'o') &&
                          r2 > FrRadOut2[iat])
                 {
                   r4 = r2 * r2;
@@ -2023,7 +2023,7 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
                        (ix >= 1 && ix <= NGridx + 1 &&
                         iy >= 1 && iy <= NGridy + 1 &&
                         iz >= 1 && iz <= NGridz + 1 &&
-                        (*GridMat_sp[iz])(ix, iy) == 'o'))
+                        (*GridMat_sp[iz-1])(ix-1, iy-1) == 'o'))
               {
                 r2 = (XGrid[ix]-RoSFCo[iat][1]) *
                      (XGrid[ix]-RoSFCo[iat][1]) +
@@ -2081,7 +2081,7 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
                   (ix >= 1 && ix <= NGridx + 1 &&
                    iy >= 1 && iy <= NGridy + 1 &&
                    iz >= 1 && iz <= NGridz + 1 &&
-                   (*GridMat_sp[iz])(ix, iy) == 'o'))
+                   (*GridMat_sp[iz-1])(ix-1, iy-1) == 'o'))
               {
                 r2 = (XGrid[ix]-RoSFCo[iat][1]) *
                      (XGrid[ix]-RoSFCo[iat][1]) +
@@ -2113,7 +2113,7 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
               (ix >= 1 && ix <= NGridx + 1 &&
                iy >= 1 && iy <= NGridy + 1 &&
                iz >= 1 && iz <= NGridz + 1 &&
-               (*GridMat_sp[iz])(ix, iy) == 'o'))
+               (*GridMat_sp[iz-1])(ix-1, iy-1) == 'o'))
             for (iat=1;iat<=FrAtNu;iat++)
               if (FrPaCh[iat] != 0. ) {
                 r2 = (XGrid[ix]-RoSFCo[iat][1]) *

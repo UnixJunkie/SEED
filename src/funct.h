@@ -404,7 +404,14 @@ int Excl_Grid(int ReAtNu,double **ReCoor,struct point Min,double *ReRadOut,
               int NGridx,int NGridy,int NGridz,
               double UnitVol,char ***GridMat,int Nsurfpt,
               struct point *surfpt,double *SelfVol,double *SelfVol_corrB,
-	      char *EmpCorrB);
+	            char *EmpCorrB);
+int Excl_Grid_sp(int ReAtNu, double **ReCoor, struct point Min, double *ReRadOut,
+              double *ReRadOut2, double WaMoRa, double GrSiSo,
+              int NStartGridx, int NStartGridy, int NStartGridz,
+              int NGridx, int NGridy, int NGridz,
+              double UnitVol, sparse_3D<char> **GridMat_sp, int Nsurfpt,
+              struct point *surfpt, double *SelfVol, double *SelfVol_corrB,
+              char *EmpCorrB);
 int Get_Self_Vol(int ReAtNu,double **ReCoor,double *ReRadOut2,
                  double GrSiSo,double *XGrid,double *YGrid,double *ZGrid,
                  int NStartGridx,int NStartGridy,int NStartGridz,

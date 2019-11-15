@@ -368,15 +368,19 @@ struct point len ----------- ReMaxC - ReMinC
     (*SelfVol)[iat] = 0.;
     (*SelfVol_corrB)[iat] = 0.;
   }
-  nn = Excl_Grid(ReAtNu,ReCoor,Min,ReRadOut,ReRadOut2,WaMoRa,GrSiSo,
+  nn = Excl_Grid_sp(ReAtNu,ReCoor,Min,ReRadOut,ReRadOut2,WaMoRa,GrSiSo,
                  1,1,1,NGridx,NGridy,NGridz,*PUnitVol,*GridMat_sp,
                  *PNsurfpt_re,surfpt_re,*SelfVol,*SelfVol_corrB,EmpCorrB);
 
 /* Calculation of the integral 1 over r4 (GB formula) for each atom */
   printf("\n\tCalculation of the integral 1 over r4 for each atom\n");
   printf("\tover the volume enclosed by the MS...\n");
-  nn = Get_Self_Vol(ReAtNu,ReCoor,ReRadOut2,GrSiSo,*XGrid,*YGrid,*ZGrid,1,1,1,
-                    NGridx,NGridy,NGridz,*PUnitVol,*GridMat_sp,*SelfVol,
+  // nn = Get_Self_Vol(ReAtNu,ReCoor,ReRadOut2,GrSiSo,*XGrid,*YGrid,*ZGrid,1,1,1,
+  //                   NGridx,NGridy,NGridz,*PUnitVol,*GridMat_sp,*SelfVol,
+	// 	                *SelfVol_corrB,EmpCorrB);
+  nn = Get_Self_Vol(ReAtNu,ReCoor,ReRadOut2,GrSiSo,*XGrid,*YGrid,*ZGrid,
+                    1,1,1,NGridx,NGridy,NGridz,
+                    *PUnitVol,*GridMat_sp,*SelfVol,
 		                *SelfVol_corrB,EmpCorrB);
 
 /* Evaluation of the self energy */
@@ -906,11 +910,11 @@ char ****GridMat -------- Matrix telling if a grid point is occupied (o),
           ztemp = GrSiSo * (izmin - 1.5) + Min.z - ReCoor[iat][3];
           for (iz=izmin;iz<=izmax;iz++) {
             ztemp += GrSiSo;
-            if (GridMat[ix][iy][iz] != 'o') {
+            if ((*GridMat_sp[iz-1])(ix-1,iy-1) != 'o') {
               r2 = ztemp * ztemp + xy2temp;
               if (ReRadOut2[iat] > r2){
-                GridMat[ix][iy][iz] = 'o';
-                (*GridMat_sp[iz])(ix,iy) = 'o';
+                // GridMat[ix][iy][iz] = 'o';
+                (*GridMat_sp[iz-1])(ix-1,iy-1) = 'o';
               }
             }
           }
@@ -1798,7 +1802,7 @@ the new *PNPtSphere value)
   return SphCoor;
 }
 
-int Excl_Grid(int ReAtNu,double **ReCoor,struct point Min,double *ReRadOut,
+int Excl_Grid_sp(int ReAtNu,double **ReCoor,struct point Min,double *ReRadOut,
               double *ReRadOut2,double WaMoRa,double GrSiSo,
               int NStartGridx,int NStartGridy,int NStartGridz,
               int NGridx,int NGridy,int NGridz,
@@ -1879,14 +1883,14 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
           for (iz=izmin;iz<=izmax;iz++) {
             ztemp += GrSiSo;
             // if (GridMat[ix][iy][iz] == 'o') {
-            if ((*GridMat_sp[iz])(ix, iy) == 'o') {
+            if ((*GridMat_sp[iz-1])(ix-1, iy-1) == 'o') {
               r2 = ztemp * ztemp + xy2temp;
 
 /* Check if our grid point is inside the sphere. If yes change GridMat */
 
               if (WaMoRa2 > r2){
                 // GridMat[ix][iy][iz] = 's';//'s';
-                (*GridMat_sp[iz])(ix, iy) = 's';
+                (*GridMat_sp[iz-1])(ix-1, iy-1) = 's';
               }
             }
           }
@@ -1931,7 +1935,8 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
             r2 = ztemp * ztemp + xy2temp;
             if (ReRadOut2[iat] > r2) {
               // if (GridMat[ix][iy][iz] == 's') { // 's'
-              if ((*GridMat[iz])(ix,iy) == 's') { // 's'
+              if ((*GridMat_sp[iz-1])(ix-1,iy-1) == 's') 
+              { // 's'
                 r4 = r2 * r2;
                 SelfVol[iat] -= UnitVol/r4;
 		            if (EmpCorrB[0]=='y')
@@ -1947,6 +1952,174 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
     //std::cout << "Subtracted surf point for atom " << iat << " = " << jumppoint <<"\n";
   }
   if (iat == ReAtNu+1 )
+    return 1;
+  else
+    return 0;
+}
+
+int Excl_Grid(int ReAtNu, double **ReCoor, struct point Min, double *ReRadOut,
+                 double *ReRadOut2, double WaMoRa, double GrSiSo,
+                 int NStartGridx, int NStartGridy, int NStartGridz,
+                 int NGridx, int NGridy, int NGridz,
+                 double UnitVol, char ***GridMat, int Nsurfpt,
+                 struct point *surfpt, double *SelfVol, double *SelfVol_corrB,
+                 char *EmpCorrB)
+/*########################################################
+Place a sphere (WaMoRa) over each SAS point (surfpt) and set to empty
+(GridMat = 'e') all the grid points occupied by the sphere
+##########################################################*/
+
+/*##########################################
+int ReAtNu -------------- Tot # rec (frag) atoms
+double **ReCoor ---------- Rec (frag) coordinates
+struct point Min -------- Min coor of the grid box
+double *ReRadOut -------- Rec (frag)  charge radii + WaMoRa
+double *ReRadOut2 ------- (Rec (frag)  charge radii + WaMoRa)^2
+double WaMoRa ----------- Radius of the water molecule
+double GrSiSo ----------- Size of the 3D grid used for cont. electrostatics
+int NStartGridx --------- First grid point along x (1)
+int NStartGridy --------- First grid point along y (1)
+int NStartGridz --------- First grid point along z (1)
+int  NGridx ------------- Tot # of grid points along x
+int  NGridy ------------- Tot # of grid points along y
+int  NGridz ------------- Tot # of grid points along z
+double UnitVol ---------- Volume of the grid element for cont. elec.
+char ***GridMat --------- Matrix telling if a grid point is occupied (o),
+                          empty (e), or if it belongs to the interface
+                          between SAS and MS (s)
+int Nsurfpt ------------- Tot # of points over SAS
+struct point *surfpt ---- Coor of points over SAS
+double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
+                          volume for rec (frag) atom iat
+###########################################*/
+{
+  int i, iat, ix, iy, iz, ixmin, iymin, izmin, ixmax, iymax, izmax;
+  double WaMoRa2, xtemp, x2temp, ytemp, xy2temp, ztemp, r2, r4;
+
+  WaMoRa2 = WaMoRa * WaMoRa;
+
+  /* Loop over S&R surface points, place a probe sphere over each of them
+   and set to 's' all the 3D grid point covered by it */
+
+  for (i = 1; i <= Nsurfpt; i++)
+  {
+
+    /* Calculate the extremes, in the grid frame, of the cube containing the
+   probe sphere. They are integer! */
+
+    ixmin = ((surfpt[i].x - WaMoRa - Min.x) / GrSiSo + 1);
+    iymin = ((surfpt[i].y - WaMoRa - Min.y) / GrSiSo + 1);
+    izmin = ((surfpt[i].z - WaMoRa - Min.z) / GrSiSo + 1);
+    ixmax = ((surfpt[i].x + WaMoRa - Min.x) / GrSiSo + 1);
+    iymax = ((surfpt[i].y + WaMoRa - Min.y) / GrSiSo + 1);
+    izmax = ((surfpt[i].z + WaMoRa - Min.z) / GrSiSo + 1);
+    ixmin = (ixmin > NStartGridx) ? ixmin : NStartGridx;
+    iymin = (iymin > NStartGridy) ? iymin : NStartGridy;
+    izmin = (izmin > NStartGridz) ? izmin : NStartGridz;
+    ixmax = (ixmax < NGridx) ? ixmax : NGridx;
+    iymax = (iymax < NGridy) ? iymax : NGridy;
+    izmax = (izmax < NGridz) ? izmax : NGridz;
+
+    /* xtemp,ytemp,ztemp are cartesian coordinates of the grid pt ix,iy,iz,
+   in a frame with the origin in the suface point surfpt[i] */
+
+    xtemp = GrSiSo * (ixmin - 1.5) + Min.x - surfpt[i].x;
+    for (ix = ixmin; ix <= ixmax; ix++)
+    {
+      xtemp += GrSiSo;
+      x2temp = xtemp * xtemp;
+      ytemp = GrSiSo * (iymin - 1.5) + Min.y - surfpt[i].y;
+      for (iy = iymin; iy <= iymax; iy++)
+      {
+        ytemp += GrSiSo;
+        xy2temp = ytemp * ytemp + x2temp;
+
+        /*  Check if we are already out of the sphere */
+
+        if (WaMoRa2 > xy2temp)
+        {
+          ztemp = GrSiSo * (izmin - 1.5) + Min.z - surfpt[i].z;
+          for (iz = izmin; iz <= izmax; iz++)
+          {
+            ztemp += GrSiSo;
+            if (GridMat[ix][iy][iz] == 'o')
+            // if ((*GridMat_sp[iz])(ix, iy) == 'o')
+            {
+              r2 = ztemp * ztemp + xy2temp;
+
+              /* Check if our grid point is inside the sphere. If yes change GridMat */
+
+              if (WaMoRa2 > r2)
+              {
+                GridMat[ix][iy][iz] = 's';//'s';
+                // (*GridMat_sp[iz])(ix, iy) = 's';
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /* Loop over the atom and when they include a 3D grid point marked 's'
+   assign a negative contribution to the integral Selfvol. This is
+   done to balance a successive assignment of the same contribution
+   with a sign +. It is done to make things faster and simpler. */
+
+  //int jumppoint; //debug
+  for (iat = 1; iat <= ReAtNu; iat++)
+  {
+    //jumppoint = 0;
+    ixmin = ((ReCoor[iat][1] - ReRadOut[iat] - Min.x) / GrSiSo + 1);
+    iymin = ((ReCoor[iat][2] - ReRadOut[iat] - Min.y) / GrSiSo + 1);
+    izmin = ((ReCoor[iat][3] - ReRadOut[iat] - Min.z) / GrSiSo + 1);
+    ixmax = ((ReCoor[iat][1] + ReRadOut[iat] - Min.x) / GrSiSo + 1);
+    iymax = ((ReCoor[iat][2] + ReRadOut[iat] - Min.y) / GrSiSo + 1);
+    izmax = ((ReCoor[iat][3] + ReRadOut[iat] - Min.z) / GrSiSo + 1);
+    ixmin = (ixmin > NStartGridx) ? ixmin : NStartGridx;
+    iymin = (iymin > NStartGridy) ? iymin : NStartGridy;
+    izmin = (izmin > NStartGridz) ? izmin : NStartGridz;
+    ixmax = (ixmax < NGridx) ? ixmax : NGridx;
+    iymax = (iymax < NGridy) ? iymax : NGridy;
+    izmax = (izmax < NGridz) ? izmax : NGridz;
+
+    xtemp = GrSiSo * (ixmin - 1.5) + Min.x - ReCoor[iat][1];
+    for (ix = ixmin; ix <= ixmax; ix++)
+    {
+      xtemp += GrSiSo;
+      x2temp = xtemp * xtemp;
+      ytemp = GrSiSo * (iymin - 1.5) + Min.y - ReCoor[iat][2];
+      for (iy = iymin; iy <= iymax; iy++)
+      {
+        ytemp += GrSiSo;
+        xy2temp = ytemp * ytemp + x2temp;
+        if (ReRadOut2[iat] > xy2temp)
+        {
+          ztemp = GrSiSo * (izmin - 1.5) + Min.z - ReCoor[iat][3];
+          for (iz = izmin; iz <= izmax; iz++)
+          {
+            ztemp += GrSiSo;
+            r2 = ztemp * ztemp + xy2temp;
+            if (ReRadOut2[iat] > r2)
+            {
+              if (GridMat[ix][iy][iz] == 's') // 's'
+              // if ((*GridMat[iz])(ix, iy) == 's')
+              { // 's'
+                r4 = r2 * r2;
+                SelfVol[iat] -= UnitVol / r4;
+                if (EmpCorrB[0] == 'y')
+                  SelfVol_corrB[iat] -= UnitVol / (r4 * sqrt(r2));
+                /*std::cout << "here subtracting volume for atom " << iat << "\n";*/
+                //jumppoint++;
+              }
+            }
+          }
+        }
+      }
+    }
+    //std::cout << "Subtracted surf point for atom " << iat << " = " << jumppoint <<"\n";
+  }
+  if (iat == ReAtNu + 1)
     return 1;
   else
     return 0;
@@ -2009,13 +2182,13 @@ point or not.
  NeighList gives the list af atoms that are close to a 27-element cube */
 
 /* Loop over the centers of the cubes of 27 elements */
-  for (ix=NStartGridx+1; ix<=NGridx; ix+=3) {
-    for (iy=NStartGridy+1; iy<=NGridy; iy+=3) {
-      for (iz=NStartGridz+1; iz<=NGridz; iz+=3) {
+  for (ix=NStartGridx+1; ix <= (NGridx); ix+=3) {
+    for (iy=NStartGridy+1; iy <= (NGridy); iy+=3) {
+      for (iz=NStartGridz+1; iz <= (NGridz); iz+=3) {
         filled = 0;
         dolist = 0;
         // if (GridMat[ix][iy][iz] == 'o') {
-        if ((*GridMat_sp[iz])(ix, iy) == 'o')
+        if ((*GridMat_sp[iz-1])(ix-1, iy-1) == 'o')
         {
           filled = 1;
           dolist = 1;
@@ -2026,7 +2199,7 @@ point or not.
             for (iyf=iy-1;iyf<=iy+1;iyf++) {
               for (izf=iz-1;izf<=iz+1;izf++) {
                 // if (GridMat[ixf][iyf][izf] == 'o') {
-                if ((*GridMat_sp[izf])(ixf, iyf) == 'o')
+                if ((*GridMat_sp[izf-1])(ixf-1, iyf-1) == 'o')
                 {
                   dolist = 1;
                   goto do_neigh_list; // I think this goto is simply a "multiple break to get out of the nested loops. clangini
@@ -2071,7 +2244,7 @@ to the integral of 1/r^4 */
             for (iyf=iy-1;iyf<=iy+1;iyf++) {
               for (izf=iz-1;izf<=iz+1;izf++) {
                 // if (GridMat[ixf][iyf][izf] == 'o') {
-                if ((*GridMat_sp[izf])(ixf, iyf) == 'o')
+                if ((*GridMat_sp[izf-1])(ixf-1, iyf-1) == 'o')
                 {
                   for (jat=1;jat<=Neigh;jat++) {
                     r2 = (XGrid[ixf]-ReCoor[NeighList[jat]][1]) *
@@ -3465,7 +3638,7 @@ int Calc_D_Coul_sp(int ReAtNu, double **ReCoor, double *ReRad2, struct point Min
                 double GrSiSo, double pi4, int nxminBS, int nyminBS,
                 int nzminBS, int nxmaxBS, int nymaxBS, int nzmaxBS,
                 double *XGrid, double *YGrid, double *ZGrid, 
-                sparse_3D<cha> **GridMat_sp,
+                sparse_3D<char> **GridMat_sp,
                 double UnitVol, double corr_re_desoco, double ***DeltaPrDeso)
 /*##########################################
 Calculate the electric displacement with the Coulomb approximation
@@ -3551,7 +3724,7 @@ double ***DeltaPrDeso --- Elec rec (frag) desolvation due to the occupation
         {
           for (iz = izmin; iz <= izmax; iz++)
           {
-            if ((*GridMat_sp[iz])(ix,iy) != 'o')
+            if ((*GridMat_sp[iz-1])(ix-1,iy-1) != 'o')
             {
               r2 = (XGrid[ix] - ReCoor[iat][1]) *
                        (XGrid[ix] - ReCoor[iat][1]) +
@@ -3583,7 +3756,7 @@ double ***DeltaPrDeso --- Elec rec (frag) desolvation due to the occupation
   for (ix = nxminBS; ix <= nxmaxBS; ix++)
     for (iy = nyminBS; iy <= nymaxBS; iy++)
       for (iz = nzminBS; iz <= nzmaxBS; iz++)
-        if ((*GridMat_sp[iz])(ix, iy) != 'o')
+        if ((*GridMat_sp[iz-1])(ix-1, iy-1) != 'o')
           DeltaPrDeso[ix][iy][iz] = Kdesol *
                                     (Dx[ix][iy][iz] * Dx[ix][iy][iz] +
                                      Dy[ix][iy][iz] * Dy[ix][iy][iz] +
@@ -3679,7 +3852,7 @@ double ***DeltaPrDeso --- Elec desolvation due to the occupation of a grid point
           if (PrntCompleteMap){
             fprintf(WriFile,"%.12f\n", DeltaPrDeso[ix][iy][iz]);
           } else {
-            if ((*GridMat_sp[iz])(ix, iy) != 'o')
+            if ((*GridMat_sp[iz-1])(ix-1, iy-1) != 'o')
               fprintf(WriFile,"%.12f\n",DeltaPrDeso[ix][iy][iz]);
           }
         }
@@ -3753,7 +3926,7 @@ double ***DeltaPrDeso --- Elec desolvation due to the occupation of a grid point
             fgets_wrapper(StrLin,_STRLENGTH,ReaFile);
             sscanf(StrLin,"%lf",&(DeltaPrDeso)[ix][iy][iz]);
           } else {
-            if ((*GridMat_sp[iz])(ix, iy) != 'o')
+            if ((*GridMat_sp[iz-1])(ix-1, iy-1) != 'o')
             {
               fgets_wrapper(StrLin,_STRLENGTH,ReaFile);
               sscanf(StrLin,"%lf",&(DeltaPrDeso)[ix][iy][iz]);
