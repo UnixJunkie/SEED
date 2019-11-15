@@ -409,7 +409,7 @@ int Get_Self_Vol(int ReAtNu,double **ReCoor,double *ReRadOut2,
                  double GrSiSo,double *XGrid,double *YGrid,double *ZGrid,
                  int NStartGridx,int NStartGridy,int NStartGridz,
                  int NGridx,int NGridy,int NGridz,
-                 double UnitVol,char ***GridMat,double *SelfVol,
+                 double UnitVol,sparse_3D<char>** GridMat_sp,double *SelfVol,
 		 double *SelfVol_corrB,char *EmpCorrB);
 int SAS_Volume_sp(int ReAtNu,double **ReCoor,double *ReRadOut,
                double *ReRadOut2,struct point Min,

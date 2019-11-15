@@ -312,12 +312,12 @@ struct point len ----------- ReMaxC - ReMinC
   }
 
 /* GridMat is the matrix that tells us whether a gr pt is occupied */
-  *GridMat = c3tensor(1,NGridx+1,1,NGridy+1,1,NGridz+1);
+  // *GridMat = c3tensor(1,NGridx+1,1,NGridy+1,1,NGridz+1);
 /* Initialize GridMat */
-  for (i=1;i<=NGridx+1;i++)
-    for (j=1;j<=NGridy+1;j++)
-      for (k=1;k<=NGridz+1;k++)
-        (*GridMat)[i][j][k] = 'e';
+  // for (i=1;i<=NGridx+1;i++)
+  //   for (j=1;j<=NGridy+1;j++)
+  //     for (k=1;k<=NGridz+1;k++)
+  //       (*GridMat)[i][j][k] = 'e';
 
 /* Sparse GridMat (array of sparse matrices) */
   (*GridMat_sp) = new sparse_3D<char>* [NGridz + 1];
@@ -369,7 +369,7 @@ struct point len ----------- ReMaxC - ReMinC
     (*SelfVol_corrB)[iat] = 0.;
   }
   nn = Excl_Grid(ReAtNu,ReCoor,Min,ReRadOut,ReRadOut2,WaMoRa,GrSiSo,
-                 1,1,1,NGridx,NGridy,NGridz,*PUnitVol,*GridMat,
+                 1,1,1,NGridx,NGridy,NGridz,*PUnitVol,*GridMat_sp,
                  *PNsurfpt_re,surfpt_re,*SelfVol,*SelfVol_corrB,EmpCorrB);
 
 /* Calculation of the integral 1 over r4 (GB formula) for each atom */
@@ -1801,7 +1801,7 @@ int Excl_Grid(int ReAtNu,double **ReCoor,struct point Min,double *ReRadOut,
               double *ReRadOut2,double WaMoRa,double GrSiSo,
               int NStartGridx,int NStartGridy,int NStartGridz,
               int NGridx,int NGridy,int NGridz,
-              double UnitVol,char ***GridMat,int Nsurfpt,
+              double UnitVol, sparse_3D<char>** GridMat_sp,int Nsurfpt,
               struct point *surfpt,double *SelfVol,double *SelfVol_corrB,
 	            char *EmpCorrB)
 /*########################################################
@@ -1877,13 +1877,15 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
           ztemp = GrSiSo * (izmin - 1.5) + Min.z - surfpt[i].z;
           for (iz=izmin;iz<=izmax;iz++) {
             ztemp += GrSiSo;
-            if (GridMat[ix][iy][iz] == 'o') {
+            // if (GridMat[ix][iy][iz] == 'o') {
+            if ((*GridMat_sp[iz])(ix, iy) == 'o') {
               r2 = ztemp * ztemp + xy2temp;
 
 /* Check if our grid point is inside the sphere. If yes change GridMat */
 
               if (WaMoRa2 > r2){
-                GridMat[ix][iy][iz] = 's';//'s';
+                // GridMat[ix][iy][iz] = 's';//'s';
+                (*GridMat_sp[iz])(ix, iy) = 's';
               }
             }
           }
@@ -1927,7 +1929,8 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
             ztemp += GrSiSo;
             r2 = ztemp * ztemp + xy2temp;
             if (ReRadOut2[iat] > r2) {
-              if (GridMat[ix][iy][iz] == 's') { // 's'
+              // if (GridMat[ix][iy][iz] == 's') { // 's'
+              if ((*GridMat[iz])(ix,iy) == 's') { // 's'
                 r4 = r2 * r2;
                 SelfVol[iat] -= UnitVol/r4;
 		            if (EmpCorrB[0]=='y')
@@ -1952,7 +1955,7 @@ int Get_Self_Vol(int ReAtNu,double **ReCoor,double *ReRadOut2,
                  double GrSiSo,double *XGrid,double *YGrid,double *ZGrid,
                  int NStartGridx,int NStartGridy,int NStartGridz,
                  int NGridx,int NGridy,int NGridz,
-                 double UnitVol,char ***GridMat,double *SelfVol,
+                 double UnitVol,sparse_3D<char>** GridMat_sp, double *SelfVol,
 		             double *SelfVol_corrB,char *EmpCorrB)
 /*##########################################
 Calculate the integral of 1/r^4 for each atom over the
@@ -2010,7 +2013,9 @@ point or not.
       for (iz=NStartGridz+1; iz<=NGridz; iz+=3) {
         filled = 0;
         dolist = 0;
-        if (GridMat[ix][iy][iz] == 'o') {
+        // if (GridMat[ix][iy][iz] == 'o') {
+        if ((*GridMat_sp[iz])(ix, iy) == 'o')
+        {
           filled = 1;
           dolist = 1;
         }
@@ -2019,7 +2024,9 @@ point or not.
           for (ixf=ix-1;ixf<=ix+1;ixf++) {
             for (iyf=iy-1;iyf<=iy+1;iyf++) {
               for (izf=iz-1;izf<=iz+1;izf++) {
-                if (GridMat[ixf][iyf][izf] == 'o') {
+                // if (GridMat[ixf][iyf][izf] == 'o') {
+                if ((*GridMat_sp[izf])(ixf, iyf) == 'o')
+                {
                   dolist = 1;
                   goto do_neigh_list; // I think this goto is simply a "multiple break to get out of the nested loops. clangini
                 }
@@ -2062,7 +2069,9 @@ to the integral of 1/r^4 */
           for (ixf=ix-1;ixf<=ix+1;ixf++) {
             for (iyf=iy-1;iyf<=iy+1;iyf++) {
               for (izf=iz-1;izf<=iz+1;izf++) {
-                if (GridMat[ixf][iyf][izf] == 'o') {
+                // if (GridMat[ixf][iyf][izf] == 'o') {
+                if ((*GridMat_sp[izf])(ixf, iyf) == 'o')
+                {
                   for (jat=1;jat<=Neigh;jat++) {
                     r2 = (XGrid[ixf]-ReCoor[NeighList[jat]][1]) *
                          (XGrid[ixf]-ReCoor[NeighList[jat]][1]) +
