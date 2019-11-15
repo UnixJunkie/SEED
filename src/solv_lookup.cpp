@@ -45,7 +45,7 @@ void Solvation(int ReAtNu,double **ReCoor,double *ReVdWE_sr,double *ReVdWR,
                int *BSReNu,char *ReDesoAlg,char *DesoMapAcc,
                char *DesoMapFile,char *RecFilPDB,
                char *FDexe,char *FDdir,struct point *PMin,struct point *PMax,
-               double **XGrid,double **YGrid,double **ZGrid,char ****GridMat,
+               double **XGrid,double **YGrid,double **ZGrid,
                sparse_3D<char>*** GridMat_sp,
                int *PNGridx,int *PNGridy,int *PNGridz,int *PNsurfpt_re,
                struct point *surfpt_re,int *iatsrf_re,int *nsurf_re,
@@ -376,7 +376,7 @@ struct point len ----------- ReMaxC - ReMinC
   printf("\n\tCalculation of the integral 1 over r4 for each atom\n");
   printf("\tover the volume enclosed by the MS...\n");
   nn = Get_Self_Vol(ReAtNu,ReCoor,ReRadOut2,GrSiSo,*XGrid,*YGrid,*ZGrid,1,1,1,
-                    NGridx,NGridy,NGridz,*PUnitVol,*GridMat,*SelfVol,
+                    NGridx,NGridy,NGridz,*PUnitVol,*GridMat_sp,*SelfVol,
 		                *SelfVol_corrB,EmpCorrB);
 
 /* Evaluation of the self energy */
@@ -466,19 +466,20 @@ struct point len ----------- ReMaxC - ReMinC
   if (DesoMapAcc[0] != 'r') {
     if ( strcmp(ReDesoAlg,FD) == 0 )
 /* Evaluation of the desolvation in the BS by finite difference calculations */
-      nn = Calc_D_uhbd(ReAtNu,ReRad,Min,Max,RePaCh,WaMoRa,NPtSphere,
-                       DielRe,DielWa,GrSiSo,GrInSo,pi4,NGridx,NGridy,NGridz,
-                       *PnxminBS,*PnyminBS,*PnzminBS,*PnxmaxBS,*PnymaxBS,
-                       *PnzmaxBS,*XGrid,*YGrid,*ZGrid,*GridMat,*PUnitVol,
-                       corr_re_desofd,RecFilPDB,FDexe,FDdir,DesoMapAcc,
-                       DesoMapFile,*DeltaPrDeso);
+      nn = 0;
+      // nn = Calc_D_uhbd(ReAtNu,ReRad,Min,Max,RePaCh,WaMoRa,NPtSphere,
+      //                  DielRe,DielWa,GrSiSo,GrInSo,pi4,NGridx,NGridy,NGridz,
+      //                  *PnxminBS,*PnyminBS,*PnzminBS,*PnxmaxBS,*PnymaxBS,
+      //                  *PnzmaxBS,*XGrid,*YGrid,*ZGrid,*GridMat,*PUnitVol,
+      //                  corr_re_desofd,RecFilPDB,FDexe,FDdir,DesoMapAcc,
+      //                  DesoMapFile,*DeltaPrDeso);
     else if ( strcmp(ReDesoAlg,CO) == 0 ) { 
       // for the moment ReDesoAlg is hard-coded to "co" in reinfi. clangi
 /* Evaluation of the desolvation in the BS by Coulmomb approximation */
-      nn = Calc_D_Coul(ReAtNu,ReCoor,ReRad2,Min,Max,RePaCh,DielRe,DielWa,
+      nn = Calc_D_Coul_sp(ReAtNu,ReCoor,ReRad2,Min,Max,RePaCh,DielRe,DielWa,
                        GrSiSo,pi4,*PnxminBS,*PnyminBS,*PnzminBS,
                        *PnxmaxBS,*PnymaxBS,*PnzmaxBS,*XGrid,*YGrid,*ZGrid,
-                       *GridMat,*PUnitVol,corr_re_desoco,*DeltaPrDeso);
+                       *GridMat_sp,*PUnitVol,corr_re_desoco,*DeltaPrDeso);
     }
   }
   if (DesoMapAcc[0] != 'n')
@@ -486,7 +487,7 @@ struct point len ----------- ReMaxC - ReMinC
     nn = Read_Write_Desol_Map(WaMoRa,NPtSphere,DielRe,DielWa,GrSiSo,GrInSo,
                               NGridx,NGridy,NGridz,*PnxminBS,*PnyminBS,
                               *PnzminBS,*PnxmaxBS,*PnymaxBS,*PnzmaxBS,
-                              *XGrid,*YGrid,*ZGrid,*GridMat,*PUnitVol,
+                              *XGrid,*YGrid,*ZGrid,*GridMat_sp,*PUnitVol,
                               ReDesoAlg,DesoMapAcc,DesoMapFile,*DeltaPrDeso);
 
 /* Fast method to evaluate receptor desolvation */
@@ -3459,12 +3460,152 @@ double ***DeltaPrDeso --- Elec rec (frag) desolvation due to the occupation
     return 0;
 }
 
+int Calc_D_Coul_sp(int ReAtNu, double **ReCoor, double *ReRad2, struct point Min,
+                struct point Max, double *RePaCh, double DielRe, double DielWa,
+                double GrSiSo, double pi4, int nxminBS, int nyminBS,
+                int nzminBS, int nxmaxBS, int nymaxBS, int nzmaxBS,
+                double *XGrid, double *YGrid, double *ZGrid, 
+                sparse_3D<cha> **GridMat_sp,
+                double UnitVol, double corr_re_desoco, double ***DeltaPrDeso)
+/*##########################################
+Calculate the electric displacement with the Coulomb approximation
+###########################################*/
+
+/*##########################################
+int ReAtNu -------------- Tot # rec (frag) atoms
+double **ReCoor ---------- Rec (frag) coordinates
+double *ReRad2 ---------- (Rec (frag) charge radii)^2
+struct point Min -------- Min coor of the grid box
+struct point Max -------- Max coor of the grid box
+double *RePaCh ----------- Rec (frag) partial charges
+double DielRe ----------- Dielectric constant of the rec (and of the fragments)
+double DielWa ----------- Dielectric constant of the water
+double GrSiSo ----------- Size of the 3D grid used for cont. electrostatics
+double pi4 -------------- 4 * greekpi
+int nxminBS ------------- starting grid point (along x) to calculate desolvation
+int nyminBS ------------- starting grid point (along y) to calculate desolvation
+int nzminBS ------------- starting grid point (along z) to calculate desolvation
+int nxmaxBS ------------- ending grid point (along x) to calculate deoslvation
+int nymaxBS ------------- ending grid point (along y) to calculate deoslvation
+int nzmaxBS ------------- ending grid point (along z) to calculate deoslvation
+double *XGrid ----------- X coor of the grid points
+double *YGrid ----------- Y coor of the grid points
+double *ZGrid ----------- Z coor of the grid points
+char ***GridMat --------- Matrix telling if a grid point is occupied by the (o),
+                          empty (e), or if it belongs to the interface
+                          between SAS and MS (s)
+double UnitVol ---------- Volume of the grid element for cont. elec.
+double corr_re_desoco --- Correction factor for slow rec (frag) elec desolvation
+                          (Coulomb approx.)
+double ***DeltaPrDeso --- Elec rec (frag) desolvation due to the occupation
+                          of a grid point
+###########################################*/
+{
+  int ix, iy, iz, ixc, iyc, izc, ixmin, iymin, izmin, ixmax, iymax, izmax, iat,
+      /*unused variables : nx,ny,nz,*/ boxL;
+  double r, r2, vx, vy, vz, cutoff, cutoff2, ***Dx, ***Dy, ***Dz, Kdesol;
+  /*unused variables :  char StrLin[60]; */
+  /*unused variables : FILE *WriFile,*ReaFile;*/
+
+  Dx = d3tensor(nxminBS, nxmaxBS, nyminBS, nymaxBS, nzminBS, nzmaxBS);
+  Dy = d3tensor(nxminBS, nxmaxBS, nyminBS, nymaxBS, nzminBS, nzmaxBS);
+  Dz = d3tensor(nxminBS, nxmaxBS, nyminBS, nymaxBS, nzminBS, nzmaxBS);
+  for (ix = nxminBS; ix <= nxmaxBS; ix++)
+    for (iy = nyminBS; iy <= nymaxBS; iy++)
+      for (iz = nzminBS; iz <= nzmaxBS; iz++)
+      {
+        Dx[ix][iy][iz] = 0.0000000000000000;
+        Dy[ix][iy][iz] = 0.0000000000000000;
+        Dz[ix][iy][iz] = 0.0000000000000000;
+      }
+
+  /* Calculate the electric displacement generated by all the charges
+   on every BS grid point. The electric displacement of a charge is added
+   only if the distance between the charge and the grid point is lower than
+   a "cutoff" distance (much faster and still very precise) */
+  cutoff = 11.;
+  cutoff2 = cutoff * cutoff;
+  boxL = (cutoff + 0.00001) / GrSiSo + 1;
+  for (iat = 1; iat <= ReAtNu; iat++)
+  {
+    if (RePaCh[iat] != 0.)
+    {
+      ixc = (ReCoor[iat][1] - Min.x) / GrSiSo + 1;
+      iyc = (ReCoor[iat][2] - Min.y) / GrSiSo + 1;
+      izc = (ReCoor[iat][3] - Min.z) / GrSiSo + 1;
+      ixmin = ixc - boxL;
+      iymin = iyc - boxL;
+      izmin = izc - boxL;
+      ixmax = ixc + boxL;
+      iymax = iyc + boxL;
+      izmax = izc + boxL;
+      ixmin = (ixmin > nxminBS) ? ixmin : nxminBS;
+      iymin = (iymin > nyminBS) ? iymin : nyminBS;
+      izmin = (izmin > nzminBS) ? izmin : nzminBS;
+      ixmax = (ixmax < nxmaxBS) ? ixmax : nxmaxBS;
+      iymax = (iymax < nymaxBS) ? iymax : nymaxBS;
+      izmax = (izmax < nzmaxBS) ? izmax : nzmaxBS;
+      for (ix = ixmin; ix <= ixmax; ix++)
+      {
+        for (iy = iymin; iy <= iymax; iy++)
+        {
+          for (iz = izmin; iz <= izmax; iz++)
+          {
+            if ((*GridMat_sp[iz])(ix,iy) != 'o')
+            {
+              r2 = (XGrid[ix] - ReCoor[iat][1]) *
+                       (XGrid[ix] - ReCoor[iat][1]) +
+                   (YGrid[iy] - ReCoor[iat][2]) *
+                       (YGrid[iy] - ReCoor[iat][2]) +
+                   (ZGrid[iz] - ReCoor[iat][3]) *
+                       (ZGrid[iz] - ReCoor[iat][3]);
+              if (r2 > ReRad2[iat] && r2 < cutoff2)
+              {
+                r = sqrt(r2);
+                vx = (XGrid[ix] - ReCoor[iat][1]) / r;
+                vy = (YGrid[iy] - ReCoor[iat][2]) / r;
+                vz = (ZGrid[iz] - ReCoor[iat][3]) / r;
+                Dx[ix][iy][iz] += RePaCh[iat] * vx / r2;
+                Dy[ix][iy][iz] += RePaCh[iat] * vy / r2;
+                Dz[ix][iy][iz] += RePaCh[iat] * vz / r2;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /* From the electric displacement calculate the desolvation
+   of every grid point */
+  Kdesol = -corr_re_desoco * UnitVol * 332.0716 *
+           (1. / DielWa - 1. / DielRe) / (2. * pi4);
+  for (ix = nxminBS; ix <= nxmaxBS; ix++)
+    for (iy = nyminBS; iy <= nymaxBS; iy++)
+      for (iz = nzminBS; iz <= nzmaxBS; iz++)
+        if ((*GridMat_sp[iz])(ix, iy) != 'o')
+          DeltaPrDeso[ix][iy][iz] = Kdesol *
+                                    (Dx[ix][iy][iz] * Dx[ix][iy][iz] +
+                                     Dy[ix][iy][iz] * Dy[ix][iy][iz] +
+                                     Dz[ix][iy][iz] * Dz[ix][iy][iz]); // eq. (5) of SEED3.3.6 manual. clangini
+                                                                       /* Free memory */
+  free_d3tensor(Dx, nxminBS, nxmaxBS, nyminBS, nymaxBS, nzminBS, nzmaxBS);
+  free_d3tensor(Dy, nxminBS, nxmaxBS, nyminBS, nymaxBS, nzminBS, nzmaxBS);
+  free_d3tensor(Dz, nxminBS, nxmaxBS, nyminBS, nymaxBS, nzminBS, nzmaxBS);
+
+  if (ix == nxmaxBS + 1)
+    return 1;
+  else
+    return 0;
+}
+
 int Read_Write_Desol_Map(double WaMoRa,int NPtSphere,double DielRe,
                          double DielWa,double GrSiSo,double GrInSo,
                          int NGridx,int NGridy,int NGridz,int nxminBS,
                          int nyminBS,int nzminBS,int nxmaxBS,int nymaxBS,
                          int nzmaxBS,double *XGrid,double *YGrid,
-                         double *ZGrid,char ***GridMat,double UnitVol,
+                         double *ZGrid,
+                         sparse_3D<char> **GridMat_sp,double UnitVol,
                          char *ReDesoAlg,char *DesoMapAcc,
                          char *DesoMapFile,double ***DeltaPrDeso)
 /*##########################################
@@ -3538,7 +3679,7 @@ double ***DeltaPrDeso --- Elec desolvation due to the occupation of a grid point
           if (PrntCompleteMap){
             fprintf(WriFile,"%.12f\n", DeltaPrDeso[ix][iy][iz]);
           } else {
-            if (GridMat[ix][iy][iz] != 'o' )
+            if ((*GridMat_sp[iz])(ix, iy) != 'o')
               fprintf(WriFile,"%.12f\n",DeltaPrDeso[ix][iy][iz]);
           }
         }
@@ -3612,7 +3753,8 @@ double ***DeltaPrDeso --- Elec desolvation due to the occupation of a grid point
             fgets_wrapper(StrLin,_STRLENGTH,ReaFile);
             sscanf(StrLin,"%lf",&(DeltaPrDeso)[ix][iy][iz]);
           } else {
-            if (GridMat[ix][iy][iz] != 'o' ) {
+            if ((*GridMat_sp[iz])(ix, iy) != 'o')
+            {
               fgets_wrapper(StrLin,_STRLENGTH,ReaFile);
               sscanf(StrLin,"%lf",&(DeltaPrDeso)[ix][iy][iz]);
             }

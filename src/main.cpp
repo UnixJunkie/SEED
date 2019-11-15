@@ -262,8 +262,9 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   /*      time_11,time_12,time_13,time_14; */
   time_t runtime;
 
-  char DesoMapAcc[2],DesoMapFile[_STRLENGTH],RecFilPDB[_STRLENGTH],FDexe[_STRLENGTH],FDdir[_STRLENGTH],
-       ***GridMat,ReDesoAlg[3],Solv_typ[2],FD[3],CO[3];
+  char DesoMapAcc[2],DesoMapFile[_STRLENGTH],RecFilPDB[_STRLENGTH],
+       FDexe[_STRLENGTH],FDdir[_STRLENGTH],
+       ReDesoAlg[3],Solv_typ[2],FD[3],CO[3];
   int iat,NPtSphere,NGridx,NGridy,NGridz,*nsurf_re,*nsurf_fr,*pointsrf_fr,
       Nsurfpt_fr,*pointsrf_re,*iatsrf_fr,*iatsrf_re,Nsurfpt_re,
       *nsurf_fr_apol,*pointsrf_fr_apol,Nsurfpt_fr_apol,*iatsrf_fr_apol,
@@ -1224,7 +1225,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
       ReMaxC,ReMinC,RePaCh, DielRe, DielWa,WaMoRa,GrSiSo,GrInSo,
       NPtSphere,ReResN,ReReNu,BSResN,BSReNu,ReDesoAlg,DesoMapAcc,
       DesoMapFile,RecFilPDB,FDexe,FDdir,&Min,&Max,&XGrid,
-      &YGrid,&ZGrid,&GridMat,&GridMat_sp,&NGridx,&NGridy,&NGridz,
+      &YGrid,&ZGrid,&GridMat_sp,&NGridx,&NGridy,&NGridz,
       &Nsurfpt_re,surfpt_re,iatsrf_re,nsurf_re,pointsrf_re,
       &DeltaPrDeso,&nxminBS,&nyminBS,&nzminBS,&nxmaxBS,&nymaxBS,
       &nzmaxBS,&ReSurf_deso,&Nsurfpt_re_deso,surfpt_re_deso,
