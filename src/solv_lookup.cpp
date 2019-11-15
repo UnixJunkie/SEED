@@ -22,6 +22,7 @@
 #include <math.h>
 #include <time.h>
 #include "nrutil.h"
+#include "nrutil_sparse.h"
 #include "funct.h"
 
 #ifdef ENABLE_MPI
@@ -45,6 +46,7 @@ void Solvation(int ReAtNu,double **ReCoor,double *ReVdWE_sr,double *ReVdWR,
                char *DesoMapFile,char *RecFilPDB,
                char *FDexe,char *FDdir,struct point *PMin,struct point *PMax,
                double **XGrid,double **YGrid,double **ZGrid,char ****GridMat,
+               sparse_3D<char>*** GridMat_sp,
                int *PNGridx,int *PNGridy,int *PNGridz,int *PNsurfpt_re,
                struct point *surfpt_re,int *iatsrf_re,int *nsurf_re,
                int *pointsrf_re,double ****DeltaPrDeso,
@@ -317,14 +319,41 @@ struct point len ----------- ReMaxC - ReMinC
       for (k=1;k<=NGridz+1;k++)
         (*GridMat)[i][j][k] = 'e';
 
-/* Make the map (GridMat) of the 3D grid points occupied by the volume
-   enclosed by the rec SAS  */
-  printf("\n\tMap of volume enclosed by the SAS...\n");
-  nn = SAS_Volume(ReAtNu,ReCoor,ReRadOut,ReRadOut2,Min,GrSiSo,
-                 1,1,1,NGridx,NGridy,NGridz,*GridMat);
+/* Sparse GridMat (array of sparse matrices) */
+  (*GridMat_sp) = new sparse_3D<char>* [NGridz + 1];
+  for (k = 0; k <= NGridz; k++){
+    (*GridMat_sp)[k] = new sparse_3D<char>(NGridx+1,NGridy+1);  
+  }
 
-/* Place points on the surface of the receptor to describe its SAS */
-/* FIRST SAS (SAS1): needed to define the volume enclosed by the MS of the receptor */
+  /* Make the map (GridMat) of the 3D grid points occupied by the volume
+  enclosed by the rec SAS  */
+  printf("\n\tMap of volume enclosed by the SAS...\n");
+  nn = SAS_Volume_sp(ReAtNu,ReCoor,ReRadOut,ReRadOut2,Min,GrSiSo,
+                  1,1,1,NGridx,NGridy,NGridz,*GridMat_sp);
+
+  /* printout number of empty grid cubes: */
+  // int tot_empty, tot_full;
+  // tot_empty = 0;
+  // tot_full = 0;
+  // for (ix = 1; ix <= NGridx + 1; ix++)
+  //   for (iy = 1; iy <= NGridy + 1; iy++)
+  //     for (iz = 1; iz <= NGridz + 1; iz++)
+  //       if ((*GridMat)[ix][iy][iz] == 'e')
+  //       {
+  //         tot_empty++;
+  //       }
+  //       else
+  //       {
+  //         tot_full++;
+  //       }
+  // std::cout << "Receptor Gridmat:\nEmpty: " << tot_empty
+  //           << "\nFull:   " << tot_full << std::endl;
+
+  // std::cout << "sizeof(*GridMat)" << sizeof(*GridMat) << std::endl;
+  // std::cout << "sizeof(*GridMat_sp)" << sizeof(*GridMat_sp) << std::endl;
+
+  /* Place points on the surface of the receptor to describe its SAS */
+  /* FIRST SAS (SAS1): needed to define the volume enclosed by the MS of the receptor */
   printf("\n\tGeneration of the SAS of the receptor...\n");
   nn = Surf_Grid(ReAtNu,ReCoor,ReMaxC,ReMinC,ReRad,WaMoRa,NPtSphere,
                 PNsurfpt_re,surfpt_re,iatsrf_re,nsurf_re,pointsrf_re);
@@ -819,11 +848,11 @@ double *PRmax ----------- Largest charge radius
     return 0;
 }
 
-int SAS_Volume(int ReAtNu,double **ReCoor,double *ReRadOut,
+int SAS_Volume_sp(int ReAtNu,double **ReCoor,double *ReRadOut,
                double *ReRadOut2,struct point Min,
                double GrSiSo,int NStartGridx,int NStartGridy,
                int NStartGridz,int NGridx,int NGridy,int NGridz,
-               char ***GridMat)
+               sparse_3D<char>** GridMat_sp)
 /*##########################################
 Get the volume enclosed by the SAS
 ###########################################*/
@@ -878,6 +907,88 @@ char ****GridMat -------- Matrix telling if a grid point is occupied (o),
             ztemp += GrSiSo;
             if (GridMat[ix][iy][iz] != 'o') {
               r2 = ztemp * ztemp + xy2temp;
+              if (ReRadOut2[iat] > r2){
+                GridMat[ix][iy][iz] = 'o';
+                (*GridMat_sp[iz])(ix,iy) = 'o';
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (iat == ReAtNu+1 )
+    return 1;
+  else
+    return 0;
+}
+
+int SAS_Volume(int ReAtNu, double **ReCoor, double *ReRadOut,
+               double *ReRadOut2, struct point Min,
+               double GrSiSo, int NStartGridx, int NStartGridy,
+               int NStartGridz, int NGridx, int NGridy, int NGridz,
+               char ***GridMat)
+/*##########################################
+Get the volume enclosed by the SAS
+###########################################*/
+
+/*##########################################
+int ReAtNu -------------- Tot # rec (frag) atoms
+double **ReCoor ---------- Rec (frag) coordinates
+double *ReRadOut -------- Rec (frag) charge radii + WaMoRa
+double *ReRadOut2 ------- (Rec (frag) charge radii + WaMoRa)^2
+struct point Min -------- Min coor of the grid box
+double GrSiSo ----------- Size of the 3D grid used for cont. electrostatics
+int NStartGridx --------- First grid point along x (it is 1)
+int NStartGridy --------- First grid point along y (it is 1)
+int NStartGridz --------- First grid point along z (it is 1)
+int  NGridx ------------- Tot # of grid points along x
+int  NGridy ------------- Tot # of grid points along y
+int  NGridz ------------- Tot # of grid points along z
+char ****GridMat -------- Matrix telling if a grid point is occupied (o),
+                          empty (e), or if it belongs to the interface
+                          between SAS and MS (s)
+###########################################*/
+{
+  int iat, ix, iy, iz, ixmin, iymin, izmin, ixmax, iymax, izmax;
+  double xtemp, x2temp, ytemp, xy2temp, ztemp, r2;
+
+  /* Calculate grid points occupied by volume enclosed in SAS */
+  for (iat = 1; iat <= ReAtNu; iat++)
+  { // for each atom, mark the occupied locations. clangini
+    ixmin = ((ReCoor[iat][1] - ReRadOut[iat] - Min.x) / GrSiSo + 1);
+    iymin = ((ReCoor[iat][2] - ReRadOut[iat] - Min.y) / GrSiSo + 1);
+    izmin = ((ReCoor[iat][3] - ReRadOut[iat] - Min.z) / GrSiSo + 1);
+    ixmax = ((ReCoor[iat][1] + ReRadOut[iat] - Min.x) / GrSiSo + 1);
+    iymax = ((ReCoor[iat][2] + ReRadOut[iat] - Min.y) / GrSiSo + 1);
+    izmax = ((ReCoor[iat][3] + ReRadOut[iat] - Min.z) / GrSiSo + 1);
+    ixmin = (ixmin > NStartGridx) ? ixmin : NStartGridx;
+    iymin = (iymin > NStartGridy) ? iymin : NStartGridy;
+    izmin = (izmin > NStartGridz) ? izmin : NStartGridz;
+    ixmax = (ixmax < NGridx) ? ixmax : NGridx;
+    iymax = (iymax < NGridy) ? iymax : NGridy;
+    izmax = (izmax < NGridz) ? izmax : NGridz;
+
+    xtemp = GrSiSo * (ixmin - 1.5) + Min.x - ReCoor[iat][1];
+    for (ix = ixmin; ix <= ixmax; ix++)
+    {
+      xtemp += GrSiSo;
+      x2temp = xtemp * xtemp;
+      ytemp = GrSiSo * (iymin - 1.5) + Min.y - ReCoor[iat][2];
+      for (iy = iymin; iy <= iymax; iy++)
+      {
+        ytemp += GrSiSo;
+        xy2temp = ytemp * ytemp + x2temp;
+        if (ReRadOut2[iat] > xy2temp)
+        {
+          ztemp = GrSiSo * (izmin - 1.5) + Min.z - ReCoor[iat][3];
+          for (iz = izmin; iz <= izmax; iz++)
+          {
+            ztemp += GrSiSo;
+            if (GridMat[ix][iy][iz] != 'o')
+            {
+              r2 = ztemp * ztemp + xy2temp;
               if (ReRadOut2[iat] > r2)
                 GridMat[ix][iy][iz] = 'o';
             }
@@ -887,7 +998,7 @@ char ****GridMat -------- Matrix telling if a grid point is occupied (o),
     }
   }
 
-  if (iat == ReAtNu+1 )
+  if (iat == ReAtNu + 1)
     return 1;
   else
     return 0;

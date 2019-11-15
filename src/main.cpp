@@ -22,6 +22,7 @@
 #include <math.h>
 #include <time.h>
 #include "nrutil.h"
+#include "nrutil_sparse.h"
 #include <sys/time.h>
 #include "funct.h"
 #include <float.h>
@@ -307,6 +308,8 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
          old_mc_vdW, new_mc_vdW, **old_mc_FrCoor_in, accept_prob, accept_prob_in;
   // Energy start_en;
   struct timeval time_mc_start, time_mc_end;
+  /* sparse matrices */
+  sparse_3D<char>** GridMat_sp;
 #if  __cplusplus > 199711L
   std::unordered_map<std::string, int> FragNa_map;
 #else
@@ -1221,7 +1224,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
       ReMaxC,ReMinC,RePaCh, DielRe, DielWa,WaMoRa,GrSiSo,GrInSo,
       NPtSphere,ReResN,ReReNu,BSResN,BSReNu,ReDesoAlg,DesoMapAcc,
       DesoMapFile,RecFilPDB,FDexe,FDdir,&Min,&Max,&XGrid,
-      &YGrid,&ZGrid,&GridMat,&NGridx,&NGridy,&NGridz,
+      &YGrid,&ZGrid,&GridMat,&GridMat_sp,&NGridx,&NGridy,&NGridz,
       &Nsurfpt_re,surfpt_re,iatsrf_re,nsurf_re,pointsrf_re,
       &DeltaPrDeso,&nxminBS,&nyminBS,&nzminBS,&nxmaxBS,&nymaxBS,
       &nzmaxBS,&ReSurf_deso,&Nsurfpt_re_deso,surfpt_re_deso,

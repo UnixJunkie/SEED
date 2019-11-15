@@ -8,9 +8,9 @@ BUILD_DIR = build
 BUILD_DIR_MPI = build/mpi
 BUILD_DIR_DEBUG = build/dbg
 
-TARGET_EXEC = $(BIN_DIR)/seed_4_mc
-TARGET_EXEC_MPI = $(BIN_DIR)/seed_4_mc_mpi
-TARGET_EXEC_DEBUG = $(BIN_DIR)/seed_4_mc_debug
+TARGET_EXEC = $(BIN_DIR)/seed_4_sp
+TARGET_EXEC_MPI = $(BIN_DIR)/seed_4_sp_mpi
+TARGET_EXEC_DEBUG = $(BIN_DIR)/seed_4_sp_debug
 
 # Flags:
 CXX = g++

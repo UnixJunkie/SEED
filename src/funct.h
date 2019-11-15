@@ -25,6 +25,7 @@
 #include "point.h"
 #include "quaternion.h"
 #include "Parameter.h"
+#include "nrutil_sparse.h"
 #define sqrtf sqrt
 #define sinf sin
 #define cosf cos
@@ -336,9 +337,6 @@ void GeomCenter_FFLD(int CurFra,char **FrFiNa_out,int FrAtNu,int *FrAtEl_nu,
                      int gc_reprke,double gc_cutclus,double gc_endifclus,
                      double gc_weighneg,double gc_weighpos,int gc_maxwrite);
 
-
-
-
 void Solvation(int ReAtNu,double **ReCoor,double *ReVdWE_sr,double *ReVdWR,
                double *ReRad,double *ReRad2,double *ReRadOut,double *ReRadOut2,
                double *ReEffRad_bound,
@@ -349,6 +347,7 @@ void Solvation(int ReAtNu,double **ReCoor,double *ReVdWE_sr,double *ReVdWR,
                char *DesoMapFile,char *RecFilPDB,
                char *FDexe,char *FDdir,struct point *PMin,struct point *PMax,
                double **XGrid,double **YGrid,double **ZGrid,char ****GridMat,
+               sparse_3D<char>*** GridMat_sp,
                int *PNGridx,int *PNGridy,int *PNGridz,int *PNsurfpt_re,
                struct point *surfpt_re,int *iatsrf_re,int *nsurf_re,
                int *pointsrf_re,double ****DeltaPrDeso,
@@ -367,9 +366,9 @@ void Solvation(int ReAtNu,double **ReCoor,double *ReVdWE_sr,double *ReVdWR,
                int *PNapol_Vect_re,double **SelfVol,
                double *PKelec,double *PKsolv,double *PUnitVol,double pi4,
                double corr_re_desoco,double corr_re_desofd,double corr_fast_deso,
-	       int distrPointBSNumb,double **distrPointBS,double angle_rmin,
-	       double angle_rmax,double mult_fact_rmin,double mult_fact_rmax,
-	       FILE *FPaOut,double **SelfVol_corrB,char *EmpCorrB);
+	             int distrPointBSNumb,double **distrPointBS,double angle_rmin,
+	             double angle_rmax,double mult_fact_rmin,double mult_fact_rmax,
+	             FILE *FPaOut,double **SelfVol_corrB,char *EmpCorrB);
 int getColumnFrom2DArray(double **Array2D, int ColumnNum,
                          int start, int end, double *Column);
 int SumVectors(double *vect1, double *vect2, int start, int end, double *sum);
@@ -412,10 +411,15 @@ int Get_Self_Vol(int ReAtNu,double **ReCoor,double *ReRadOut2,
                  int NGridx,int NGridy,int NGridz,
                  double UnitVol,char ***GridMat,double *SelfVol,
 		 double *SelfVol_corrB,char *EmpCorrB);
-int SAS_Volume(int ReAtNu,double **ReCoor,double *ReRadOut,
+int SAS_Volume_sp(int ReAtNu,double **ReCoor,double *ReRadOut,
                double *ReRadOut2,struct point Min,
                double GrSiSo,int NStartGridx,int NStartGridy,
                int NStartGridz,int NGridx,int NGridy,int NGridz,
+               sparse_3D<char>** GridMat_sp);
+int SAS_Volume(int ReAtNu, double **ReCoor, double *ReRadOut,
+               double *ReRadOut2, struct point Min,
+               double GrSiSo, int NStartGridx, int NStartGridy,
+               int NStartGridz, int NGridx, int NGridy, int NGridz,
                char ***GridMat);
 int GB_int(int ReAtNu,double **ReCoor,double *RePaCh,double *EffRad,
            double Ksolv,double *PIntEnTot);
@@ -552,11 +556,11 @@ int join_surf(double **ReCoor,double *ReRadOut2,struct point *surfpt_re,
               double *FrRadOut2,struct point *surfpt_fr,int *nsurf_fr,
               int *pointsrf_fr,int NNeigh,int *NeighList,int *PNsurfpt_ex,
               struct point *surfpt_ex);
-int SAS_Volume_Fr(int ExFrAtNu,double **ExRoSFCo,double *ExFrRadOut,
-                  double *ExFrRadOut2,struct point Min,
-                  double GrSiSo,int NStartGridx,int NStartGridy,
-                  int NStartGridz,int NGridx,int NGridy,int NGridz,
-                  char ***FrGridMat,char ***GridMat,int FrOut);
+int SAS_Volume_Fr(int ExFrAtNu, double **ExRoSFCo, double *ExFrRadOut,
+                  double *ExFrRadOut2, struct point Min,
+                  double GrSiSo, int NStartGridx, int NStartGridy,
+                  int NStartGridz, int NGridx, int NGridy, int NGridz,
+                  sparse_3D<char> **GridMat_sp, char ***GridMat, int FrOut);
 int Excl_Grid_Fr(struct point Min,double WaMoRa,double GrSiSo,
                  int nxminFr,int nyminFr,int nzminFr,
                  int nxmaxFr,int nymaxFr,int nzmaxFr,
