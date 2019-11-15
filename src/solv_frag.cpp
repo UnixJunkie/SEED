@@ -43,7 +43,8 @@ void ElecFrag(int ReAtNu,double **ReCoor,double *RePaCh,
               double Tr[4],double U1[4][4],double U2[4][4],double WaMoRa,
               double GrSiSo,int NPtSphere,struct point Min,
               struct point Max,double *XGrid,double *YGrid,double *ZGrid,
-              int NGridx,int NGridy,int NGridz,char ***GridMat,
+              int NGridx,int NGridy,int NGridz,
+              sparse_3D<char> **GridMat_sp,
               double ***DeltaPrDeso,
               double Kelec,double Ksolv,double UnitVol,double pi4,
               int nxminBS,int nyminBS,int nzminBS,int nxmaxBS,
@@ -317,7 +318,7 @@ struct point *surfpt_fr - Coor of points over frag SAS1 (relative to RoSFCo)
 
   nn = SAS_Volume_Fr(ExFrAtNu,ExRoSFCo,ExFrRadOut,ExFrRadOut2,Min,GrSiSo,
                      nxminFr,nyminFr,nzminFr,nxmaxFr,nymaxFr,nzmaxFr,
-                     FrGridMat,GridMat,FrOut);
+                     FrGridMat,GridMat_sp,FrOut);
 /*  printf("\tSAS_Volume_Fr %lf\n",1e-6 * (clock()-ntime)); */
 
 /* Now place a sphere of radius WaMoRa on every surface grid point and
@@ -516,7 +517,7 @@ nzmax_big = (nzmaxFr > NGridz) ? nzmaxFr : NGridz;
   }
   nn = Get_Self_Vol_Fr(FrAtNu,RoSFCo,FrPaCh,FrRad2,FrRadOut,FrRadOut2,
                        GrSiSo,XGrid,YGrid,ZGrid,Min,UnitVol,NGridx,NGridy,
-                       NGridz,GridMat,nxminFr,nyminFr,nzminFr,
+                       NGridz,GridMat_sp,nxminFr,nyminFr,nzminFr,
                        nxmaxFr,nymaxFr,nzmaxFr,FrGridMat,FrOut,nxmin_big,
                        nymin_big,nzmin_big,nxmax_big,nymax_big,nzmax_big,
                        FrSelfVol,FrSelfVol_corrB,EmpCorrB);
@@ -1066,7 +1067,8 @@ int SAS_Volume_Fr(int ExFrAtNu,double **ExRoSFCo,double *ExFrRadOut,
                   double *ExFrRadOut2,struct point Min,
                   double GrSiSo,int NStartGridx,int NStartGridy,
                   int NStartGridz,int NGridx,int NGridy,int NGridz,
-                  char ***FrGridMat,char ***GridMat,int FrOut)
+                  char ***FrGridMat,
+                  sparse_3D<char> **GridMat_sp,int FrOut)
 /*##########################################
 Get the volume enclosed by the SAS of the seeded frag
 and of the neighbour rec atoms
@@ -1132,7 +1134,7 @@ int FrOut --------------- Flag telling the position of the frag respect
               for (iz=izmin;iz<=izmax;iz++) {
                 ztemp += GrSiSo;
                 if (FrGridMat[ix][iy][iz] != 'o' &&
-                    GridMat[ix][iy][iz] != 'o') {
+                    (*GridMat_sp[iz])(ix,iy) != 'o') {
                   r2 = ztemp * ztemp + xy2temp;
                   if (ExFrRadOut2[iat] > r2)
                     FrGridMat[ix][iy][iz] = 'o';
@@ -1688,11 +1690,11 @@ to the integral of 1/r^4 */
                          (ZGrid[izf]-ReCoor[NeighList[jat]][3]) *
                          (ZGrid[izf]-ReCoor[NeighList[jat]][3]);
                     if ( r2 < cutoff2 && r2 > ReRad2[NeighList[jat]] )
-		    {
+                    {
                       SelfVolTmp[NeighList[jat]] += UnitVol / (r2 * r2);
-		      if (EmpCorrB[0]=='y')
-		        SelfVolTmp_corrB[NeighList[jat]] += UnitVol / (r2 * r2 * sqrt(r2));
-		    }
+                      if (EmpCorrB[0]=='y')
+                        SelfVolTmp_corrB[NeighList[jat]] += UnitVol / (r2 * r2 * sqrt(r2));
+                    }
                   }
                 }
               }
@@ -1723,7 +1725,8 @@ int Get_Self_Vol_Fr(int FrAtNu,double **RoSFCo,double *FrPaCh,
                     double *FrRad2,double *FrRadOut,double *FrRadOut2,
                     double GrSiSo,double *XGrid,double *YGrid,double *ZGrid,
                     struct point Min,double UnitVol,int NGridx,int NGridy,
-                    int NGridz,char ***GridMat,int nxminFr,int nyminFr,
+                    int NGridz,sparse_3D<char> **GridMat_sp,
+                    int nxminFr,int nyminFr,
                     int nzminFr,int nxmaxFr,int nymaxFr,int nzmaxFr,
                     char ***FrGridMat,int FrOut,int nxmin_big,int nymin_big,
                     int nzmin_big,int nxmax_big,int nymax_big,int nzmax_big,
@@ -1827,7 +1830,7 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
                      (ZGrid[iz]-RoSFCo[iat][3]) *
                      (ZGrid[iz]-RoSFCo[iat][3]);
                 if ( FrGridMat[ix][iy][iz] != 'o' &&
-                     GridMat[ix][iy][iz] != 'o' &&
+                     (*GridMat_sp[iz])(ix,iy) != 'o' &&
                      r2 > FrRad2[iat] && r2 <= FrRadOut2[iat] ) {
                   r4 = r2 * r2;
                   SelfVol[iat] -= UnitVol / r4;
@@ -1835,20 +1838,22 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
 		                SelfVol_corrB[iat] -= UnitVol / (r4*sqrt(r2));
                   //std::cout << "may be some problem with atom iat =" << iat << std::endl; // clangini debug
                 }
-                else if ( (FrGridMat[ix][iy][iz] == 'o' ||
-                           GridMat[ix][iy][iz] == 'o') &&
-                           r2 > FrRadOut2[iat] ) {
+                else if ((FrGridMat[ix][iy][iz] == 'o' ||
+                          (*GridMat_sp[iz])(ix, iy) == 'o') &&
+                         r2 > FrRadOut2[iat])
+                {
                   r4 = r2 * r2;
                   SelfVol[iat] += UnitVol / r4;
 		              if (EmpCorrB[0]=='y')
 		                SelfVol_corrB[iat] += UnitVol / (r4*sqrt(r2));
                 }
               }
-              else if ( (ix >= nxminFr && ix <= nxmaxFr+1 &&
-                         iy >= nyminFr && iy <= nymaxFr+1 &&
-                         iz >= nzminFr && iz <= nzmaxFr+1 &&
-                         FrGridMat[ix][iy][iz] == 'o') ||
-                        GridMat[ix][iy][iz] == 'o' ) {
+              else if ((ix >= nxminFr && ix <= nxmaxFr + 1 &&
+                        iy >= nyminFr && iy <= nymaxFr + 1 &&
+                        iz >= nzminFr && iz <= nzmaxFr + 1 &&
+                        FrGridMat[ix][iy][iz] == 'o') ||
+                       (*GridMat_sp[iz])(ix, iy) == 'o')
+              {
                 r2 = (XGrid[ix]-RoSFCo[iat][1]) *
                      (XGrid[ix]-RoSFCo[iat][1]) +
                      (YGrid[iy]-RoSFCo[iat][2]) *
@@ -1898,11 +1903,12 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
         for (ix=ixmincf;ix<=ixmaxcf;ix+=3) {
           for (iy=iymincf;iy<=iymaxcf;iy+=3) {
             for (iz=izmincf;iz<=izmaxcf;iz+=3) {
-              if ( (ix >= nxminFr && ix <= nxmaxFr+1 &&
-                    iy >= nyminFr && iy <= nymaxFr+1 &&
-                    iz >= nzminFr && iz <= nzmaxFr+1 &&
-                    FrGridMat[ix][iy][iz] == 'o') ||
-                    GridMat[ix][iy][iz] == 'o' ) {
+              if ((ix >= nxminFr && ix <= nxmaxFr + 1 &&
+                   iy >= nyminFr && iy <= nymaxFr + 1 &&
+                   iz >= nzminFr && iz <= nzmaxFr + 1 &&
+                   FrGridMat[ix][iy][iz] == 'o') ||
+                  (*GridMat_sp[iz])(ix, iy) == 'o')
+              {
                 r2 = (XGrid[ix]-RoSFCo[iat][1]) *
                      (XGrid[ix]-RoSFCo[iat][1]) +
                      (YGrid[iy]-RoSFCo[iat][2]) *
@@ -1926,11 +1932,11 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
     for (ix=3;ix<=NGridx;ix+=5)
       for (iy=3;iy<=NGridy;iy+=5)
         for (iz=3;iz<=NGridz;iz+=5)
-          if ( (ix >= nxminFr && ix <= nxmaxFr+1 &&
-                iy >= nyminFr && iy <= nymaxFr+1 &&
-                iz >= nzminFr && iz <= nzmaxFr+1 &&
-                FrGridMat[ix][iy][iz] == 'o') ||
-                GridMat[ix][iy][iz] == 'o' )
+          if ((ix >= nxminFr && ix <= nxmaxFr + 1 &&
+               iy >= nyminFr && iy <= nymaxFr + 1 &&
+               iz >= nzminFr && iz <= nzmaxFr + 1 &&
+               FrGridMat[ix][iy][iz] == 'o') ||
+              (*GridMat_sp[iz])(ix, iy) == 'o')
             for (iat=1;iat<=FrAtNu;iat++)
               if (FrPaCh[iat] != 0. ) {
                 r2 = (XGrid[ix]-RoSFCo[iat][1]) *
@@ -1991,31 +1997,34 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
                      (YGrid[iy]-RoSFCo[iat][2]) +
                      (ZGrid[iz]-RoSFCo[iat][3]) *
                      (ZGrid[iz]-RoSFCo[iat][3]);
-                if ( FrGridMat[ix][iy][iz] != 'o' &&
-                     GridMat[ix][iy][iz] != 'o' &&
-                     r2 > FrRad2[iat] && r2 < FrRadOut2[iat] ) {
+                if (FrGridMat[ix][iy][iz] != 'o' &&
+                    (*GridMat_sp[iz])(ix, iy) != 'o' &&
+                    r2 > FrRad2[iat] && r2 < FrRadOut2[iat])
+                {
                   r4 = r2 * r2;
                   SelfVol[iat] -= UnitVol / r4;
 		  if (EmpCorrB[0]=='y')
 		    SelfVol_corrB[iat] -= UnitVol / (r4*sqrt(r2));
                 }
-                else if ( (FrGridMat[ix][iy][iz] == 'o' ||
-                           GridMat[ix][iy][iz] == 'o') &&
-                           r2 > FrRadOut2[iat] ) {
+                else if ((FrGridMat[ix][iy][iz] == 'o' ||
+                          (*GridMat_sp[iz])(ix, iy) == 'o') &&
+                         r2 > FrRadOut2[iat])
+                {
                   r4 = r2 * r2;
                   SelfVol[iat] += UnitVol / r4;
 		  if (EmpCorrB[0]=='y')
 		    SelfVol_corrB[iat] += UnitVol / (r4*sqrt(r2));
                 }
               }
-              else if ( (ix >= nxminFr && ix <= nxmaxFr+1 &&
-                         iy >= nyminFr && iy <= nymaxFr+1 &&
-                         iz >= nzminFr && iz <= nzmaxFr+1 &&
-                         FrGridMat[ix][iy][iz] == 'o') ||
-                        (ix >= 1 && ix <= NGridx+1 &&
-                         iy >= 1 && iy <= NGridy+1 &&
-                         iz >= 1 && iz <= NGridz+1 &&
-                         GridMat[ix][iy][iz] == 'o') ) {
+              else if ((ix >= nxminFr && ix <= nxmaxFr + 1 &&
+                        iy >= nyminFr && iy <= nymaxFr + 1 &&
+                        iz >= nzminFr && iz <= nzmaxFr + 1 &&
+                        FrGridMat[ix][iy][iz] == 'o') ||
+                       (ix >= 1 && ix <= NGridx + 1 &&
+                        iy >= 1 && iy <= NGridy + 1 &&
+                        iz >= 1 && iz <= NGridz + 1 &&
+                        (*GridMat_sp[iz])(ix, iy) == 'o'))
+              {
                 r2 = (XGrid[ix]-RoSFCo[iat][1]) *
                      (XGrid[ix]-RoSFCo[iat][1]) +
                      (YGrid[iy]-RoSFCo[iat][2]) *
@@ -2065,14 +2074,15 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
         for (ix=ixmincf;ix<=ixmaxcf;ix+=3) {
           for (iy=iymincf;iy<=iymaxcf;iy+=3) {
             for (iz=izmincf;iz<=izmaxcf;iz+=3) {
-              if ( (ix >= nxminFr && ix <= nxmaxFr+1 &&
-                    iy >= nyminFr && iy <= nymaxFr+1 &&
-                    iz >= nzminFr && iz <= nzmaxFr+1 &&
-                    FrGridMat[ix][iy][iz] == 'o') ||
-                   (ix >= 1 && ix <= NGridx+1 &&
-                    iy >= 1 && iy <= NGridy+1 &&
-                    iz >= 1 && iz <= NGridz+1 &&
-                    GridMat[ix][iy][iz] == 'o') ) {
+              if ((ix >= nxminFr && ix <= nxmaxFr + 1 &&
+                   iy >= nyminFr && iy <= nymaxFr + 1 &&
+                   iz >= nzminFr && iz <= nzmaxFr + 1 &&
+                   FrGridMat[ix][iy][iz] == 'o') ||
+                  (ix >= 1 && ix <= NGridx + 1 &&
+                   iy >= 1 && iy <= NGridy + 1 &&
+                   iz >= 1 && iz <= NGridz + 1 &&
+                   (*GridMat_sp[iz])(ix, iy) == 'o'))
+              {
                 r2 = (XGrid[ix]-RoSFCo[iat][1]) *
                      (XGrid[ix]-RoSFCo[iat][1]) +
                      (YGrid[iy]-RoSFCo[iat][2]) *
@@ -2096,14 +2106,14 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
     for (ix=3;ix<=NGridx;ix+=5)
       for (iy=3;iy<=NGridy;iy+=5)
         for (iz=3;iz<=NGridz;iz+=5)
-          if ( (ix >= nxminFr && ix <= nxmaxFr+1 &&
-                iy >= nyminFr && iy <= nymaxFr+1 &&
-                iz >= nzminFr && iz <= nzmaxFr+1 &&
-                FrGridMat[ix][iy][iz] == 'o') ||
-               (ix >= 1 && ix <= NGridx+1 &&
-                iy >= 1 && iy <= NGridy+1 &&
-                iz >= 1 && iz <= NGridz+1 &&
-                GridMat[ix][iy][iz] == 'o') )
+          if ((ix >= nxminFr && ix <= nxmaxFr + 1 &&
+               iy >= nyminFr && iy <= nymaxFr + 1 &&
+               iz >= nzminFr && iz <= nzmaxFr + 1 &&
+               FrGridMat[ix][iy][iz] == 'o') ||
+              (ix >= 1 && ix <= NGridx + 1 &&
+               iy >= 1 && iy <= NGridy + 1 &&
+               iz >= 1 && iz <= NGridz + 1 &&
+               (*GridMat_sp[iz])(ix, iy) == 'o'))
             for (iat=1;iat<=FrAtNu;iat++)
               if (FrPaCh[iat] != 0. ) {
                 r2 = (XGrid[ix]-RoSFCo[iat][1]) *
