@@ -4753,8 +4753,9 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                     //         VW_s_ro[ClusLi_sd[i1]]);
 
                     // sa_temp = seed_par.sa_alpha * sa_temp; //T_(n+1)
-                  } // end of inner chain
 
+                  } // end of inner chain
+                  free_dmatrix(old_mc_FrCoor_in, 1, FrAtNu, 1, 3);
                   /* Energy evaluation: -- outer chain */
                   Rot_Tran(FrAtNu,FrCoor,RoSFCo,Tr,U1,U2);
                   SqDisFrRe_ps(FrAtNu,RoSFCo,ReCoor,ReMinC,GrSiCu_en,
@@ -4865,7 +4866,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                      time_mc_end.tv_usec - time_mc_start.tv_usec) / 1.e6);
               } // end of if (seed_par.do_mc == 'y')
 
-            }
+            } 
 
           } // end of: for (i1=1;i1<=SFWrNu;i1++)
 
