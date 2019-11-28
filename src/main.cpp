@@ -4682,7 +4682,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
 
                   /* MC initialization -- inner chain */
                   old_mc_vdW = VW_s_ro[ClusLi_sd[i1]];
-                  copy_dmatrix(old_mc_FrCoor, old_mc_FrCoor_in, 1, FrAtNu, 1, 3)
+                  copy_dmatrix(old_mc_FrCoor, old_mc_FrCoor_in, 1, FrAtNu, 1, 3);
 
                   for (int cyc_in = 0; cyc_in < seed_par.mc_niter_in; cyc_in++)
                   {
@@ -4836,7 +4836,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                   FrCoPo[ClusLi_sd[i1]][i2][2] = RoSFCo[i2][2]; // of the current pose we are analyzing. clangini
                   FrCoPo[ClusLi_sd[i1]][i2][3] = RoSFCo[i2][3];
                 }
-                
+
                 free_dmatrix(old_mc_FrCoor, 1, FrAtNu, 1, 3);
                 free_dmatrix(old_mc_FrCoor_in, 1, FrAtNu, 1, 3);
 
