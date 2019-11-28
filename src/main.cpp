@@ -4660,7 +4660,8 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
 
                 /* MC initialization -- outer chain */
                 old_mc_en = To_s_ro[ClusLi_sd[i1]];
-                old_mc_FrCoor = dmatrix(RoSFCo, 1, FrAtNu, 1, 3);
+                old_mc_FrCoor = dmatrix(RoSFCo, 1, FrAtNu, 1, 3); // outer chain
+                old_mc_FrCoor_in = zero_dmatrix(1, FrAtNu, 1, 3); // inner chain
                 sa_temp = seed_par.mc_temp; //T_0
                 mc_accept_rate = 0.0;
 
@@ -4681,9 +4682,10 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
 
                   /* MC initialization -- inner chain */
                   old_mc_vdW = VW_s_ro[ClusLi_sd[i1]];
-                  old_mc_FrCoor_in = dmatrix(old_mc_FrCoor, 1, FrAtNu, 1, 3);
+                  copy_dmatrix(old_mc_FrCoor, old_mc_FrCoor_in, 1, FrAtNu, 1, 3)
 
-                  for (int cyc_in = 0; cyc_in < seed_par.mc_niter_in; cyc_in++){
+                  for (int cyc_in = 0; cyc_in < seed_par.mc_niter_in; cyc_in++)
+                  {
                     accept_prob_in = 0.0;
 
                     do_rot_move = rnd_gen::get_bernoulli(seed_par.mc_rot_freq); // doing a rotational move?
@@ -4755,7 +4757,6 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                     // sa_temp = seed_par.sa_alpha * sa_temp; //T_(n+1)
 
                   } // end of inner chain
-                  free_dmatrix(old_mc_FrCoor_in, 1, FrAtNu, 1, 3);
                   /* Energy evaluation: -- outer chain */
                   Rot_Tran(FrAtNu,FrCoor,RoSFCo,Tr,U1,U2);
                   SqDisFrRe_ps(FrAtNu,RoSFCo,ReCoor,ReMinC,GrSiCu_en,
@@ -4835,7 +4836,10 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                   FrCoPo[ClusLi_sd[i1]][i2][2] = RoSFCo[i2][2]; // of the current pose we are analyzing. clangini
                   FrCoPo[ClusLi_sd[i1]][i2][3] = RoSFCo[i2][3];
                 }
+                
                 free_dmatrix(old_mc_FrCoor, 1, FrAtNu, 1, 3);
+                free_dmatrix(old_mc_FrCoor_in, 1, FrAtNu, 1, 3);
+
                 /* Summary info of MC run */
                 // fprintf(FPaOut, "---- MC Summary ----\n");
                 // fprintf(FPaOut, "%12s%10s%24s\n", " ", "#Moves", "#Accept (Acc. rate)");
