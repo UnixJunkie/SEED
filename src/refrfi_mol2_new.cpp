@@ -25,6 +25,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include "nrutil.h"
+#include "funct.h"
+
 //#include <typeinfo>
 #ifndef _STRLENGTH
 #define _STRLENGTH 500
@@ -72,8 +74,8 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
   boost::char_separator<char> sep(" \t\n\r");
 
 	char **FrAtEl_L,**FrAtTy_L,**FrBdTy_L, **SubNa_L, **FrSyAtTy_L;
-  int i,**FrBdAr_L,/*FrAtNu_cn,FrBdNu_cn,*/ AtCount, CuAtNu /*insec isValid*/;
-	bool AtNu_flag;
+  int i,j,**FrBdAr_L,/*FrAtNu_cn,FrBdNu_cn,*/ AtCount, CuAtNu /*insec isValid*/;
+	bool AtNu_flag, OverlappingMol;
   double **FrCoor_L,*FrPaCh_L;
 
 	std::string StrLin, /*AlTySp,*/ firstToken;
@@ -194,7 +196,31 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       // std::cout << "Charge "<<i<<": "<<FrPaCh_L[i]<< std::endl;
 	  }
     //std::cout << "Atom Block was read!" << std::endl; /* clangini */
-	  /* Move to the @<TRIPOS>BOND block */
+    /* check there are no overlapping atoms */
+    OverlappingMol = false;
+    for (i=1; i<=(*FrAtNu); i++ ){
+      for (j=i+1; j <= (*FrAtNu); j++){
+        if (DistSq(FrCoor_L[i][1], FrCoor_L[i][2], FrCoor_L[i][3],
+                   FrCoor_L[j][1], FrCoor_L[j][2], FrCoor_L[j][3]) < 0.04){
+                    OverlappingMol = true;
+                   }
+      }
+    }
+    if (OverlappingMol) {
+      (*SkiFra)++;
+      (*CurFraTot)++;
+      std::cerr << "Fragment " << *CurFraTot
+                << " might have overlapping atoms. Skipping!\n";
+      /* Once we will implement the resizing this part will not be needed any more */
+      free_cmatrix(*FrAtEl, 1, *FrAtNu, 1, 5);
+      free_dmatrix(*FrCoor, 1, *FrAtNu, 1, 3);
+      free_cmatrix(*FrSyAtTy, 1, *FrAtNu, 1, 7);
+      free_dvector(*FrPaCh, 1, *FrAtNu);
+      free_cmatrix(*SubNa, 1, *FrAtNu, 1, 10);
+      continue;
+    }
+
+    /* Move to the @<TRIPOS>BOND block */
 	  while (!inStream->eof() && StrLin[0] != '@'){
 		  //StrLin = getline(inStream);
       std::getline(*inStream,StrLin);

@@ -1442,7 +1442,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
     CurFra++; /* After succesfully reading, we update the current fragment index */
     i = CurFra; /* Not to change i to CurFra everywhere in the following clangini*/
     fprintf(FPaOut,"-------------------------------------------------\n\n");//Moved here clangini
-    fprintf(FPaOut,"Data for the fragment type %d :\n\n",CurFraTot); //Moved here clangini
+    fprintf(FPaOut,"Data for the fragment type %d (%d) :\n\n",CurFra, CurFraTot); //Moved here clangini
     // Here we rotate the fragment to a common framework:
     FrAlRef = convert2pp_return(1,3,1,3,FrAlRef_m[0],FrAlRef_rows);
     FrAlSet = convert2pp_return(1,3,1,3,FrAlSet_m[0],FrAlSet_rows);
