@@ -3775,7 +3775,166 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           Df_s=SFDeso_fr*FrDesoElec;
           To_s=VW_s+In_s+Dr_s+Df_s;
 
+          if (seed_par.do_mc == 'y'){
+            gettimeofday(&time_mc_start, NULL);
+            /* MC initialization -- outer chain */
+            old_mc_en = To_s;
+            old_mc_FrCoor = dmatrix(RoSFCo, 1, FrAtNu, 1, 3); // outer chain
+            old_mc_FrCoor_in = zero_dmatrix(1, FrAtNu, 1, 3); // inner chain
+            sa_temp = seed_par.mc_temp;                       //T_0
+            mc_accept_rate = 0.0;
 
+            n_rot = 0; /* counters for the num of MC moves */
+            n_accept_rot = 0;
+            n_rot_fine = n_accept_rot_fine = 0;
+            n_trans = 0;
+            n_accept_trans = 0;
+            n_trans_fine = n_accept_trans_fine = 0;
+
+            fprintf(FPaOut, "Doing MC Minimization of pose.");
+
+            for (int cyc_out = 0; cyc_out < seed_par.mc_niter_out; cyc_out++)
+            { /* outer chain */
+              accept_prob = 0.0;
+
+              /* MC initialization -- inner chain */
+              old_mc_vdW = VW_s;
+              copy_dmatrix(old_mc_FrCoor, old_mc_FrCoor_in, 1, FrAtNu, 1, 3);
+
+              for (int cyc_in = 0; cyc_in < seed_par.mc_niter_in; cyc_in++)
+              { /* inner chain */
+                accept_prob_in = 0.0;
+
+                do_rot_move = rnd_gen::get_bernoulli(seed_par.mc_rot_freq); // doing a rotational move?
+                if (do_rot_move)
+                {
+                  n_rot++;
+                  do_fine_move = rnd_gen::get_bernoulli(seed_par.mc_rot_fine_freq);
+                  if (do_fine_move)
+                  { //fine or coarse?
+                    n_rot_fine++;
+                    rot_move(RoSFCo, FrAtNu, seed_par.mc_max_rot_step_fine);
+                  }
+                  else
+                  {
+                    rot_move(RoSFCo, FrAtNu, seed_par.mc_max_rot_step);
+                  }
+                }
+                else
+                {
+                  n_trans++;
+                  do_fine_move = rnd_gen::get_bernoulli(seed_par.mc_tran_fine_freq);
+                  if (do_fine_move)
+                  { //fine or coarse?
+                    n_trans_fine++;
+                    trans_move(RoSFCo, FrAtNu, seed_par.mc_max_tran_step_fine);
+                  }
+                  else
+                  {
+                    trans_move(RoSFCo, FrAtNu, seed_par.mc_max_tran_step);
+                  }
+                }
+                /* vdW energy evaluation - inner loop */
+                Rot_Tran(FrAtNu, FrCoor, RoSFCo, Tr, U1, U2);
+                SqDisFrRe_ps_vdW(FrAtNu, RoSFCo, ReCoor, ReMinC, GrSiCu_en,
+                                 CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
+                                 PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
+                                 ReReNu, AtReprRes, FiAtRes, LaAtRes);
+                PsSpEE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
+                       ReVdWR, FrVdWR, &VWEnEv_ps, SDFrRe_ps);
+
+                new_mc_vdW = SFVWEn * VWEnEv_ps;                                               // new energy inner chain
+                accept_prob_in = exp(-1 / (R_constant * sa_temp) * (new_mc_vdW - old_mc_vdW)); // TODO remove sa_temp from inner chain
+                if (rnd_gen::get_uniform(0, 1) <= accept_prob_in)
+                {
+                  old_mc_vdW = new_mc_vdW;
+                  copy_dmatrix(RoSFCo, old_mc_FrCoor_in, 1, FrAtNu, 1, 3);
+                  if (do_rot_move)
+                  {
+                    n_accept_rot++;
+                    if (do_fine_move)
+                      n_accept_rot_fine++;
+                  }
+                  else
+                  {
+                    n_accept_trans++;
+                    if (do_fine_move)
+                      n_accept_trans_fine++;
+                  }
+                }
+                else
+                {
+                  copy_dmatrix(old_mc_FrCoor_in, RoSFCo, 1, FrAtNu, 1, 3);
+                  new_mc_vdW = old_mc_vdW;
+                }
+
+              } // end of inner chain
+              /* Energy evaluation: -- outer chain */
+              Rot_Tran(FrAtNu, FrCoor, RoSFCo, Tr, U1, U2);
+              SqDisFrRe_ps(FrAtNu, RoSFCo, ReCoor, ReMinC, GrSiCu_en,
+                           CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
+                           PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
+                           RePaCh, ReReNu, AtReprRes, FiAtRes, LaAtRes,
+                           TotChaRes, NuChResEn, LiChResEn,
+                           SDFrRe_ps_elec, ChFrRe_ps_elec);
+              PsSpEE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
+                     ReVdWR, FrVdWR, &VWEnEv_ps, SDFrRe_ps);
+              ElecFrag(ReAtNu, ReCoor, RePaCh, ChFrRe_ps_elec,
+                       ReRad, ReRad2, ReRadOut,
+                       ReRadOut2, ReEffRad_bound, surfpt_re, nsurf_re,
+                       pointsrf_re, ReSelfVol, FrAtNu, RoSFCo, FrCoor,
+                       FrPaCh, FrRad, FrRad2, FrRadOut, FrRadOut2,
+                       FrEffRad_bound, Frdist2,
+                       SDFrRe_ps_elec, FrMinC, FrMaxC, &FrSolvEn,
+                       Nsurfpt_fr, surfpt_fr,
+                       nsurf_fr, pointsrf_fr, surfpt_ex, Tr, U1, U2, WaMoRa,
+                       GrSiSo, NPtSphere, Min, Max, XGrid, YGrid, ZGrid,
+                       NGridx, NGridy, NGridz, GridMat,
+                       DeltaPrDeso, Kelec, Ksolv, UnitVol,
+                       pi4, nxminBS, nyminBS, nzminBS, nxmaxBS, nymaxBS,
+                       nzmaxBS, corr_scrint, corr_fr_deso, &ReDesoElec,
+                       &ReFrIntElec, &FrDesoElec, ReSelfVol_corrB, EmpCorrB, 
+                       FPaOut);
+
+              new_mc_en = SFVWEn * VWEnEv_ps + SFIntElec * ReFrIntElec +
+                          SFDeso_re * ReDesoElec + SFDeso_fr * FrDesoElec;
+
+              accept_prob = exp(-1 / (R_constant * sa_temp) * (new_mc_en - old_mc_en));
+              if (rnd_gen::get_uniform(0, 1) <= accept_prob)
+              {
+                old_mc_en = new_mc_en;
+                copy_dmatrix(RoSFCo, old_mc_FrCoor, 1, FrAtNu, 1, 3);
+                /* Update energies */
+                VW_s = SFVWEn * VWEnEv_ps;
+                In_s = SFIntElec * ReFrIntElec;
+                Dr_s = SFDeso_re * ReDesoElec;
+                Df_s = SFDeso_fr * FrDesoElec;
+                To_s = new_mc_en;
+              } 
+              else
+              { // pose not accepted
+                copy_dmatrix(old_mc_FrCoor, RoSFCo, 1, FrAtNu, 1, 3);
+                new_mc_en = old_mc_en;
+              }
+              sa_temp = seed_par.sa_alpha * sa_temp; //T_(n+1)
+            } // end of MC cyc_out
+            /* Update pose coordinates */
+            // Not needed in eval mode?
+            // for (i2 = 1; i2 <= FrAtNu; i2++)
+            // {
+            //   FrCoPo[ClusLi_sd[i1]][i2][1] = RoSFCo[i2][1]; // sets the coordinates RoSFCo
+            //   FrCoPo[ClusLi_sd[i1]][i2][2] = RoSFCo[i2][2]; // of the current pose we are analyzing. clangini
+            //   FrCoPo[ClusLi_sd[i1]][i2][3] = RoSFCo[i2][3];
+            // }
+
+            free_dmatrix(old_mc_FrCoor, 1, FrAtNu, 1, 3);
+            free_dmatrix(old_mc_FrCoor_in, 1, FrAtNu, 1, 3);
+
+            gettimeofday(&time_mc_end, NULL);
+            fprintf(FPaOut, "CPU time in sec. for MC optimization: %.2f\n",
+                    ((time_mc_end.tv_sec - time_mc_start.tv_sec) * 1000000u +
+                     time_mc_end.tv_usec - time_mc_start.tv_usec) / 1.e6);
+          } // end of if (seed_par.do_mc == 'y')
         }
 
         /* ----- FAST or BOTH methods ----- */
