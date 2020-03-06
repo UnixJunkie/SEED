@@ -4032,19 +4032,23 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           if(TabOutStream.is_open()){
             //for (j=1;j<=((NuPosMem<NuPosSdCl)?NuPosMem:NuPosSdCl);j++) {
             sprintf(TabLin,
-                  "%-30s%8d%10d%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10d%10.4f",
-                  FragNa,1,
-                  1,
-                  To_s,
-                  In_s,
-                  Dr_s,
-                  Df_s,
-                  VW_s,
-                  (In_s-FrSolvEn),
-                  FrSolvEn,(To_s/HeAtCo),
-                  (VW_s/HeAtCo),
-                  (In_s/HeAtCo),
-                  HeAtCo,MolWei);
+                    "%-30s%8d%10d%10d%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10d%10.4f",
+                    FragNa, 
+                    1, 
+                    1,
+                    1,
+                    To_s,
+                    In_s,
+                    Dr_s,
+                    Df_s,
+                    VW_s,
+                    (In_s - FrSolvEn),
+                    FrSolvEn, 
+                    (To_s / HeAtCo),
+                    (VW_s / HeAtCo),
+                    (In_s / HeAtCo),
+                    HeAtCo, 
+                    MolWei);
             TabOutStream << TabLin << std::endl;
             //}
           } else {
@@ -5328,7 +5332,8 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
               if(To_s_ro[FrPosAr_pproc[Index_pproc[j]]] <= FrMaEn){
                 sprintf(TabLin,
                     "%-30s%8d%10d%10d%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10d%10.4f",
-                    FragNa,j,
+                    FragNa,
+                    j,
                     CluIndex_sort[SdClusAr_pproc[Index_pproc[j]]],
                     FrPosAr_pproc[Index_pproc[j]],
                     To_s_ro[FrPosAr_pproc[Index_pproc[j]]],
@@ -5337,10 +5342,12 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                     Df_s_ro[FrPosAr_pproc[Index_pproc[j]]],
                     VW_s_ro[FrPosAr_pproc[Index_pproc[j]]],
                     (In_s_ro[FrPosAr_pproc[Index_pproc[j]]]-FrSolvEn),
-                    FrSolvEn,(To_s_ro[FrPosAr_pproc[Index_pproc[j]]]/HeAtCo),
+                    FrSolvEn,
+                    (To_s_ro[FrPosAr_pproc[Index_pproc[j]]]/HeAtCo),
                     (VW_s_ro[FrPosAr_pproc[Index_pproc[j]]]/HeAtCo),
                     (In_s_ro[FrPosAr_pproc[Index_pproc[j]]]/HeAtCo),
-                    HeAtCo,MolWei);
+                    HeAtCo,
+                    MolWei);
                 TabOutStream << TabLin << std::endl;
               }
             }
