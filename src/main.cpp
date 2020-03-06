@@ -3997,6 +3997,25 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
             "%10d%12.2f%11.2f%13.2f%12.2f%13.2f\n",
             Ind_num_cn,VW_s,In_s,Dr_s,Df_s,
             To_s);
+        // if pose writing is requested, write pose (this is 
+        // redundant normally, but needed if minimizing with MC).
+        if (write_best_opt[0] == 'y')
+        { // Write *best_pproc* mol2 file
+          sprintf(WriPat, "%s%s%s", "./outputs/", FrFiNa_out,
+                  "_best.mol2\0");
+          FilePa = fopen(WriPat, "a");
+          if (To_s <= FrMaEn)
+          {
+            append_pose_to_mol2(FilePa, FragNa, /*FragNa_map[FragNa_str],*/ FrAtNu,
+                                FrBdNu, j, FrAtEl, RoSFCo,
+                                1, FrSyAtTy,
+                                FrAtTy, CurFra, FrBdAr, FrBdTy,
+                                1,
+                                To_s,
+                                FrPaCh, SubNa, AlTySp);
+          }
+          fclose(FilePa);
+        }
         // if energy evaluation run is requested, the energies are saved in
         // the best output summary table. clangini
         HeAtCo = count_heavy_atom(FrAtEl_nu, FrAtNu);
