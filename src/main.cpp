@@ -1446,7 +1446,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
     clbErr = 0;
 
     /* CurFra=i; clangini */
-      FPaOut=fopen(OutFil,"a");
+    // FPaOut=fopen(OutFil,"a"); // moved after fragment reading. clangini
     //fprintf(FPaOut,"-------------------------------------------------\n\n");//Moved after fragment reading. clangini
     //fprintf(FPaOut,"Data for the fragment type %d :\n\n",CurFraTot); //Moved after fragment reading. clangini
 
@@ -1462,7 +1462,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
     /* ReFrFi_mol2 has been reimplemented in C++ clangini */
     /* Reads the next valid molecule. If it detects any problems it skips the molecule. clangini */
   
-    #ifdef ENABLE_MPI
+#ifdef ENABLE_MPI
     //std::cerr << "============ Start of loop for rank "<< myrank << " ============" << std::endl;
     if (myrank == MASTERRANK){ 
       LstFra_f = MPI_ReFrFi_mol2(&FrInStream,&FrInPos,rkreqs,readies, &firsttime);
@@ -1479,14 +1479,15 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
         continue;
       }
     }
-    #else 
+#else 
     LstFra_f = ReFrFi_mol2(&FrInStream,&FrInPos,&SkiFra,&CurFraTot,FragNa,
                            FragNa_str,
                            &FrAtNu,&FrBdNu,&FrAtEl,&FrCoor,&FrAtTy,&FrSyAtTy,
                            &FrPaCh,&FrBdAr,&FrBdTy,FrSubN,FrSubC,&FrCoNu,
                            &SubNa,AlTySp);
-    #endif 
-    
+#endif
+    // gettimeofday(&time_read, NULL);
+
     if (LstFra_f == 1){
       #ifdef ENABLE_MPI
       if (myrank == MASTERRANK){
@@ -1495,7 +1496,6 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
       #ifdef ENABLE_MPI 
       }
       #endif
-      fclose(FPaOut);
       break;
     }
 
@@ -1512,6 +1512,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
 
     CurFra++; /* After succesfully reading, we update the current fragment index */
     i = CurFra; /* Not to change i to CurFra everywhere in the following clangini*/
+    FPaOut = fopen(OutFil, "a");
     fprintf(FPaOut,"-------------------------------------------------\n\n");//Moved here clangini
     fprintf(FPaOut,"Data for the fragment type %d :\n\n",CurFraTot); //Moved here clangini
     // Here we rotate the fragment to a common framework:
@@ -1673,7 +1674,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
         /* Calculate the solvation energy of the fragment without the receptor
            Use a very fine grid spacing (0.1) */
         nn = FragSolvEn(FrAtNu,FrCoor,FrPaCh,FrVdWR,FrRadOut,
-            FrRadOut2,FrEffRad_bound,Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.01, // 0.1 before
+            FrRadOut2,FrEffRad_bound,Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.1, // 0.1 before
             Ksolv,pi4,&FrSolvEn,EmpCorrB,FPaOut);
         /* fprintf(FPaOut,"Dielectric value = %4.1f -> %4.1f transfer energy for the fragment (%s) : ",
             DielRe,DielWa,&ResN_fr[i][1]); */
@@ -4000,11 +4001,6 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
       fprintf(FPaOut,"CPU time in sec. for the seeding of %s : %.2f\n",FragNa,
           ((time_7.tv_sec  - time_6.tv_sec) * 1000000u +
            time_7.tv_usec - time_6.tv_usec) / 1.e6);/* clangini */
-      /*fprintf(FPaOut,"CPU time in sec. for the seeding of %s : %.2f\n",
-          &FrFiNa_out[CurFra][1],
-          ((time_7.tv_sec  - time_6.tv_sec) * 1000000u +
-           time_7.tv_usec - time_6.tv_usec) / 1.e6); clangini */
-      /* &ResN_fr[i][1],(time_7-time_6)*0.01); */
       fprintf(FPaOut,"\n");
     }
     /* !!! From here, the value of SFWrNu might change */
@@ -4584,7 +4580,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           /* Calculate the solvation energy of the fragment without the receptor
              Use a very fine grid spacing (0.1) */
           nn = FragSolvEn(FrAtNu,FrCoor,FrPaCh,FrVdWR,FrRadOut,
-              FrRadOut2,FrEffRad_bound,Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.01, // 0.1 before
+              FrRadOut2,FrEffRad_bound,Frdist2,Nsurfpt_fr,surfpt_fr,WaMoRa,0.1, // 0.1 before
               Ksolv,pi4,&FrSolvEn,EmpCorrB,FPaOut);
           /*fprintf(FPaOut,"Dielectric value = %4.1f -> %4.1f transfer energy for the fragment (%s) : ",
               DielRe,DielWa,&FrFiNa_out[CurFra][1]);*/
