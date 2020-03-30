@@ -296,6 +296,12 @@ void ReInFi(char *InpFil,char *RecFil,int *BSResN,int **BSReNu,
     fprintf(stderr, "Library reading mode is not valid. single mode will be used.\n");
     strcpy(FrFiRMode, "single");
   }
+#ifndef ENABLE_MPI
+  if (strcmp(FrFiRMode, "multi") == 0){
+    fprintf(stderr, "multi reading is not possible with the serial executable. single mode will be used.\n");
+    strcpy(FrFiRMode, "single");
+  }
+#endif
     //*FrFiNa = FrFiNa_L;
     //*ApPoChoi = ApPoChoi_L;
 

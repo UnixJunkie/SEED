@@ -316,7 +316,7 @@ FrFiRMode reading mode for fragment input file (only relevant for MPI runs):
 #ifdef ENABLE_MPI // MPI variables.
   int myrank, name_len, numtasks;
   char processor_name[MPI_MAX_PROCESSOR_NAME];
-  char dummyStr[_STRLENGTH],suffix[_STRLENGTH];;
+  char dummyStr[_STRLENGTH],suffix[_STRLENGTH], suffix_out[_STRLENGTH];
   double start_time, end_time, max_time; // for timing
   int dummyMpi; // dummy
   int endtag = 777; // for final handshaking
@@ -325,7 +325,7 @@ FrFiRMode reading mode for fragment input file (only relevant for MPI runs):
   bool firsttime;
 #endif
 
-  #ifdef ENABLE_MPI // start MPI universe!
+#ifdef ENABLE_MPI // start MPI universe!
   MPI_Init(&argc,&argv); // Initialize MPI
   MPI_Comm_size(MPI_COMM_WORLD,&numtasks); // get number of tasks
   MPI_Comm_rank(MPI_COMM_WORLD,&myrank); // get my rank
@@ -333,10 +333,7 @@ FrFiRMode reading mode for fragment input file (only relevant for MPI runs):
 
   MPI_Barrier(MPI_COMM_WORLD); // synchronize before calculating the starting time
   start_time = MPI_Wtime();
-  rkreqs = new MPI_Request[numtasks-1];
-  readies = new int[numtasks-1];
-  firsttime = true;
-  #endif
+#endif
   /*
      allocation in block size  -> to do realloc increase
    */
@@ -442,6 +439,15 @@ FrFiRMode reading mode for fragment input file (only relevant for MPI runs):
       EmpCorrB,gc_opt,&gc_reprke,&gc_cutclus,&gc_endifclus,&gc_weighneg,
       &gc_weighpos,&gc_maxwrite,write_pproc_opt,write_pproc_chm_opt,
       write_best_opt,write_sumtab_opt,write_best_sumtab_opt,&AtWei);/*clangini*/
+
+#ifdef ENABLE_MPI
+  if (strcmp(FrFiRMode, "single") == 0)
+  {
+    rkreqs = new MPI_Request[numtasks - 1];
+    readies = new int[numtasks - 1];
+    firsttime = true;
+  }
+#endif
   /* Check presence of parameter file */
   // CheckFile(TREFiP,'r'); // already in ReInFi
 
@@ -453,16 +459,26 @@ FrFiRMode reading mode for fragment input file (only relevant for MPI runs):
   /* FrFiNa_out=cmatrix(1,FragNu,1,_STRLENGTH); clangini*/
   /* ExtOutNam(FragNu,FrFiNa,FrFiNa_out); clangini */
   #ifdef ENABLE_MPI // add suffix corresponding to the part
-  // set suffix 
-  if (myrank == MASTERRANK){
-    // sprintf(suffix, '\0');
-    suffix[0] = '\0';
-  } else {
-    sprintf(suffix, "_part%d", myrank);
-  }
-  ExtOutNam(FrFiNa, FrFiNa_out, suffix); // overloaded in case we use MPI
-  ExtOutNam(OutFil, dummyStr, suffix);
 
+  if (strcmp(FrFiRMode, "single") == 0){
+    // single mode: single input - multi output
+    if (myrank == MASTERRANK)
+    {
+      suffix[0] = '\0'; // suffix of input file
+    } else {
+      sprintf(suffix, "_part%d", myrank);
+    }
+    sprintf(suffix_out, "_part%d", myrank); // suffix for output file
+
+    ExtOutNam(FrFiNa, FrFiNa_out, suffix); // overloaded in case we use MPI
+    ExtOutNam(OutFil, dummyStr, suffix_out);
+  }
+  else if (strcmp(FrFiRMode, "multi") == 0) {
+    sprintf(suffix, "_part%d", myrank); // suffix for both in and out
+
+    ExtOutNam(FrFiNa, FrFiNa_out, suffix);
+    ExtOutNam(OutFil, dummyStr, suffix);
+  }
   MPI_Barrier(MPI_COMM_WORLD); // is this really needed?
   #else
   ExtOutNam(FrFiNa,FrFiNa_out);
@@ -612,20 +628,31 @@ FrFiRMode reading mode for fragment input file (only relevant for MPI runs):
     else
       fclose(FilChk);
 
-  /* Fragment input file is now only one clangini*/
-  #ifdef ENABLE_MPI
-  if (myrank == MASTERRANK){
-  #endif
-  if ((FilChk=fopen(FrFiNa,"r"))==NULL) {
-    fprintf(FPaOut,"WARNING Was not able to open fragment file %s\n\n",FrFiNa);
-    ChkExit=1;
+#ifdef ENABLE_MPI
+  if (strcmp(FrFiRMode, "single") == 0)
+  {
+    if (myrank == MASTERRANK){
+      if ((FilChk = fopen(FrFiNa, "r")) == NULL)
+      {
+        fprintf(FPaOut, "WARNING Was not able to open fragment file %s\n\n", FrFiNa);
+        ChkExit = 1;
+      }
+      else
+        fclose(FilChk);
+    }
+  } else {
+#endif
+    // multi reading or serial code
+    if ((FilChk = fopen(FrFiNa, "r")) == NULL)
+    {
+      fprintf(FPaOut, "WARNING Was not able to open fragment file %s\n\n", FrFiNa);
+      ChkExit = 1;
+    }
+    else
+      fclose(FilChk);
+#ifdef ENABLE_MPI
   }
-  else
-    fclose(FilChk);
-  #ifdef ENABLE_MPI
-  }
-  #endif
-
+#endif
 
   if ((FilChk=fopen(TREFiP,"r"))==NULL) {
     fprintf(FPaOut,"WARNING Was not able to open parameter file %s\n\n",TREFiP);
@@ -1316,9 +1343,9 @@ FrFiRMode reading mode for fragment input file (only relevant for MPI runs):
 
   /* clangini 2016 */
   /* Setting up the table summary file */
-  #ifdef ENABLE_MPI
-  if (myrank != MASTERRANK){ // master only reads and dispatches input
-  #endif
+  // #ifdef ENABLE_MPI
+  // if (myrank != MASTERRANK){ // master only reads and dispatches input
+  // #endif
   if (write_sumtab_opt[0]=='y'){ // Should introduce some check.
     #ifdef ENABLE_MPI
     sprintf(dummyStr, "./outputs/seed_clus_part%d.dat", myrank);
@@ -1386,9 +1413,9 @@ FrFiRMode reading mode for fragment input file (only relevant for MPI runs):
     }
     TabOutStream.close();
   }
-  #ifdef ENABLE_MPI
-  }
-  #endif
+  // #ifdef ENABLE_MPI
+  // }
+  // #endif
 
   int CurFraTot = 0; /* Current fragment in the file (counting also skipped ones) clangini */
   int SkiFra = 0; /* Counter of skipped fragments clangini*/
@@ -1397,19 +1424,30 @@ FrFiRMode reading mode for fragment input file (only relevant for MPI runs):
 
   std::ifstream FrInStream; /* declare input stream for the fragment */
   std::streampos FrInPos;
-  #ifdef ENABLE_MPI
-  if (myrank == MASTERRANK){
-  #endif
-  
-  FrInStream.open(FrFiNa, std::ios_base::binary); /* open input stream for the fragment */
-  if (FrInStream.fail()) {
-    fprintf(stderr,"Cannot open specified input file %s\nProgram exits!\n",FrFiNa);
-    exit(13);
+
+#ifdef ENABLE_MPI
+  if (strcmp(FrFiRMode, "single") == 0){
+    if (myrank == MASTERRANK){
+      FrInStream.open(FrFiNa, std::ios_base::binary); /* open input stream for the fragment */
+      if (FrInStream.fail())
+      {
+        fprintf(stderr, "Cannot open specified input file %s\nProgram exits!\n", FrFiNa);
+        exit(13);
+      }
+      FrInPos = FrInStream.tellg(); /* Save the get position */
+    }
+  } else {
+#endif
+    FrInStream.open(FrFiNa, std::ios_base::binary); /* open input stream for the fragment */
+    if (FrInStream.fail())
+    {
+      fprintf(stderr, "Cannot open specified input file %s\nProgram exits!\n", FrFiNa);
+      exit(13);
+    }
+    FrInPos = FrInStream.tellg(); /* Save the get position */
+#ifdef ENABLE_MPI
   }
-  FrInPos = FrInStream.tellg(); /* Save the get position */
-  #ifdef ENABLE_MPI 
-  }
-  #endif 
+#endif
 
   if (write_pproc_opt[0]=='y'){
     /* FILE *FilePa;*/
@@ -1457,48 +1495,88 @@ FrFiRMode reading mode for fragment input file (only relevant for MPI runs):
 
     /* ReFrFi_mol2 has been reimplemented in C++ clangini */
     /* Reads the next valid molecule. If it detects any problems it skips the molecule. clangini */
-  
 #ifdef ENABLE_MPI
-    if (myrank == MASTERRANK){ 
-      LstFra_f = MPI_ReFrFi_mol2(&FrInStream,&FrInPos,rkreqs,readies, &firsttime);
-      // std::cerr << "rank " << myrank << " ended reading with status " << LstFra_f << std::endl;
-    } else {
-      LstFra_f = MPI_slave_ReFrFi_mol2(&SkiFra,&CurFraTot,FragNa,
-                      FragNa_str,&FrAtNu,&FrBdNu,
-                      &FrAtEl, &FrCoor,&FrAtTy,&FrSyAtTy,
-                      &FrPaCh,
-                      &FrBdAr,&FrBdTy,FrSubN,FrSubC,
-                      &FrCoNu, &SubNa, AlTySp);
-      // std::cerr << "rank " << myrank << " ended readig with status " << LstFra_f << std::endl;
-      if(LstFra_f == -1){
-        continue;
+    if (strcmp(FrFiRMode, "single") == 0){
+      if (myrank == MASTERRANK)
+      {
+        LstFra_f = MPI_ReFrFi_mol2(&FrInStream, &FrInPos, rkreqs, readies, &firsttime);
+        // std::cerr << "rank " << myrank << " ended reading with status " << LstFra_f << std::endl;
       }
-    }
-#else 
-    LstFra_f = ReFrFi_mol2(&FrInStream,&FrInPos,&SkiFra,&CurFraTot,FragNa,
-                           FragNa_str,
-                           &FrAtNu,&FrBdNu,&FrAtEl,&FrCoor,&FrAtTy,&FrSyAtTy,
-                           &FrPaCh,&FrBdAr,&FrBdTy,FrSubN,FrSubC,&FrCoNu,
-                           &SubNa,AlTySp);
+      else
+      {
+        LstFra_f = MPI_slave_ReFrFi_mol2(&SkiFra, &CurFraTot, FragNa,
+                                         FragNa_str, &FrAtNu, &FrBdNu,
+                                         &FrAtEl, &FrCoor, &FrAtTy, &FrSyAtTy,
+                                         &FrPaCh,
+                                         &FrBdAr, &FrBdTy, FrSubN, FrSubC,
+                                         &FrCoNu, &SubNa, AlTySp);
+        // std::cerr << "rank " << myrank << " ended readig with status " << LstFra_f << std::endl;
+        if (LstFra_f == -1) // skip frag
+        {
+          continue;
+        }
+      }
+    } else {
 #endif
+      LstFra_f = ReFrFi_mol2(&FrInStream, &FrInPos, &SkiFra, &CurFraTot, FragNa,
+                             FragNa_str,
+                             &FrAtNu, &FrBdNu, &FrAtEl, &FrCoor, &FrAtTy, &FrSyAtTy,
+                             &FrPaCh, &FrBdAr, &FrBdTy, FrSubN, FrSubC, &FrCoNu,
+                             &SubNa, AlTySp);
+#ifdef ENABLE_MPI
+    }
+#endif
+
+// #ifdef ENABLE_MPI
+//     if (myrank == MASTERRANK){ 
+//       LstFra_f = MPI_ReFrFi_mol2(&FrInStream,&FrInPos,rkreqs,readies, &firsttime);
+//       // std::cerr << "rank " << myrank << " ended reading with status " << LstFra_f << std::endl;
+//     } else {
+//       LstFra_f = MPI_slave_ReFrFi_mol2(&SkiFra,&CurFraTot,FragNa,
+//                       FragNa_str,&FrAtNu,&FrBdNu,
+//                       &FrAtEl, &FrCoor,&FrAtTy,&FrSyAtTy,
+//                       &FrPaCh,
+//                       &FrBdAr,&FrBdTy,FrSubN,FrSubC,
+//                       &FrCoNu, &SubNa, AlTySp);
+//       // std::cerr << "rank " << myrank << " ended readig with status " << LstFra_f << std::endl;
+//       if(LstFra_f == -1){
+//         continue;
+//       }
+//     }
+// #else 
+//     LstFra_f = ReFrFi_mol2(&FrInStream,&FrInPos,&SkiFra,&CurFraTot,FragNa,
+//                            FragNa_str,
+//                            &FrAtNu,&FrBdNu,&FrAtEl,&FrCoor,&FrAtTy,&FrSyAtTy,
+//                            &FrPaCh,&FrBdAr,&FrBdTy,FrSubN,FrSubC,&FrCoNu,
+//                            &SubNa,AlTySp);
+// #endif
     // gettimeofday(&time_read, NULL);
 
     if (LstFra_f == 1){
-      #ifdef ENABLE_MPI
-      if (myrank == MASTERRANK){
-      #endif
-      std::cerr << "\tNo more fragments in input file " << FrFiNa << std::endl;
-      #ifdef ENABLE_MPI 
+#ifdef ENABLE_MPI
+      if (strcmp(FrFiRMode, "single") == 0){
+        if (myrank == MASTERRANK)
+        {
+          std::cerr << "\tNo more fragments in input file " << FrFiNa << std::endl;
+        }
+        break;
+      } else {
+#endif
+        std::cerr << "\tNo more fragments in input file " << FrFiNa << std::endl;
+        break;
+#ifdef ENABLE_MPI
       }
-      #endif
-      break;
+#endif
     }
 
-    #ifdef ENABLE_MPI
-    // masterrank only does reading and dispatching 
-    if (myrank == MASTERRANK) continue;
-    #endif 
-    
+#ifdef ENABLE_MPI
+    if (strcmp(FrFiRMode, "single") == 0)
+    {
+      // masterrank only does reading and dispatching
+      if (myrank == MASTERRANK)
+        continue;
+    }
+#endif 
     //CurFraTot++; //This is updated in ReFrFi_mol2
     if ( ++FragNa_map[FragNa_str] > 1){
       sprintf(buff, "$%d",FragNa_map[FragNa_str]);
@@ -5221,8 +5299,10 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
       fprintf(stdout, "\nMax execution time across all ranks (Total execution time): %.2f seconds\n", max_time);
     }
     /* clean-up MPI stuff */
-    delete [] rkreqs;
-    delete [] readies;
+    if (strcmp(FrFiRMode, "single") == 0) {
+      delete[] rkreqs;
+      delete [] readies;
+    }
     #endif
 
     /* clean-up */
