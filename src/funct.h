@@ -60,7 +60,7 @@
             double *gc_weighneg,double *gc_weighpos,int *gc_maxwrite,
             char *write_pproc_opt,char *write_pproc_chm_opt,int *CorrFiNumb);*/
 void ReInFi(char *InpFil,char *RecFil,int *BSResN,int **BSReNu,
-            char *FrFiNa,char *TREFiP,double *SphAng,
+            char *FrFiNa,char *TREFiP, char* FrFiRMode, double *SphAng,
             int *SphPoN,int *NuRoAx,double *VdWFaB,double *CoDieV,int *CoDieP,
             double *CoGrIn,double *CoGrSi,char *OutFil,double *BuEvFa,
             double *FrMaEn,double *PsSpRa,double *GrSiCu_en,

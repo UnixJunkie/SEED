@@ -62,126 +62,126 @@ using namespace std;
 
 int main(int argc,char *argv[])
   /* Main part of the program :
-     FPaOut  pointer for the output file
-     SeFrCo  seeded fragment coordinates
-     RoSFCo  coordinates of the rotated seeded fragment
-     WriPat  path for the output file
-     WriNam  name to be written in the output file
-     SFWrNu  number of written seeded fragments
-     AnglRo  fragment rotation angle
-     TREFiP  path of the file which contains the parameters
-     ReVdWR  receptor van der Waals radii
-     ReVdWE  receptor van der Waals energies
-     FrVdWR  fragment van der Waals radii
-     FrVdWE  fragment van der Waals energies
-     ReVdWE_sr  square root of receptor van der Waals energies
-     FrVdWE_sr  square root of fragment van der Waals energies
-     FrAcce  fragment accepted or not (1 -> yes, 0 -> no)
-     BumpMa  maximum number of tolerated bumps
-     NuRoAx  number of fragment rotations around each axis
-     RecHyN  receptor hydrogen number in the current vector (0 if no hydrogen)
-     FraHyN  fragment hydrogen number in the current vector (0 if no hydrogen)
-     FrMaEn  maximal total energy for each type of fragment
-     FrNuTo  total number of generated fragments of the current type
-     FrNuPB  number of generated fragments of the current type that passed the
-     bump checking
-     VWEnEv_ps  evaluation of the van der Waals energy (pseudo-sphere approach)
-     ToNFrP  total number of fragment positions
-     FrCoPo  vector of pointers pointing to matrices of fragment coordinates
-     FraEqu  equivalence between the fragments
-     ClusNu  number of fragment clusters
-     FraSim_no  normalization for the similarity number between two fragments
-     Dist_sq  squared distance
-     ClusIn  indexes for the cluster list done with GSEAL
-     ClusLi  cluster list done with GSEAL
-     FraSim_no_sd  normalization for the similarity number between two fragments
-     for the second GSEAL
-     FraEqu_sd  equivalence between the fragments for the second GSEAL
-     PrintVa  variable used in the printing process
-     ClusVa_1  variable used in the clustering process
-     ClusVa_2  variable used in the clustering process
-     ClusVa_3  variable used in the clustering process
-     ClusLi_sd  cluster list done with the second GSEAL
-     ClusLi_sd_01  cluster indexation for the second GSEAL (1->all the represen-
-     tatives,0->in the clusters)
-     FilChk  file existence checking
-     ReAtEl_nu  atom element numbers array of the receptor
-     FrAtEl_nu  atom element numbers array of the fragment
-     HybReAt  hybridization state of the receptor atoms (2 -> sp2, 3 -> sp3,
-     0 -> no hybridization state found)
-     HybFrAt  hybridization state of the fragment atoms (2 -> sp2, 3 -> sp3,
-     0 -> no hybridization state found)
-     ReApAt  receptor atom which is the origin of the vector used for the
-     seeding of apolar fragments
-     FrApAt  fragment atom which is the extremity of the vector used for the
-     seeding of apolar fragments
-     apol_Vect_re  receptor vectors used for the seeding of apolar fragments
-     apol_Vect_fr  fragment vectors used for the seeding of apolar fragments
-     FrMinC  minimal coordinates of the fragment in each direction (x,y,z)
-     FrMaxC  maximal coordinates of the fragment in each direction (x,y,z)
-     SpPoCh_bool  fragment position in the specified sphere (1->yes,0->no)
-     FrNuSp  number of fragments kept in the specified sphere
-     SpPoCh_gc  geometric center of the fragment
-     SpPoCh_dist  squared distance between the geometric center of the fragment
-     and the center of the specified sphere
-     SpPoCh_rad_sq  squared radius of the sphere for the checking of the fragment
-     position
-     SFWrNu_ar  array of the finally kept number of fragment positions for each
-     fragment type
-     ClusLi_sd_01_reduc  same comment as for ClusLi_sd_01 but keeping only a
-     reduced number of representatives
-     ClusVa_4  variable used in the clustering process
-     ReAtoTyp_nu  receptor atom type numbering
-     FrAtoTyp_nu  fragment atom type numbering
-     VdWCoff_ap  van der Waals energy cutoff in the seeding of apolar fragments
-     FrNuVdW_ap  number of fragments that passed vdW energy checking (only for
-     apolar fragments)
-  FileTemp  temporary file used to write the energies during the generation
-  of the fragment positions (before the sorting)  -> removed Dey
-ClusVa_wr  variable used in the clustering process (for writing)
-  ChkExit  1 if any problem (program exits), 0 if not
-  FrCoNu  number of conformations of the current fragment type
-  Ind_num_cn  index number of the current conformation
-  FrCoor_clus  coordinates of a fragment for computing the normalization
-  in the clustering procedure
-  ConfArr  array of conformations numbers
-  FraSim_no_max  normalization (maximum) for the clustering procedure
-  ReVdWR_p3  power of 3 of the receptor van der Waals radii
-  FrVdWR_p3  power of 3 of the fragment van der Waals radii
-  VW_f  van der Waals energy (fast algorithm)
-  VW_s  van der Waals energy (slow algorithm)
-  In_f  electrostatic interaction energy (fast algorithm)
-  In_s  electrostatic interaction energy (slow algorithm)
-  Dr_f  desolvation of the receptor (fast algorithm)
-  Dr_s  desolvation of the receptor (slow algorithm)
-  Df_f  desolvation of the fragment (fast algorithm)
-  Df_s  desolvation of the fragment (slow algorithm)
-  To_f  total energy (fast algorithm)
-To_s  total energy (slow algorithm)
-  Index_both  index array for sorting lists if both (SLOW and FAST) methods are used
-  TotEn_both  total energy array for sorting lists if both (SLOW and FAST) methods are used
-  ClusLi_sd_pproc  cluster indexation for the second GSEAL for the postprocessing
-  (2->representative of the first GSEAL,1->representative of the
-   second GSEAL(only a reduced number),0->in the clusters)
-  NuSdClKe  number of second clusters which are kept (energy of the cluster
-      representative below a user-given cutoff)
-  NuPosSdCl  total number of kept positions which are members of the kept
-second clusters (representative included)
-  FrPosAr_pproc  array containing the number of the fragment position for the
-  postprocessing
-  SdClusAr_pproc  array containing the number of the second cluster to which
-  belongs the fragment position for the postprocessing
-  TotEnSdClus_pproc  array containing the total energy (slow method) of the
-  second cluster (kept positions) for the postprocessing
-  IntVar1  integer variable used as an index
-  IntVar2  integer variable used as an index
-  Index_pproc  array of indexes for the postprocessing (sorting step)
-  FrPosAr_sort  array containing the number of the fragment position for the
+    FPaOut  pointer for the output file
+    SeFrCo  seeded fragment coordinates
+    RoSFCo  coordinates of the rotated seeded fragment
+    WriPat  path for the output file
+    WriNam  name to be written in the output file
+    SFWrNu  number of written seeded fragments
+    AnglRo  fragment rotation angle
+    TREFiP  path of the file which contains the parameters
+    ReVdWR  receptor van der Waals radii
+    ReVdWE  receptor van der Waals energies
+    FrVdWR  fragment van der Waals radii
+    FrVdWE  fragment van der Waals energies
+    ReVdWE_sr  square root of receptor van der Waals energies
+    FrVdWE_sr  square root of fragment van der Waals energies
+    FrAcce  fragment accepted or not (1 -> yes, 0 -> no)
+    BumpMa  maximum number of tolerated bumps
+    NuRoAx  number of fragment rotations around each axis
+    RecHyN  receptor hydrogen number in the current vector (0 if no hydrogen)
+    FraHyN  fragment hydrogen number in the current vector (0 if no hydrogen)
+    FrMaEn  maximal total energy for each type of fragment
+    FrNuTo  total number of generated fragments of the current type
+    FrNuPB  number of generated fragments of the current type that passed the
+    bump checking
+    VWEnEv_ps  evaluation of the van der Waals energy (pseudo-sphere approach)
+    ToNFrP  total number of fragment positions
+    FrCoPo  vector of pointers pointing to matrices of fragment coordinates
+    FraEqu  equivalence between the fragments
+    ClusNu  number of fragment clusters
+    FraSim_no  normalization for the similarity number between two fragments
+    Dist_sq  squared distance
+    ClusIn  indexes for the cluster list done with GSEAL
+    ClusLi  cluster list done with GSEAL
+    FraSim_no_sd  normalization for the similarity number between two fragments
+    for the second GSEAL
+    FraEqu_sd  equivalence between the fragments for the second GSEAL
+    PrintVa  variable used in the printing process
+    ClusVa_1  variable used in the clustering process
+    ClusVa_2  variable used in the clustering process
+    ClusVa_3  variable used in the clustering process
+    ClusLi_sd  cluster list done with the second GSEAL
+    ClusLi_sd_01  cluster indexation for the second GSEAL (1->all the represen-
+    tatives,0->in the clusters)
+    FilChk  file existence checking
+    ReAtEl_nu  atom element numbers array of the receptor
+    FrAtEl_nu  atom element numbers array of the fragment
+    HybReAt  hybridization state of the receptor atoms (2 -> sp2, 3 -> sp3,
+    0 -> no hybridization state found)
+    HybFrAt  hybridization state of the fragment atoms (2 -> sp2, 3 -> sp3,
+    0 -> no hybridization state found)
+    ReApAt  receptor atom which is the origin of the vector used for the
+    seeding of apolar fragments
+    FrApAt  fragment atom which is the extremity of the vector used for the
+    seeding of apolar fragments
+    apol_Vect_re  receptor vectors used for the seeding of apolar fragments
+    apol_Vect_fr  fragment vectors used for the seeding of apolar fragments
+    FrMinC  minimal coordinates of the fragment in each direction (x,y,z)
+    FrMaxC  maximal coordinates of the fragment in each direction (x,y,z)
+    SpPoCh_bool  fragment position in the specified sphere (1->yes,0->no)
+    FrNuSp  number of fragments kept in the specified sphere
+    SpPoCh_gc  geometric center of the fragment
+    SpPoCh_dist  squared distance between the geometric center of the fragment
+    and the center of the specified sphere
+    SpPoCh_rad_sq  squared radius of the sphere for the checking of the fragment
+    position
+    SFWrNu_ar  array of the finally kept number of fragment positions for each
+    fragment type
+    ClusLi_sd_01_reduc  same comment as for ClusLi_sd_01 but keeping only a
+    reduced number of representatives
+    ClusVa_4  variable used in the clustering process
+    ReAtoTyp_nu  receptor atom type numbering
+    FrAtoTyp_nu  fragment atom type numbering
+    VdWCoff_ap  van der Waals energy cutoff in the seeding of apolar fragments
+    FrNuVdW_ap  number of fragments that passed vdW energy checking (only for
+    apolar fragments)
+    FileTemp  temporary file used to write the energies during the generation
+    of the fragment positions (before the sorting)  -> removed Dey
+    ClusVa_wr  variable used in the clustering process (for writing)
+    ChkExit  1 if any problem (program exits), 0 if not
+    FrCoNu  number of conformations of the current fragment type
+    Ind_num_cn  index number of the current conformation
+    FrCoor_clus  coordinates of a fragment for computing the normalization
+    in the clustering procedure
+    ConfArr  array of conformations numbers
+    FraSim_no_max  normalization (maximum) for the clustering procedure
+    ReVdWR_p3  power of 3 of the receptor van der Waals radii
+    FrVdWR_p3  power of 3 of the fragment van der Waals radii
+    VW_f  van der Waals energy (fast algorithm)
+    VW_s  van der Waals energy (slow algorithm)
+    In_f  electrostatic interaction energy (fast algorithm)
+    In_s  electrostatic interaction energy (slow algorithm)
+    Dr_f  desolvation of the receptor (fast algorithm)
+    Dr_s  desolvation of the receptor (slow algorithm)
+    Df_f  desolvation of the fragment (fast algorithm)
+    Df_s  desolvation of the fragment (slow algorithm)
+    To_f  total energy (fast algorithm)
+    To_s  total energy (slow algorithm)
+    Index_both  index array for sorting lists if both (SLOW and FAST) methods are used
+    TotEn_both  total energy array for sorting lists if both (SLOW and FAST) methods are used
+    ClusLi_sd_pproc  cluster indexation for the second GSEAL for the postprocessing
+    (2->representative of the first GSEAL,1->representative of the
+    second GSEAL(only a reduced number),0->in the clusters)
+    NuSdClKe  number of second clusters which are kept (energy of the cluster
+    representative below a user-given cutoff)
+    NuPosSdCl  total number of kept positions which are members of the kept
+    second clusters (representative included)
+    FrPosAr_pproc  array containing the number of the fragment position for the
+    postprocessing
+    SdClusAr_pproc  array containing the number of the second cluster to which
+    belongs the fragment position for the postprocessing
+    TotEnSdClus_pproc  array containing the total energy (slow method) of the
+    second cluster (kept positions) for the postprocessing
+    IntVar1  integer variable used as an index
+    IntVar2  integer variable used as an index
+    Index_pproc  array of indexes for the postprocessing (sorting step)
+    FrPosAr_sort  array containing the number of the fragment position for the
     postprocessing after sorting
-  SdClusAr_sort  array containing the number of the second cluster to which
+    SdClusAr_sort  array containing the number of the second cluster to which
     belongs the fragment position for the postprocessing after
     sorting (new order)
-  FlagAr  flag array
+    FlagAr  flag array
   ReprSdClAr  array containing the representatives of the conserved second
     clusters after postprocessing
   CluIndex_sort  array to go from cluster index number (SdClusAr_pproc) to cluster
@@ -194,6 +194,9 @@ second clusters (representative included)
 ChkInGrid  check if ligand lies in grid(s) (1->yes,0->no)
   vdwErr,clbErr print "out of grid"-warnings only once per fragment
 TotFra fragment counter (both sane and failed fragments). For the sane only, CurFra will be used. (clangini)
+FrFiRMode reading mode for fragment input file (only relevant for MPI runs):
+  single: reads single input file.
+  multi: looks for file named as FrFiNa_partXXX where FrFiNa goes from 0 to nranks-1
   */
 
 {
@@ -281,14 +284,13 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   /* CLANGINI 2016 */
   std::vector<int> PosToRem;
   struct stat DirExist;
-  char TabLin[_STRLENGTH]; //clangini
+  char TabLin[_STRLENGTH], FrFiRMode[10]; //clangini
   std::ofstream TabOutStream; //clangini
   double *FrEffRad_bound, *ReEffRad_bound; // Lower bound for the Born Effective radius (frg and rec)
   int HeAtCo = 0; // HeAtCo = Heavy Atom Count clangini
   double *AtWei; // list of atomic weights clangini
   double MolWei = 0.0; // Molecular Weight clangini
   int *CluIndex_sort; // Array Clu index number -> sorted Clu index number clangini
-  double *FrEffRad_bound, *ReEffRad_bound; // Lower bound for the Born Effective radius (frg and rec)
   std::string AlTySp;
   std::string FragNa_str; //C++ string equivalent to FragNa
 #if  __cplusplus > 199711L
@@ -424,7 +426,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   //SimWei=matrix(1,150,1,150); clangini
   SimWei=dmatrix(0,150,0,150); //Want to use atom element 0 for lone pair. clangini
 
-  ReInFi(InpFil,RecFil,&BSResN,&BSReNu,FrFiNa,TREFiP,
+  ReInFi(InpFil,RecFil,&BSResN,&BSReNu,FrFiNa,TREFiP,FrFiRMode,
       &SphAng,&SphPoN,&NuRoAx,&VdWFaB,&CoDieV,&CoDieP,&CoGrIn,&CoGrSi,
       OutFil,&BuEvFa,&FrMaEn,&PsSpRa,&GrSiCu_en,&FiNuMa,&GrInSo,
       &GrSiSo,&WaMoRa,&NPtSphere,&DielWa,&DielRe,ReDesoAlg,DesoMapAcc,
@@ -441,7 +443,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
       &gc_weighpos,&gc_maxwrite,write_pproc_opt,write_pproc_chm_opt,
       write_best_opt,write_sumtab_opt,write_best_sumtab_opt,&AtWei);/*clangini*/
   /* Check presence of parameter file */
-  CheckFile(TREFiP,'r'); /* clangini This is superflous after already having read the parameters*/
+  // CheckFile(TREFiP,'r'); // already in ReInFi
 
   SpPoCh_rad_sq=SpPoCh_rad*SpPoCh_rad;
   /* SFWrNu_ar=ivector(1,FragNu); clangini 2016 ?? */
@@ -1457,7 +1459,6 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
     /* Reads the next valid molecule. If it detects any problems it skips the molecule. clangini */
   
 #ifdef ENABLE_MPI
-    //std::cerr << "============ Start of loop for rank "<< myrank << " ============" << std::endl;
     if (myrank == MASTERRANK){ 
       LstFra_f = MPI_ReFrFi_mol2(&FrInStream,&FrInPos,rkreqs,readies, &firsttime);
       // std::cerr << "rank " << myrank << " ended reading with status " << LstFra_f << std::endl;

@@ -63,7 +63,7 @@
             double *gc_weighneg,double *gc_weighpos,int *gc_maxwrite,
             char *write_pproc_opt,char *write_pproc_chm_opt,int *CorrFiNumb)*/
 void ReInFi(char *InpFil,char *RecFil,int *BSResN,int **BSReNu,
-            char *FrFiNa,char *TREFiP,double *SphAng,
+            char *FrFiNa,char *TREFiP, char *FrFiRMode, double *SphAng,
             int *SphPoN,int *NuRoAx,double *VdWFaB,double *CoDieV,int *CoDieP,
             double *CoGrIn,double *CoGrSi,char *OutFil,double *BuEvFa,
             double *FrMaEn,double *PsSpRa,double *GrSiCu_en,
@@ -85,8 +85,8 @@ void ReInFi(char *InpFil,char *RecFil,int *BSResN,int **BSReNu,
             char *VWGrFile,int *MaxPosClus,int *PrintLev,
             int *NumbAT,char ***AtTyAr,int **AtENAr,double **VdWRad,
             double **VdWEne,double ***BLAtTy,int *distrPointBSNumb,
-	    double ***distrPointBS,double *angle_rmin,double *angle_rmax,
-	    double *mult_fact_rmin,double *mult_fact_rmax,char *EmpCorrB,
+	          double ***distrPointBS,double *angle_rmin,double *angle_rmax,
+	          double *mult_fact_rmin,double *mult_fact_rmax,char *EmpCorrB,
             char *gc_opt,int *gc_reprke,double *gc_cutclus,double *gc_endifclus,
             double *gc_weighneg,double *gc_weighpos,int *gc_maxwrite,
             char *write_pproc_opt,char *write_pproc_chm_opt,char *write_best_opt,
@@ -286,10 +286,20 @@ void ReInFi(char *InpFil,char *RecFil,int *BSResN,int **BSReNu,
   fgets_wrapper(StrLin,_STRLENGTH,FilePa);
   //sscanf(StrLin, "%s%s%lf%lf", FrFiNa_L, ApPoChoi_L, FrMaEn, FrMaEn_sd);
   sscanf(StrLin, "%s%s%lf%lf", FrFiNa, ApPoChoi, FrMaEn, FrMaEn_sd);
-  //*FrFiNa = FrFiNa_L;
-  //*ApPoChoi = ApPoChoi_L;
 
-  /*FrFiNa_L=cmatrix(1,*FragNu,1,_STRLENGTH);
+  SkipComLin(FilePa, StrLin);
+  sscanf(StrLin, "%s", FrFiRMode);
+
+  // Check if FrFiRMode is valid:
+  if (!((strcmp(FrFiRMode, "single") == 0) || (strcmp(FrFiRMode, "multi") == 0)))
+  {
+    fprintf(stderr, "Library reading mode is not valid. single mode will be used.\n");
+    strcpy(FrFiRMode, "single");
+  }
+    //*FrFiNa = FrFiNa_L;
+    //*ApPoChoi = ApPoChoi_L;
+
+    /*FrFiNa_L=cmatrix(1,*FragNu,1,_STRLENGTH);
   FrMaEn_L=vector(1,*FragNu);
   FrMaEn_sd_L=vector(1,*FragNu);
   ApPoChoi_L=cmatrix(1,*FragNu,1,2);
@@ -298,7 +308,7 @@ void ReInFi(char *InpFil,char *RecFil,int *BSResN,int **BSReNu,
   *FrMaEn_sd=FrMaEn_sd_L;
   *ApPoChoi=ApPoChoi_L; */
 
-  /* *CorrFiNumb=0;
+    /* *CorrFiNumb=0;
   for (i=1;i<=*FragNu;i++) {
     fgets_wrapper(StrLin,_STRLENGTH,FilePa);
     sscanf(StrLin,"%s%s%lf%lf",FrFiNa_L[i]+1,ApPoChoi_L[i]+1,&FrMaEn_L[i],
@@ -314,12 +324,11 @@ void ReInFi(char *InpFil,char *RecFil,int *BSResN,int **BSReNu,
 
   }*/
 
-  fclose(FilePa);
+    fclose(FilePa);
 
-
-/* ---------------------------------------------- */
-/* ---------- Read the parameters file ---------- */
-/* ---------------------------------------------- */
+  /* ---------------------------------------------- */
+  /* ---------- Read the parameters file ---------- */
+  /* ---------------------------------------------- */
 
   FilePa=fopen(TREFiP,"r");
 
