@@ -299,33 +299,52 @@ void ReReFi_mol2(char *RecFil,int *ReAtNu,int *ReBdNu,int *ReReNu,
   ++itItem; // skip the alternative atom type set name
   AtCount = 0;
   AtNu_flag = false;
-  while (AtCount < *ReAtNu){
-    if (*itItem != "\\"){
-      if (!AtNu_flag){
-        CuAtNu =  boost::lexical_cast<int>(*itItem); // Current atom number
+  while (itItem != tokens.end())
+  {
+    if (*itItem != "\\")
+    {
+      if (!AtNu_flag)
+      {
+        CuAtNu = boost::lexical_cast<int>(*itItem); // Current atom number
         AtNu_flag = true;
         ++itItem;
-      } else {
+      }
+      else
+      {
         //FrAtTy_L[CuAtNu][1] = (*itItem).c_str();
         //std::cout<<"Atom type for atom "<<AtCount+1<<": "<<(*itItem)<<std::endl;
-        strcpy(&ReAtTy_L[CuAtNu][1],(*itItem).c_str());
-        //std::cout<<"Atom type for atom "<<CuAtNu<<": "<<(*FrAtTy)[CuAtNu][1]<<std::endl;
+        strcpy(&ReAtTy_L[CuAtNu][1], (*itItem).c_str());
+        // std::cout << "Atom type for atom " << CuAtNu << ": " << (*ReAtTy)[CuAtNu][1] << std::endl; // debug
         //std::cout<<"Atom type for atom "<<AtCount+1<<": "<<FrAtTy_L[CuAtNu][1]<<std::endl;
         ++AtCount;
         ++itItem;
         AtNu_flag = false;
       }
-    } else {
+    }
+    else
+    {
       //StrLin = getline(inStream);
-      std::getline(inStream,StrLin);
+      std::getline(inStream, StrLin);
       //tokenizer tokens(StrLin, sep);
       tokens.assign(StrLin, sep);
       //tokenizer::const_iterator itItem = tokens.begin();
       itItem = tokens.begin();
     }
+    // cout << *ReAtNu << "  " << CuAtNu << "   " << AtCount << endl; // debug
   }
-  //cout << "Receptor Atom Types read" << endl;
   inStream.close();
+
+  if (AtCount < *ReAtNu){
+    std::cerr << "List of alternative atom types of receptor"
+              << "is not complete\nProgram exits!" << endl;
+    exit(13);
+  }
+  else if (AtCount > *ReAtNu){
+    std::cerr << "List of alternative atom types of receptor"
+              << "is too long. "
+              << "There might be duplicates.\nProgram exits!" << endl;
+    exit(13);
+  }
 
 // /* Read ReAtNu ReBdNu ReReNu */
 //   fgets_wrapper(StrLin,_STRLENGTH,FilePa);

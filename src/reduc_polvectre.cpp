@@ -33,9 +33,9 @@ void Reduc_polvectre(int ReAtNu,double **ReCoor,double *ReVdWR,double *ReVdWE_sr
                      int ReAcNu,int ReDoNu,int *ReDATy,int *ReDAAt,int *ReHydN,
                      double **ReVeCo,double RedRPV_rp,double RedRPV_nkvRatio, /*new double RedRPV_nkvRatio,*/
                      int *PolVect_rec_01,FILE *FPaOut,
-		     int distrPointBSNumb,double **distrPointBS,double angle_rmin,
-		     double angle_rmax,double mult_fact_rmin,double mult_fact_rmax,
-		     double Sphere_apol)
+		                 int distrPointBSNumb,double **distrPointBS,double angle_rmin,
+		                 double angle_rmax,double mult_fact_rmin,double mult_fact_rmax,
+		                 double Sphere_apol)
 /* This function reduces the number of polar vectors of the receptor by
    evaluating van der Waals energies of a probe located on these vectors :
    RedRPV_rp  van der Waals radius of the probe
@@ -71,6 +71,8 @@ void Reduc_polvectre(int ReAtNu,double **ReCoor,double *ReVdWR,double *ReVdWE_sr
                    in case of angle cutoff criterion
    keptVect_angle_numb  number of rec polar vectors kept after angle
                         cutoff criterion applied
+   isAngleCritAppr are the params for the angle criterion appropriate? 
+                   if they are not, use the more lenient angle for all the vectors
    vect_angle_stored  array for storing angle for each vector
    ReVeCo_elongated  in such a way the rec polar vectors are on a kind
                      of SAS */
@@ -84,6 +86,7 @@ void Reduc_polvectre(int ReAtNu,double **ReCoor,double *ReVdWR,double *ReVdWE_sr
 	distSqClosest,vecPointAngle,minSqDistCutoff,maxSqDistCutoff,
 	angleCutoff,angle_rmin_rad,angle_rmax_rad,*vect_angle_stored,
 	ReVeCo_elongated[4];
+  bool isAngleCritAppr;
 
   #ifdef ENABLE_MPI
   int myrank;
@@ -105,8 +108,9 @@ void Reduc_polvectre(int ReAtNu,double **ReCoor,double *ReVdWR,double *ReVdWE_sr
       keptVect_angle[i]=1;
     keptVect_angle_numb=ReAcNu+ReDoNu;
   }
-  angle_rmin_rad=angle_rmin*3.1415927/180.0;
-  angle_rmax_rad=angle_rmax*3.1415927/180.0;
+  angle_rmin_rad = angle_rmin * 3.1415927 / 180.0;
+  angle_rmax_rad = angle_rmax * 3.1415927 / 180.0;
+  isAngleCritAppr = true;
 
 
 
@@ -181,11 +185,11 @@ void Reduc_polvectre(int ReAtNu,double **ReCoor,double *ReVdWR,double *ReVdWE_sr
 
     if (minSqDistCutoff>=maxSqDistCutoff)
     {
-      fprintf(FPaOut,"WARNING Parameters for reducing vectors ");
+      fprintf(FPaOut,"WARNING Parameters for reducing polar vectors ");
       fprintf(FPaOut,"(angle criterion) not appropriate\n");
-      fclose(FPaOut);
-      printf("Program exits\n");
-      exit(0);
+      fprintf(FPaOut,"The angle for short distances (parameter p14_1) ");
+      fprintf(FPaOut,"will be used in all the cases\n");
+      isAngleCritAppr = false;
     }
 
 
@@ -193,7 +197,6 @@ void Reduc_polvectre(int ReAtNu,double **ReCoor,double *ReVdWR,double *ReVdWE_sr
    discard vector if angle cutoff criterion not satisfied */
     for (i=1;i<=(ReAcNu+ReDoNu);i++)
     {
-
 /* find the closest point */
       closestPoint=-1;
       distSqClosest=1000000.0;
@@ -202,72 +205,78 @@ void Reduc_polvectre(int ReAtNu,double **ReCoor,double *ReVdWR,double *ReVdWE_sr
       {
 
         if (ReDATy[i]==0)
-	  PoCoVe(ReVeCo[i][1],ReVeCo[i][2],ReVeCo[i][3],
-	         ReVeCo[i][4],ReVeCo[i][5],ReVeCo[i][6],
-                 ReVdWR[ReDAAt[i]]+Sphere_apol,
-		 &(ReVeCo_elongated[1]),
-		 &(ReVeCo_elongated[2]),
-		 &(ReVeCo_elongated[3]));
-	else
-	  PoCoVe(ReVeCo[i][4],ReVeCo[i][5],ReVeCo[i][6],
-	         ReVeCo[i][1],ReVeCo[i][2],ReVeCo[i][3],
-                 ReVdWR[ReDAAt[i]]+Sphere_apol,
-		 &(ReVeCo_elongated[1]),
-		 &(ReVeCo_elongated[2]),
-		 &(ReVeCo_elongated[3]));
+	        PoCoVe(ReVeCo[i][1],ReVeCo[i][2],ReVeCo[i][3],
+	              ReVeCo[i][4],ReVeCo[i][5],ReVeCo[i][6],
+                ReVdWR[ReDAAt[i]]+Sphere_apol,
+		            &(ReVeCo_elongated[1]),
+		            &(ReVeCo_elongated[2]),
+		            &(ReVeCo_elongated[3]));
+	      else
+	        PoCoVe(ReVeCo[i][4],ReVeCo[i][5],ReVeCo[i][6],
+	              ReVeCo[i][1],ReVeCo[i][2],ReVeCo[i][3],
+                ReVdWR[ReDAAt[i]]+Sphere_apol,
+            		&(ReVeCo_elongated[1]),
+		            &(ReVeCo_elongated[2]),
+		            &(ReVeCo_elongated[3]));
 
-	vecPointSqDist=DistSq(ReVeCo_elongated[1],
+	      vecPointSqDist=DistSq(ReVeCo_elongated[1],
 	                      ReVeCo_elongated[2],
-			      ReVeCo_elongated[3],
-                              distrPointBS[j][1],distrPointBS[j][2],
-		       	      distrPointBS[j][3]);
+			                  ReVeCo_elongated[3],
+                        distrPointBS[j][1],distrPointBS[j][2],
+		       	            distrPointBS[j][3]);
 
         if (vecPointSqDist<distSqClosest)
-	{
-	  distSqClosest=vecPointSqDist;
-	  closestPoint=j;
-	}
+        {
+          distSqClosest=vecPointSqDist;
+          closestPoint=j;
+        }
 
       }
 
       if(closestPoint<0) /* this was not checked previously */
-	continue;
+	      continue;
       /* compute the angle */
       if (ReDATy[i]==0) /* -> error closestPoint == -1 is not checked !!!! */
-	{
+    	{
 
-	vecPointAngle=PlaAng(ReVeCo[i][1],ReVeCo[i][2],ReVeCo[i][3],
-	                     ReVeCo[i][4],ReVeCo[i][5],ReVeCo[i][6],
-                             distrPointBS[closestPoint][1],
-			     distrPointBS[closestPoint][2],
-		       	     distrPointBS[closestPoint][3]);
-	}
+	      vecPointAngle=PlaAng(ReVeCo[i][1],ReVeCo[i][2],ReVeCo[i][3],
+	                    ReVeCo[i][4],ReVeCo[i][5],ReVeCo[i][6],
+                      distrPointBS[closestPoint][1],
+			                distrPointBS[closestPoint][2],
+		       	          distrPointBS[closestPoint][3]);
+    	}
       else
-	vecPointAngle=PlaAng(ReVeCo[i][4],ReVeCo[i][5],ReVeCo[i][6],
-	                     ReVeCo[i][1],ReVeCo[i][2],ReVeCo[i][3],
-                             distrPointBS[closestPoint][1],
-			     distrPointBS[closestPoint][2],
-		   	     distrPointBS[closestPoint][3]);
+	      vecPointAngle=PlaAng(ReVeCo[i][4],ReVeCo[i][5],ReVeCo[i][6],
+	                    ReVeCo[i][1],ReVeCo[i][2],ReVeCo[i][3],
+                      distrPointBS[closestPoint][1],
+			                distrPointBS[closestPoint][2],
+		   	              distrPointBS[closestPoint][3]);
 
       vect_angle_stored[i]=vecPointAngle/3.1415927*180.0;
 
 /* find angle cutoff and apply criterion to keep or discard the vector */
-      if (distSqClosest<=minSqDistCutoff)
-        angleCutoff=angle_rmin_rad;
-      else if (distSqClosest>=maxSqDistCutoff)
-        angleCutoff=angle_rmax_rad;
-      else
-        angleCutoff=angle_rmin_rad+
-	            ((angle_rmax_rad-angle_rmin_rad)/
-	            (sqrt(maxSqDistCutoff)-sqrt(minSqDistCutoff)))*
-                    (sqrt(distSqClosest)-sqrt(minSqDistCutoff));
+      if (isAngleCritAppr)
+      {
+        if (distSqClosest<=minSqDistCutoff)
+          angleCutoff=angle_rmin_rad;
+        else if (distSqClosest>=maxSqDistCutoff)
+          angleCutoff=angle_rmax_rad;
+        else
+          angleCutoff=angle_rmin_rad+
+                ((angle_rmax_rad-angle_rmin_rad)/
+                (sqrt(maxSqDistCutoff)-sqrt(minSqDistCutoff)))*
+                (sqrt(distSqClosest)-sqrt(minSqDistCutoff));
+      }
+      else /* angle criterion not appropriate -> use the more lenient angle */ 
+      {
+        angleCutoff = angle_rmin_rad;
+      }
 
       if (vecPointAngle<=angleCutoff)
       {
         keptVect_angle[i]=1;
-	keptVect_angle_numb++;
+	      keptVect_angle_numb++;
       }
-
     }
 
 
@@ -277,7 +286,7 @@ void Reduc_polvectre(int ReAtNu,double **ReCoor,double *ReVdWR,double *ReVdWE_sr
     if(myrank == MASTERRANK){
     #endif
     FilePa=fopen("./outputs/polar_rec_reduc_angle.mol2","w");
-    fprintf(FilePa,"# TRIPOS MOL2 file generated by WITNOTP\n");
+    fprintf(FilePa,"# TRIPOS MOL2 file generated by SEED\n");
     fprintf(FilePa,"\n");
     fprintf(FilePa,"@<TRIPOS>MOLECULE\n");
     fprintf(FilePa,"polar_rec_reduc_angle\n");
@@ -430,7 +439,7 @@ void Reduc_polvectre(int ReAtNu,double **ReCoor,double *ReVdWR,double *ReVdWE_sr
   if(myrank == MASTERRANK){
   #endif
   FilePa=fopen("./outputs/polar_rec_reduc.mol2","w");
-  fprintf(FilePa,"# TRIPOS MOL2 file generated by WITNOTP\n");
+  fprintf(FilePa,"# TRIPOS MOL2 file generated by SEED\n");
   fprintf(FilePa,"\n");
   fprintf(FilePa,"@<TRIPOS>MOLECULE\n");
   fprintf(FilePa,"polar_rec_reduc\n");

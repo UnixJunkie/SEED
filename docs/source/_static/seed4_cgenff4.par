@@ -56,7 +56,7 @@ w  ./scratch/desolvation.grid
 #           k x Number of fragment atoms, including hydrogen atoms
 -0.333333
 #           Solvation grid: grid margin / grid spacing
-24.0 0.5
+24.0 0.25
 #           Solvation: water radius / # points per sphere to generate SAS / 
 #                       solvent dielectric constant
 1.4 500 78.5
@@ -124,7 +124,7 @@ w  ./scratch/desolvation.grid
 #     Atom  element  van der Waals
 #     type  number  radius energy_min (absolute value)
 #   -----------------------------------
-225
+228
 1      H      1     0.22450 0.046000  # polar H
 2      HC     1     0.22450 0.046000  # N-ter H
 3      HA     1     1.32000 0.022000  # nonpolar H
@@ -350,6 +350,9 @@ w  ./scratch/desolvation.grid
 223    CT     6     2.275   0.020     # TIP3P
 224    OT     8     1.7682  0.1521    # TIP3P
 225    HT     1     0.2245  0.0460    # TIP3P
+226    SG2P1  16    2.0937  0.6308    # mono-thio S-P bond
+227    OG2S1  8     1.6796  0.1423    # mono-thio S-P bond
+228    SG2P2  16    2.0546  0.6199    # di-thio S-P bond
 #
 # Hydrogen bond distances between donor and acceptor
 #

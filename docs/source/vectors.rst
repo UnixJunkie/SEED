@@ -146,6 +146,11 @@ For other distances the angle cutoff value falls between :ref:`p14<p14>`\ :sub:`
 and :ref:`p14<p14>`\ :sub:`2` (linear dependence). 
 Reasonable parameters provide permissive angle cutoffs for vectors close to an 
 anchor point and stricter angle cutoffs for distant vectors. 
+If the choice of :ref:`p14<p14>` is not appropriate, there might be cases 
+where 
+:math:`\delta_{min} \times` :ref:`p14<p14>`\ :sub:`3`:math:`>=\delta_{max} \times` :ref:`p14<p14>`\ :sub:`4`;
+When this happens, the more permissive angle cutoff (:ref:`p14<p14>`\ :sub:`1`) is 
+always used.
 
 Polar and apolar docking
 ------------------------

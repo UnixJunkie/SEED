@@ -31,6 +31,9 @@ understand the format for structural input read by SEED.
 To run the code provided in this tutorial as is, you should set the 
 ``PYTHONSCRIPTS`` variable to ``"SEED/scripts/python"``.
 
+**Note** that the Python scripts we provide were written in Python 2. A few of them
+will require minor modifications to be run with Python 3.
+
 .. _lig_from_pdb:
 
 Ligand Preparation from a PDB 
@@ -201,6 +204,11 @@ preliminary points which should be taken into account:
     visualizing them in PyMOL. If it does not display them properly, they are probably not compliant 
     with the format. Always remember that most docking software are not very 
     tolerant to mistakes in the input format.
+
+In order to make it easier to trace back results from output to input,
+we highly recommend to give unique names to the fragments in the input library.
+Our convention (which we will follow in this tutorial) is to append to the fragment 
+name an index for the tautomer/protomer and an index for the conformer.
 
 As starting point we assume to have a collection of ligands in a single SDF 
 file without defined conformations and protonation states.

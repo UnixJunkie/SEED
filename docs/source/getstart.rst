@@ -300,13 +300,16 @@ splitting it and running the docking:
 .. code-block:: bash
 
   python shuffle_library_withDictionaries.py library_name.mol2
-  bash split_library_reciprocal.sh library_name_shuffled.mol2 N
+  bash split_library_reciprocal.sh library_name_shuffled.mol2 N output_name
   
 The shuffled library will be suffixed ``_shuffled.mol2``.
-The *N* files will be named ``library_name_shuffled_part${i}.mol2`` with *i* going from 0 to *N*-1.
-In the input file ``seed.inp`` you have to provide the ``library_name_shuffled.mol2`` 
+The *N* files will be named ``output_name_part${i}.mol2`` with *i* going from 0 to *N*-1.
+Note that ``output_name`` could also contain a path as it might be desirable to save the 
+split files into a different folder.
+In the input file ``seed.inp`` you have to provide the basename of the library 
+(in this case ``output_name.mol2``)
 as input file, omitting the suffix.
-Each MPI rank *i* will look for its corresponding library file ``library_name_shuffled_part${i}.mol2``.
+Each MPI rank *i* will look for its corresponding library file ``output_name_part${i}.mol2``.
 Each output file (both mol2 structural outputs and the main log ``seed.out``)
 will be suffixed with ``_part${i}`` as well.
 

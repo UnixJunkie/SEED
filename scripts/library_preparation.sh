@@ -84,7 +84,7 @@ cd 100conf_075rmsd/ ; ls | sed 's/.sdf//g' > ../conformers_tautomers_original_fu
 ##JR## Step 3: Convert to mol2
 mkdir mol2_split
 time for i in `cat conformers_tautomers_original_full.list`; do
-	 corina -i t=sdf 100conf_075rmsd/${i}.sdf -o t=mol2 -d no3d -d newtypes -o fcharges |egrep -v "\#" | awk 'NF'  > mol2_split/${i}.mol2
+	 corina -i t=sdf 100conf_075rmsd/${i}.sdf -o t=mol2 -d no3d -d newtypes -o fcharges |egrep -v "^\#" | awk 'NF'  > mol2_split/${i}.mol2
 done
 echo "
 
