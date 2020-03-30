@@ -452,7 +452,7 @@ TotFra fragment counter (both sane and failed fragments). For the sane only, Cur
   /* ExtOutNam(FragNu,FrFiNa,FrFiNa_out); clangini */
   #ifdef ENABLE_MPI // add suffix corresponding to the part
   // set suffix 
-  if (myrank == MASTERRANK) {
+  if (myrank == MASTERRANK){
     // sprintf(suffix, '\0');
     suffix[0] = '\0';
   } else {

@@ -90,27 +90,27 @@ int MPI_ReFrFi_mol2(std::istream *inStream, std::streampos *strPos, MPI_Request 
     boost::algorithm::trim_all(concat);
     
     if (*firsttime){
-      //std::cerr << "First call Master" << std::endl;
       for (rk=1; rk < nrks; rk++){
         MPI_Irecv(&readies[rk-1], aone, MPI_INT, rk, mol2tag[0], MPI_COMM_WORLD, &rkreqs[rk-1]);
       }
       *firsttime = false;
     }
     MPI_Waitany(nrks-1, rkreqs, &whichready, &mstatus);
-    nextplease = whichready; // index of the handle
+    nextplease = whichready + 1; // index of the handle! NOTE: handle i corresponds to process i+1!
     mlen = concat.length() + 1; // +1 needed accounts for '\0'
-    MPI_Send(&mlen, aone, MPI_INT, nextplease+1, mol2tag[1], MPI_COMM_WORLD); // send length of the message
+    MPI_Send(&mlen, aone, MPI_INT, nextplease, mol2tag[1], MPI_COMM_WORLD); // send length of the message
     mpi_mess = new char[mlen]; 
     strcpy(mpi_mess, concat.c_str());
     
-    //std::cerr << "Sending to rank " << nextplease+1 << " message " << mlen << " long. or " << strlen(mpi_mess) << "\n";
+    //std::cerr << "Sending to rank " << nextplease << " message " << mlen << " long. or " << strlen(mpi_mess) << "\n";
     //std::cerr << mpi_mess << std::endl; 
     
-    MPI_Send(mpi_mess, mlen, MPI_CHAR, nextplease+1, mol2tag[2], MPI_COMM_WORLD);
+    MPI_Send(mpi_mess, mlen, MPI_CHAR, nextplease, mol2tag[2], MPI_COMM_WORLD);
     delete [] mpi_mess;
     
     // open new request for the one we just used up
-    MPI_Irecv(&readies[nextplease], aone, MPI_INT, nextplease+1, mol2tag[0], MPI_COMM_WORLD, &rkreqs[nextplease]);    
+    MPI_Irecv(&readies[nextplease-1], aone, MPI_INT, nextplease, 
+              mol2tag[0], MPI_COMM_WORLD, &rkreqs[nextplease-1]);    
   
   if (!endoffile){
     return 0;
@@ -152,14 +152,14 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
   
   // initialize pointers to null:
   // TODO replace with nullptr (also in nrutil)
+  FrCoor_L = NULL;
   FrAtEl_L = NULL;
   FrAtTy_L = NULL;
-  FrBdTy_L = NULL;
-  SubNa_L = NULL;
   FrSyAtTy_L = NULL;
-  FrBdAr_L = NULL;
-  FrCoor_L = NULL;
+  SubNa_L = NULL;
   FrPaCh_L = NULL;
+  FrBdAr_L = NULL;
+  FrBdTy_L = NULL;
   
   skipit = true;
   mlen = -1;
