@@ -362,8 +362,10 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
           itItem = tokens.begin();
     	    firstToken = *(itItem);
       	  if (firstToken != AlTySp){
-      		  std::cerr << "Names of alternative atom type set do not coincide for fragment " << *CurFraTot
-                      << ". Skipping!\n";
+            std::cerr << "Names of alternative atom type set do not coincide for fragment "
+                      << *CurFraTot
+                      << ". Skipping!\n"
+                      << std::endl;
             skipit = true;
             break;
       	   }
@@ -476,7 +478,17 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
   // skipit = true;
   // end_of_lib = false;
 
-	std::string StrLin, /*AlTySp,*/ firstToken;
+  /* setting to NULL for safety */
+  FrCoor_L = NULL;
+  FrAtEl_L = NULL;
+  FrAtTy_L = NULL;
+  FrSyAtTy_L = NULL;
+  SubNa_L = NULL;
+  FrPaCh_L = NULL;
+  FrBdAr_L = NULL;
+  FrBdTy_L = NULL;
+
+  std::string StrLin, /*AlTySp,*/ firstToken;
 	std::size_t found;
 
   inStream->seekg(*strPos, std::ios_base::beg); //Move the get position to current location
@@ -523,8 +535,9 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       std::getline(*inStream,StrLin);
 	  }
 	  if (inStream->eof()){
-		  std::cerr << "End of fragment library was reached before expected! Last fragment was skipped \n";
-		  return 1;
+      std::cerr << "End of fragment library was reached before expected! Last fragment was skipped \n"
+                << std::endl;
+      return 1;
 	  }
 
 	  boost::trim(StrLin);
@@ -532,8 +545,9 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       (*SkiFra)++;
       (*CurFraTot)++;
       std::cerr << "No @<TRIPOS>ATOM-tag found for fragment" << *CurFraTot
-                << ". Skipping!\n";
-		  continue;
+                << ". Skipping!\n"
+                << std::endl;
+      continue;
 	  }
     /* <TRIPOS>ATOM-tag found */
 	  FrAtEl_L=cmatrix(1,*FrAtNu,1,5);
@@ -595,7 +609,8 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
     }
     if (OverlappingMol) {
       std::cerr << "Fragment " << *CurFraTot
-                << " might have overlapping atoms. Skipping!\n";
+                << " might have overlapping atoms. Skipping!\n"
+                << std::endl;
       // skipit = true;
       // break;
       (*SkiFra)++;
@@ -606,8 +621,8 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       // free_cmatrix(*FrSyAtTy, 1, *FrAtNu, 1, 7);
       // free_dvector(*FrPaCh, 1, *FrAtNu);
       // free_cmatrix(*SubNa, 1, *FrAtNu, 1, 10);
-      release_mol_mem(*FrAtEl, *FrCoor, *FrSyAtTy, *FrPaCh,
-                      *SubNa, *FrBdAr, *FrBdTy, *FrAtTy,
+      release_mol_mem(FrAtEl_L, FrCoor_L, FrSyAtTy_L, FrPaCh_L,
+                      SubNa_L, FrBdAr_L, FrBdTy_L, FrAtTy_L,
                       *FrAtNu, *FrBdNu);
       continue;
     }
@@ -620,10 +635,11 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
 	  if (inStream->eof()){
       // end_of_lib = true;
       // break;
-		  std::cerr << "End of fragment library was reached before expected! Last fragment was skipped!\n";
+      std::cerr << "End of fragment library was reached before expected! Last fragment was skipped!\n"
+                << std::endl;
       // /* Once we will implement the resizing this part will not be needed any more */
-      release_mol_mem(*FrAtEl, *FrCoor, *FrSyAtTy, *FrPaCh,
-                      *SubNa, *FrBdAr, *FrBdTy, *FrAtTy,
+      release_mol_mem(FrAtEl_L, FrCoor_L, FrSyAtTy_L, FrPaCh_L,
+                      SubNa_L, FrBdAr_L, FrBdTy_L, FrAtTy_L,
                       *FrAtNu, *FrBdNu);
       // free_cmatrix(*FrAtEl,1,*FrAtNu,1,5);
       // free_dmatrix(*FrCoor,1,*FrAtNu,1,3);
@@ -635,7 +651,8 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
 	  boost::trim(StrLin);
 	  if (StrLin != "@<TRIPOS>BOND"){
       std::cerr << "No @<TRIPOS>BOND-tag found for fragment " << *CurFraTot
-                << ". Skipping!\n";
+                << ". Skipping!\n"
+                << std::endl;
       // skipit = true;
       // break;
 		  (*SkiFra)++;
@@ -646,8 +663,8 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       // free_cmatrix(*FrSyAtTy,1,*FrAtNu,1,7);
       // free_dvector(*FrPaCh,1,*FrAtNu);
       // free_cmatrix(*SubNa,1,*FrAtNu,1,10);
-      release_mol_mem(*FrAtEl, *FrCoor, *FrSyAtTy, *FrPaCh,
-                      *SubNa, *FrBdAr, *FrBdTy, *FrAtTy,
+      release_mol_mem(FrAtEl_L, FrCoor_L, FrSyAtTy_L, FrPaCh_L,
+                      SubNa_L, FrBdAr_L, FrBdTy_L, FrAtTy_L,
                       *FrAtNu, *FrBdNu);
 
       continue;
@@ -690,8 +707,9 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
 	  if (inStream->eof()){
       // end_of_lib = true;
       // break;
-		  std::cerr << "End of fragment library was reached before expected! Last fragment was skipped!\n";
-		  // /* Once we will implement the resizing this part will not be needed any more */
+      std::cerr << "End of fragment library was reached before expected! Last fragment was skipped!\n"
+                << std::endl;
+      // /* Once we will implement the resizing this part will not be needed any more */
 		  // free_cmatrix(*FrAtEl,1,*FrAtNu,1,5);
       // free_dmatrix(*FrCoor,1,*FrAtNu,1,3);
       // free_cmatrix(*FrSyAtTy,1,*FrAtNu,1,7);
@@ -699,17 +717,16 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       // free_cmatrix(*SubNa,1,*FrAtNu,1,10);
       // free_imatrix(*FrBdAr,1,*FrBdNu,1,2);
       // free_cmatrix(*FrBdTy,1,*FrBdNu,1,4);
-      release_mol_mem(*FrAtEl, *FrCoor, *FrSyAtTy, *FrPaCh,
-                      *SubNa, *FrBdAr, *FrBdTy, *FrAtTy,
+      release_mol_mem(FrAtEl_L, FrCoor_L, FrSyAtTy_L, FrPaCh_L,
+                      SubNa_L, FrBdAr_L, FrBdTy_L, FrAtTy_L,
                       *FrAtNu, *FrBdNu);
-
       return 1;
 	  }
 
 	  boost::trim(StrLin);
 	  if (StrLin != "@<TRIPOS>ALT_TYPE"){
       std::cerr << "No @<TRIPOS>ALT_TYPE-tag found for fragment " << *CurFraTot
-                << ". Skipping!\n";
+                << ". Skipping!\n" << std::endl;
       // skipit = true;
       // break;
 
@@ -723,8 +740,8 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       // free_cmatrix(*SubNa,1,*FrAtNu,1,10);
       // free_imatrix(*FrBdAr,1,*FrBdNu,1,2);
       // free_cmatrix(*FrBdTy,1,*FrBdNu,1,4);
-      release_mol_mem(*FrAtEl, *FrCoor, *FrSyAtTy, *FrPaCh,
-                      *SubNa, *FrBdAr, *FrBdTy, *FrAtTy,
+      release_mol_mem(FrAtEl_L, FrCoor_L, FrSyAtTy_L, FrPaCh_L,
+                      SubNa_L, FrBdAr_L, FrBdTy_L, FrAtTy_L,
                       *FrAtNu, *FrBdNu);
 
       continue;
@@ -737,8 +754,9 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
     /* std::transform(StrLin.begin(), StrLin.end(),StrLin.begin(), ::toupper); */
 	  found = StrLin.find("ALT_TYPE_SET");
 	  if (found == std::string::npos){
-      std::cerr << "No standard ALT_TYPE_SET signature find for fragment "<< *CurFraTot
-                << "Skipping!\n";
+      std::cerr << "No standard ALT_TYPE_SET signature find for fragment " << *CurFraTot
+                << "Skipping!\n"
+                << std::endl;
       // skipit = true;
       // break;
 
@@ -752,8 +770,8 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       // free_cmatrix(*SubNa,1,*FrAtNu,1,10);
       // free_imatrix(*FrBdAr,1,*FrBdNu,1,2);
       // free_cmatrix(*FrBdTy,1,*FrBdNu,1,4);
-      release_mol_mem(*FrAtEl, *FrCoor, *FrSyAtTy, *FrPaCh,
-                      *SubNa, *FrBdAr, *FrBdTy, *FrAtTy,
+      release_mol_mem(FrAtEl_L, FrCoor_L, FrSyAtTy_L, FrPaCh_L,
+                      SubNa_L, FrBdAr_L, FrBdTy_L, FrAtTy_L,
                       *FrAtNu, *FrBdNu);
 
       continue;
@@ -769,7 +787,8 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
 	  //boost::algorithm::to_upper(firstToken); // not needed
 	  if (firstToken != AlTySp){
       std::cerr << "Names of alternative atom type set do not coincide for fragment " << *CurFraTot
-                << ". Skipping!\n";
+                << ". Skipping!\n"
+                << std::endl;
       // skipit = true;
       // break;
 
@@ -783,8 +802,8 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       // free_cmatrix(*SubNa,1,*FrAtNu,1,10);
       // free_imatrix(*FrBdAr,1,*FrBdNu,1,2);
       // free_cmatrix(*FrBdTy,1,*FrBdNu,1,4);
-      release_mol_mem(*FrAtEl, *FrCoor, *FrSyAtTy, *FrPaCh,
-                      *SubNa, *FrBdAr, *FrBdTy, *FrAtTy,
+      release_mol_mem(FrAtEl_L, FrCoor_L, FrSyAtTy_L, FrPaCh_L,
+                      SubNa_L, FrBdAr_L, FrBdTy_L, FrAtTy_L,
                       *FrAtNu, *FrBdNu);
 
       continue;
@@ -822,7 +841,8 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
     if (AtCount < *FrAtNu){
       std::cerr << "List of alternative atom types for fragment " << *CurFraTot
                 << " is not complete. "
-                << "Skipping!\n";
+                << "Skipping!\n"
+                << std::endl;
       // skipit = true;
       // break;
 
@@ -837,8 +857,8 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       // free_imatrix(*FrBdAr, 1, *FrBdNu, 1, 2);
       // free_cmatrix(*FrBdTy, 1, *FrBdNu, 1, 4);
       // free_cmatrix(*FrAtTy, 1, *FrAtNu, 1, 7);
-      release_mol_mem(*FrAtEl, *FrCoor, *FrSyAtTy, *FrPaCh,
-                      *SubNa, *FrBdAr, *FrBdTy, *FrAtTy,
+      release_mol_mem(FrAtEl_L, FrCoor_L, FrSyAtTy_L, FrPaCh_L,
+                      SubNa_L, FrBdAr_L, FrBdTy_L, FrAtTy_L,
                       *FrAtNu, *FrBdNu);
 
       continue;
@@ -848,7 +868,8 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       (*CurFraTot)++;
       std::cerr << "List of alternative atom types for fragment " << *CurFraTot
                 << " is too long. There might be duplicates. "
-                << "Skipping!\n";
+                << "Skipping!\n"
+                << std::endl;
       // skipit = true;
       // break;
       // /* Once we will implement the resizing this part will not be needed any more */
@@ -860,8 +881,8 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       // free_imatrix(*FrBdAr, 1, *FrBdNu, 1, 2);
       // free_cmatrix(*FrBdTy, 1, *FrBdNu, 1, 4);
       // free_cmatrix(*FrAtTy, 1, *FrAtNu, 1, 7);
-      release_mol_mem(*FrAtEl, *FrCoor, *FrSyAtTy, *FrPaCh,
-                      *SubNa, *FrBdAr, *FrBdTy, *FrAtTy,
+      release_mol_mem(FrAtEl_L, FrCoor_L, FrSyAtTy_L, FrPaCh_L,
+                      SubNa_L, FrBdAr_L, FrBdTy_L, FrAtTy_L,
                       *FrAtNu, *FrBdNu);
 
       continue;
