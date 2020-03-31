@@ -143,6 +143,7 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
 	char **FrAtEl_L,**FrAtTy_L,**FrBdTy_L, **SubNa_L, **FrSyAtTy_L;
   int i,**FrBdAr_L, AtCount, CuAtNu, amready, aone, mol2tag[3], mlen;
 	bool AtNu_flag, visitsecs[5];
+  bool isValid_AlTySec; // is the alternative atom type section valid?
   double **FrCoor_L,*FrPaCh_L;
   char *mpi_mess;
   std::vector<std::string> mpi_strs;
@@ -226,6 +227,12 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
         } else if (visitsecs[2]){
           continue;
         } else {
+          if (!visitsecs[1]){
+            std::cerr << "Error: Trying to read an atom section not referring to any molecule. Skipping." 
+                      << std::endl;
+            skipit = true;
+            break;
+          }
           insec = 2;
           visitsecs[insec] = true;
           continue;
@@ -237,6 +244,13 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
         } else if (visitsecs[3]){
           continue;
         } else {
+          if (!visitsecs[2])
+          {
+            std::cerr << "Error: Missing atom section in molecule. Skipping."
+                      << std::endl;
+            skipit = true;
+            break;
+          }
           insec = 3;
           visitsecs[insec] = true;
           continue;
@@ -248,6 +262,13 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
         } else if (visitsecs[4]) {
           continue;
         } else {
+          if (!visitsecs[3])
+          {
+            std::cerr << "Error: Missing bond section in molecule. Skipping."
+                      << std::endl;
+            skipit = true;
+            break;
+          }
           insec = 4;
           visitsecs[insec] = true;
           continue;
@@ -360,7 +381,8 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
         if (seclc == 1) {      
           tokens.assign(*s, sep);
           itItem = tokens.begin();
-    	    firstToken = *(itItem);
+          isValid_AlTySec = true;
+          firstToken = *(itItem);
       	  if (firstToken != AlTySp){
             std::cerr << "Names of alternative atom type set do not coincide for fragment "
                       << *CurFraTot
@@ -375,8 +397,15 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
         } else if (seclc > 1){
           tokens.assign(*s, sep);
           itItem = tokens.begin();
+          isValid_AlTySec = true;
         } 
     	  while (AtCount < *FrAtNu){
+          if (itItem == tokens.end())
+          {
+            isValid_AlTySec = false;
+            break;
+          }
+          // while (itItem != tokens.end()){
     		  if (*itItem != "\\"){
     			  if (!AtNu_flag){
     				  CuAtNu =  boost::lexical_cast<int>(*itItem); // Current atom number
@@ -384,17 +413,31 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
     				  ++itItem;
     			  } else {
               strcpy(&FrAtTy_L[CuAtNu][1],(*itItem).c_str());
-    				  ++AtCount;
+              ++AtCount;
               // std::cerr << "read alt data type " << CuAtNu << " type " << (*itItem).c_str() << " AtCount " << AtCount << std::endl;
-    				  ++itItem;
+              ++itItem;
     				  AtNu_flag = false;
-    			  }
+            } 
     		  } else {
             break;
-          }   
+          }
+          // if ((*itItem != "\\") && (itItem == tokens.end()))
+          // {
+          //   isValid_AlTySec = false;
+          //   break;
+          // }   
     	  }
-        if (AtCount == *FrAtNu){
-          skipit = false; // correct termination
+        if (isValid_AlTySec){        
+          if (AtCount == *FrAtNu)
+          {
+            skipit = false; // correct termination
+            break;
+          } 
+        } else {  
+          // either too few or too many alternative atom types
+          std::cerr << "Either to few or too many alternative atom types. Skipping." 
+                    << std::endl;
+          skipit = true;
           break;
         }
       }

@@ -1500,7 +1500,7 @@ FrFiRMode reading mode for fragment input file (only relevant for MPI runs):
       if (myrank == MASTERRANK)
       {
         LstFra_f = MPI_ReFrFi_mol2(&FrInStream, &FrInPos, rkreqs, readies, &firsttime);
-        // std::cerr << "rank " << myrank << " ended reading with status " << LstFra_f << std::endl;
+        std::cerr << "masterrank " << myrank << " ended reading with status " << LstFra_f << std::endl;
       }
       else
       {
@@ -1510,7 +1510,7 @@ FrFiRMode reading mode for fragment input file (only relevant for MPI runs):
                                          &FrPaCh,
                                          &FrBdAr, &FrBdTy, FrSubN, FrSubC,
                                          &FrCoNu, &SubNa, AlTySp);
-        // std::cerr << "rank " << myrank << " ended readig with status " << LstFra_f << std::endl;
+        std::cerr << "rank " << myrank << " ended reading with status " << LstFra_f << std::endl;
       }
     } else {
 #endif
