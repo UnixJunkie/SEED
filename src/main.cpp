@@ -1511,10 +1511,6 @@ FrFiRMode reading mode for fragment input file (only relevant for MPI runs):
                                          &FrBdAr, &FrBdTy, FrSubN, FrSubC,
                                          &FrCoNu, &SubNa, AlTySp);
         // std::cerr << "rank " << myrank << " ended readig with status " << LstFra_f << std::endl;
-        if (LstFra_f == -1) // skip frag
-        {
-          continue;
-        }
       }
     } else {
 #endif
@@ -1527,32 +1523,36 @@ FrFiRMode reading mode for fragment input file (only relevant for MPI runs):
     }
 #endif
 
-// #ifdef ENABLE_MPI
-//     if (myrank == MASTERRANK){ 
-//       LstFra_f = MPI_ReFrFi_mol2(&FrInStream,&FrInPos,rkreqs,readies, &firsttime);
-//       // std::cerr << "rank " << myrank << " ended reading with status " << LstFra_f << std::endl;
-//     } else {
-//       LstFra_f = MPI_slave_ReFrFi_mol2(&SkiFra,&CurFraTot,FragNa,
-//                       FragNa_str,&FrAtNu,&FrBdNu,
-//                       &FrAtEl, &FrCoor,&FrAtTy,&FrSyAtTy,
-//                       &FrPaCh,
-//                       &FrBdAr,&FrBdTy,FrSubN,FrSubC,
-//                       &FrCoNu, &SubNa, AlTySp);
-//       // std::cerr << "rank " << myrank << " ended readig with status " << LstFra_f << std::endl;
-//       if(LstFra_f == -1){
-//         continue;
-//       }
-//     }
-// #else 
-//     LstFra_f = ReFrFi_mol2(&FrInStream,&FrInPos,&SkiFra,&CurFraTot,FragNa,
-//                            FragNa_str,
-//                            &FrAtNu,&FrBdNu,&FrAtEl,&FrCoor,&FrAtTy,&FrSyAtTy,
-//                            &FrPaCh,&FrBdAr,&FrBdTy,FrSubN,FrSubC,&FrCoNu,
-//                            &SubNa,AlTySp);
-// #endif
+    // #ifdef ENABLE_MPI
+    //     if (myrank == MASTERRANK){
+    //       LstFra_f = MPI_ReFrFi_mol2(&FrInStream,&FrInPos,rkreqs,readies, &firsttime);
+    //       // std::cerr << "rank " << myrank << " ended reading with status " << LstFra_f << std::endl;
+    //     } else {
+    //       LstFra_f = MPI_slave_ReFrFi_mol2(&SkiFra,&CurFraTot,FragNa,
+    //                       FragNa_str,&FrAtNu,&FrBdNu,
+    //                       &FrAtEl, &FrCoor,&FrAtTy,&FrSyAtTy,
+    //                       &FrPaCh,
+    //                       &FrBdAr,&FrBdTy,FrSubN,FrSubC,
+    //                       &FrCoNu, &SubNa, AlTySp);
+    //       // std::cerr << "rank " << myrank << " ended readig with status " << LstFra_f << std::endl;
+    //       if(LstFra_f == -1){
+    //         continue;
+    //       }
+    //     }
+    // #else
+    //     LstFra_f = ReFrFi_mol2(&FrInStream,&FrInPos,&SkiFra,&CurFraTot,FragNa,
+    //                            FragNa_str,
+    //                            &FrAtNu,&FrBdNu,&FrAtEl,&FrCoor,&FrAtTy,&FrSyAtTy,
+    //                            &FrPaCh,&FrBdAr,&FrBdTy,FrSubN,FrSubC,&FrCoNu,
+    //                            &SubNa,AlTySp);
+    // #endif
     // gettimeofday(&time_read, NULL);
 
-    if (LstFra_f == 1){
+    if (LstFra_f == -1) // skip frag
+    {
+      continue;
+    }
+    else if (LstFra_f == 1){
 #ifdef ENABLE_MPI
       if (strcmp(FrFiRMode, "single") == 0){
         if (myrank == MASTERRANK)

@@ -75,14 +75,15 @@ void ReInFi(char *InpFil,char *RecFil,int *BSResN,int **BSReNu,
             char *CoGrFile,char *EvalEn,char *Solv_typ,
             char *SpPoCh_opt,double *SpPoCh_cent,double *SpPoCh_rad,
             double *SFDeso_fr,double *SFDeso_re,double *SFVWEn,double *SFIntElec,
-            int *NuClusMem,int *NuPosMem,double *RedRPV_rp,double *RedRPV_nkvDens,double *ScMaBump, /*int *RedRPV_nkv, dey new*/
+            int *NuClusMem,int *NuPosMem,double *RedRPV_rp,double *RedRPV_nkvDens,
+            double *ScMaBump, /*int *RedRPV_nkv, dey new*/
             double *MuFaVdWCoff_ap,int *NuLiEnClus,char *ApPoChoi,
             double *VWGrIn,double *VWGrSi,double *BumpFaCut,char *VWGrAcc,
             char *VWGrFile,int *MaxPosClus,int *PrintLev,
             int *NumbAT,char ***AtTyAr,int **AtENAr,double **VdWRad,
             double **VdWEne,double ***BLAtTy,int *distrPointBSNumb,
-	    double ***distrPointBS,double *angle_rmin,double *angle_rmax,
-	    double *mult_fact_rmin,double *mult_fact_rmax,char *EmpCorrB,
+	          double ***distrPointBS,double *angle_rmin,double *angle_rmax,
+	          double *mult_fact_rmin,double *mult_fact_rmax,char *EmpCorrB,
             char *gc_opt,int *gc_reprke,double *gc_cutclus,double *gc_endifclus,
             double *gc_weighneg,double *gc_weighpos,int *gc_maxwrite,
             char *write_pproc_opt,char *write_pproc_chm_opt,char *write_best_opt,
@@ -125,10 +126,13 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
                 int ***FrBdAr,char ***FrBdTy,char *FrSubN,char *FrSubC,
                 int *FrCoNu, char ***SubNa, std::string &AlTySp);
 #endif
-void ReFrFi_mol2_syb(int CurFra,char **FrFiNa,char *FragNa,int *FrAtNu,int *FrBdNu,
-                 char ***FrAtEl,double ***FrCoor,char ***FrAtTy, char ***FrSyAtTy,double **FrPaCh,
-                 int ***FrBdAr,char ***FrBdTy,char *FrSubN,char *FrSubC,
-                 int *FrCoNu);
+void release_mol_mem(char **FrAtEl, double **FrCoor, char **FrSyAtTy, double *FrPaCh,
+                     char **SubNa, int **FrBdAr, char **FrBdTy, char **FrAtTy,
+                     int FrAtNu, int FrBdNu);
+void ReFrFi_mol2_syb(int CurFra, char **FrFiNa, char *FragNa, int *FrAtNu, int *FrBdNu,
+                    char ***FrAtEl, double ***FrCoor, char ***FrAtTy, 
+                    char ***FrSyAtTy, double **FrPaCh, int ***FrBdAr, 
+                    char ***FrBdTy, char *FrSubN, char *FrSubC, int *FrCoNu);
 void write_mol2_clus_pproc_syb(int CurFra,int NuPosSdCl,int FrAtNu,char **FrAtTy, char **FrSyAtTy,
                            double ***FrCoPo,int *FrPosAr_sort,char **ResN_fr,
                            char **FrFiNa_out,int FrBdNu,char **FrAtEl,
