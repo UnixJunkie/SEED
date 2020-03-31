@@ -407,7 +407,7 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
     // check for NULL is taken care by function free_*
     release_mol_mem(FrAtEl_L, FrCoor_L, FrSyAtTy_L, FrPaCh_L,
                     SubNa_L, FrBdAr_L, FrBdTy_L, FrAtTy_L,
-                    *FrAtNu, *FrBdNu)
+                    *FrAtNu, *FrBdNu);
     // free_cmatrix(FrAtEl_L,1,*FrAtNu,1,5);
     // free_dmatrix(FrCoor_L,1,*FrAtNu,1,3);
     // free_cmatrix(FrSyAtTy_L,1,*FrAtNu,1,7);
@@ -608,7 +608,7 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       // free_cmatrix(*SubNa, 1, *FrAtNu, 1, 10);
       release_mol_mem(*FrAtEl, *FrCoor, *FrSyAtTy, *FrPaCh,
                       *SubNa, *FrBdAr, *FrBdTy, *FrAtTy,
-                      *FrAtNu, *FrBdNu) 
+                      *FrAtNu, *FrBdNu);
       continue;
     }
 
@@ -624,8 +624,8 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       // /* Once we will implement the resizing this part will not be needed any more */
       release_mol_mem(*FrAtEl, *FrCoor, *FrSyAtTy, *FrPaCh,
                       *SubNa, *FrBdAr, *FrBdTy, *FrAtTy,
-                      *FrAtNu, *FrBdNu)
-		  // free_cmatrix(*FrAtEl,1,*FrAtNu,1,5);
+                      *FrAtNu, *FrBdNu);
+      // free_cmatrix(*FrAtEl,1,*FrAtNu,1,5);
       // free_dmatrix(*FrCoor,1,*FrAtNu,1,3);
       // free_cmatrix(*FrSyAtTy,1,*FrAtNu,1,7);
       // free_dvector(*FrPaCh,1,*FrAtNu);
@@ -648,7 +648,7 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       // free_cmatrix(*SubNa,1,*FrAtNu,1,10);
       release_mol_mem(*FrAtEl, *FrCoor, *FrSyAtTy, *FrPaCh,
                       *SubNa, *FrBdAr, *FrBdTy, *FrAtTy,
-                      *FrAtNu, *FrBdNu)
+                      *FrAtNu, *FrBdNu);
 
       continue;
     }
@@ -701,7 +701,7 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       // free_cmatrix(*FrBdTy,1,*FrBdNu,1,4);
       release_mol_mem(*FrAtEl, *FrCoor, *FrSyAtTy, *FrPaCh,
                       *SubNa, *FrBdAr, *FrBdTy, *FrAtTy,
-                      *FrAtNu, *FrBdNu) 
+                      *FrAtNu, *FrBdNu);
 
       return 1;
 	  }
@@ -725,7 +725,7 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       // free_cmatrix(*FrBdTy,1,*FrBdNu,1,4);
       release_mol_mem(*FrAtEl, *FrCoor, *FrSyAtTy, *FrPaCh,
                       *SubNa, *FrBdAr, *FrBdTy, *FrAtTy,
-                      *FrAtNu, *FrBdNu) 
+                      *FrAtNu, *FrBdNu);
 
       continue;
 	  }
@@ -754,7 +754,7 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       // free_cmatrix(*FrBdTy,1,*FrBdNu,1,4);
       release_mol_mem(*FrAtEl, *FrCoor, *FrSyAtTy, *FrPaCh,
                       *SubNa, *FrBdAr, *FrBdTy, *FrAtTy,
-                      *FrAtNu, *FrBdNu) 
+                      *FrAtNu, *FrBdNu);
 
       continue;
 	  }
@@ -785,7 +785,7 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       // free_cmatrix(*FrBdTy,1,*FrBdNu,1,4);
       release_mol_mem(*FrAtEl, *FrCoor, *FrSyAtTy, *FrPaCh,
                       *SubNa, *FrBdAr, *FrBdTy, *FrAtTy,
-                      *FrAtNu, *FrBdNu) 
+                      *FrAtNu, *FrBdNu);
 
       continue;
 	  }
@@ -839,7 +839,7 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       // free_cmatrix(*FrAtTy, 1, *FrAtNu, 1, 7);
       release_mol_mem(*FrAtEl, *FrCoor, *FrSyAtTy, *FrPaCh,
                       *SubNa, *FrBdAr, *FrBdTy, *FrAtTy,
-                      *FrAtNu, *FrBdNu) 
+                      *FrAtNu, *FrBdNu);
 
       continue;
     }
@@ -862,7 +862,7 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
       // free_cmatrix(*FrAtTy, 1, *FrAtNu, 1, 7);
       release_mol_mem(*FrAtEl, *FrCoor, *FrSyAtTy, *FrPaCh,
                       *SubNa, *FrBdAr, *FrBdTy, *FrAtTy,
-                      *FrAtNu, *FrBdNu) 
+                      *FrAtNu, *FrBdNu);
 
       continue;
     }
