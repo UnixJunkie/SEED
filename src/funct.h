@@ -22,6 +22,9 @@
 
 #include <iostream>
 #include <cstdio>
+#ifdef ENABLE_MPI
+#include <mpi.h>
+#endif
 #include "point.h"
 #include "quaternion.h"
 #include "Parameter.h"

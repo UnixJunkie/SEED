@@ -454,7 +454,8 @@ FrFiRMode reading mode for fragment input file (only relevant for MPI runs):
       &distrPointBS,&angle_rmin,&angle_rmax,&mult_fact_rmin,&mult_fact_rmax,
       EmpCorrB,gc_opt,&gc_reprke,&gc_cutclus,&gc_endifclus,&gc_weighneg,
       &gc_weighpos,&gc_maxwrite,write_pproc_opt,write_pproc_chm_opt,
-      write_best_opt,write_sumtab_opt,write_best_sumtab_opt,&AtWei);/*clangini*/
+      write_best_opt,write_sumtab_opt,write_best_sumtab_opt,&AtWei,
+      seed_par);/*clangini*/
 
 #ifdef ENABLE_MPI
   if (strcmp(FrFiRMode, "single") == 0)
