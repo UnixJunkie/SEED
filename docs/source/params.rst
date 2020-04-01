@@ -295,7 +295,48 @@ to eliminate fragments which are very close in space.
     energies and the two clustering procedures / 
   | print level (``0`` = lean, ``1`` = adds sorting before postprocessing, 
     ``2`` = adds 2nd clustering).
-  
+
+.. _MC_param:
+
+Monte Carlo parameters
+^^^^^^^^^^^^^^^^^^^^^^
+
+**mc1**
+  | Perform MC refinement? (y/n)
+
+**mc2**
+  | Starting temperature of MC run.
+
+**mc3**
+  | Maximum rigid body translation step (in Angstrom): coarse (1st value) 
+  | and fine (2nd value) moves.
+
+**mc4**
+  | Maximum rigid body rotation step (in degrees): coarse (1st value) 
+  | and fine (2nd value) moves.
+
+**mc5**
+  | MC move set frequencies:
+  | Frequency :math:`p` of rigid body rotation moves (the frequency of 
+  | rigid body translation move will be :math:`q = 1 - p`).
+
+**mc6**
+  | Relative frequency (w.r.t. the number of rotation moves) of fine rotation moves.
+
+**mc7**
+  | Relative frequency (w.r.t. the number of translation move) of fine translation moves.
+
+**mc8**
+  | Number of steps :math:`N_{out}` of the outer MC chain (1st value). /
+  | Number of steps :math:`N_{in}` of the inner MC chain (2nd value).
+
+**mc9**
+  | Annealing parameter :math:`\alpha`.
+
+**mc10**
+  | Seed for the pseudo-random number generator used by the MC sampler.
+
+
 Force field parameters
 ^^^^^^^^^^^^^^^^^^^^^^
 

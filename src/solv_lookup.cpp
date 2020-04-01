@@ -63,9 +63,9 @@ void Solvation(int ReAtNu,double **ReCoor,double *ReVdWE_sr,double *ReVdWR,
                int *PNapol_Vect_re,double **SelfVol,
                double *PKelec,double *PKsolv,double *PUnitVol,double pi4,
                double corr_re_desoco,double corr_re_desofd,double corr_fast_deso,
-	              int distrPointBSNumb,double **distrPointBS,double angle_rmin,
-	              double angle_rmax,double mult_fact_rmin,double mult_fact_rmax,
-	              FILE *FPaOut,double **SelfVol_corrB,char *EmpCorrB)
+	             int distrPointBSNumb,double **distrPointBS,double angle_rmin,
+	             double angle_rmax,double mult_fact_rmin,double mult_fact_rmax,
+	             FILE *FPaOut,double **SelfVol_corrB,char *EmpCorrB)
 
 /*#####################################################################################
 Continuum Electrostatics: It sets up grids and precalculates many quantities
@@ -358,8 +358,9 @@ struct point len ----------- ReMaxC - ReMinC
   SelfEnTot = 0.;
   for (iat=1;iat<=ReAtNu;iat++){
     if (EmpCorrB[0]!='y')
-      EffRad[iat] = 1. / ( 1./ReRadOut[iat] - (*SelfVol)[iat]/pi4 );
-    else {
+      EffRad[iat] = 1. / (1. / ReRadOut[iat] - (*SelfVol)[iat] / pi4); // eq. (14) from [Scarsi et al. 1997]. clangini
+    else 
+    {
       EffRad[iat] = 1./( (-1.*(1./ReRadOut[iat] - (*SelfVol)[iat]/pi4))
 			              + 3.0*sqrt( (1./(2.*ReRadOut[iat]*ReRadOut[iat])) -
 				            ((*SelfVol_corrB)[iat]/pi4) ) )
@@ -375,11 +376,11 @@ struct point len ----------- ReMaxC - ReMinC
     If the calculated effective born radius is smaller than the lower bound, 
     we override it to the lower bound.
 	*/
-	  if(isnan(EffRad[iat]) || EffRad[iat] <= ReEffRad_bound[iat])
+	  if(std::isnan(EffRad[iat]) || EffRad[iat] <= ReEffRad_bound[iat])
 	  {
 #ifndef NOWARN
 	    // fprintf(FPaOut,"WARNING could not calculate empirically-corrected effective born radius for receptor atom %d\n",iat);
-      if (!isnan(EffRad[iat])){
+      if (!std::isnan(EffRad[iat])){
         fprintf(FPaOut, "Calculated effective Born radius of receptor atom %d (%f) set to its lower bound (%f).\n", iat, EffRad[iat], ReEffRad_bound[iat]);
       } else {
         fprintf(FPaOut,"WARNING empirically-corrected effective born radius for receptor atom %d is nan. Set to its lower bound (%f).\n",iat,ReEffRad_bound[iat]);
@@ -388,19 +389,12 @@ struct point len ----------- ReMaxC - ReMinC
 	    // EffRad[iat] = 1. / ( 1./ReRadOut[iat] - (*SelfVol)[iat]/pi4 );
       EffRad[iat] = ReEffRad_bound[iat];
 	  }
-
-
-
   }
 
-
-  SelfEn[iat] = *PKsolv * RePaCh[iat] * RePaCh[iat] / (2. * EffRad[iat]);
+  SelfEn[iat] = *PKsolv * RePaCh[iat] * RePaCh[iat] / (2. * EffRad[iat]); // eq. (12) in [Scarsi et al. 1997]. clangini
   SelfEnTot += SelfEn[iat];
 
   }
-
-
-
 
   printf("\n\tSelf Energy %f\n",SelfEnTot);
 
@@ -625,11 +619,11 @@ double *PUnitVol -------- Volume of the rec (frag) grid element for cont. elec.
 
   vect1=dvector(1,ReAtNu);
   vect2=dvector(1,ReAtNu);
-  for (i=1;i<=3;i++) {
+  for (i=1; i<=3; i++) {
     getColumnFrom2DArray(ReCoor, i, 1, ReAtNu, vect1);
     SumVectors(vect1, ReVdWR, 1, ReAtNu, vect2);
     if (i == 1) {
-      PMax->x=MaxDVector(vect2, 1, ReAtNu);
+      PMax->x = MaxDVector(vect2, 1, ReAtNu);
       PMax->x += (WaMoRa + GrInSo);
     }
     else if (i == 2) {
@@ -806,10 +800,14 @@ double *PRmax ----------- Largest charge radius
                   (ReCoor[i][2]-ReCoor[j][2])*(ReCoor[i][2]-ReCoor[j][2]) +
                   (ReCoor[i][3]-ReCoor[j][3])*(ReCoor[i][3]-ReCoor[j][3]);
       d = sqrtf (dist2[i][j]);
-      if ( d + ReVdWR[i] < ReVdWR[j] )
+      if ( d + ReVdWR[i] < ReVdWR[j] ){
         ReRad[i] = ReVdWR[j] - d;
-      else if ( d + ReVdWR[j] < ReVdWR[i] )
+        // std::cout << "Correction for atom "<< i <<std::endl;
+      }
+      else if ( d + ReVdWR[j] < ReVdWR[i] ){
         ReRad[j] = ReVdWR[i] - d;
+        // std::cout << "Correction for atom "<< j <<std::endl;
+      }
     }
     
     // if (ReRad[i] < 1.0) ReRad[i] = 1.0; // buffering the radius
@@ -821,6 +819,14 @@ double *PRmax ----------- Largest charge radius
     ReRadOut2[i] = ReRadOut[i]*ReRadOut[i];
 
   }
+
+  // clangini debug:
+  /*std::cout << "ReRad list: " << std::endl;
+  for (i=1;i<=ReAtNu;i++){
+    std::cout << "ReRad[" << i << "] = " << ReRad[i] << std::endl;
+  }*/
+  // clangini debug end
+
   if (i == ReAtNu+1 )
     return 1;
   else
@@ -858,7 +864,7 @@ char ****GridMat -------- Matrix telling if a grid point is occupied (o),
   double xtemp,x2temp,ytemp,xy2temp,ztemp,r2;
 
 /* Calculate grid points occupied by volume enclosed in SAS */
-  for (iat=1;iat<=ReAtNu;iat++) {
+  for (iat=1;iat<=ReAtNu;iat++) { // for each atom, mark the occupied locations. clangini
     ixmin = ( (ReCoor[iat][1] - ReRadOut[iat] - Min.x) / GrSiSo + 1 );
     iymin = ( (ReCoor[iat][2] - ReRadOut[iat] - Min.y) / GrSiSo + 1 );
     izmin = ( (ReCoor[iat][3] - ReRadOut[iat] - Min.z) / GrSiSo + 1 );
@@ -1104,8 +1110,7 @@ struct point midgpt -- nstep/2. + 1
 /* loop over atoms associated with current grid point: */
                   for (inayb=1;inayb<=nlist[ix][iy][iz];inayb++) {
 
-                    if ( (listmp =
-			  list[inayb][nstep*nstep*(ix-1) + nstep*(iy-1) + iz])
+                    if ( (listmp = list[inayb][nstep*nstep*(ix-1) + nstep*(iy-1) + iz])
                       != iat ) {
                       d=pt_minus_pt(ccrd[listmp],sphpt);
                       d2 = pt_scal_pt(d,d);
@@ -1701,7 +1706,7 @@ int Excl_Grid(int ReAtNu,double **ReCoor,struct point Min,double *ReRadOut,
               int NGridx,int NGridy,int NGridz,
               double UnitVol,char ***GridMat,int Nsurfpt,
               struct point *surfpt,double *SelfVol,double *SelfVol_corrB,
-	      char *EmpCorrB)
+	            char *EmpCorrB)
 /*########################################################
 Place a sphere (WaMoRa) over each SAS point (surfpt) and set to empty
 (GridMat = 'e') all the grid points occupied by the sphere
@@ -1781,7 +1786,7 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
 /* Check if our grid point is inside the sphere. If yes change GridMat */
 
               if (WaMoRa2 > r2){
-                GridMat[ix][iy][iz] = 's';
+                GridMat[ix][iy][iz] = 's';//'s';
               }
             }
           }
@@ -1792,10 +1797,12 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
 
 /* Loop over the atom and when they include a 3D grid point marked 's'
    assign a negative contribution to the integral Selfvol. This is
-   done to balance a successive assignement of the same contribution
+   done to balance a successive assignment of the same contribution
    with a sign +. It is done to make things faster and simpler. */
 
+  //int jumppoint; //debug
   for (iat=1;iat<=ReAtNu;iat++) {
+    //jumppoint = 0;
     ixmin = ( (ReCoor[iat][1] - ReRadOut[iat] - Min.x) / GrSiSo + 1 );
     iymin = ( (ReCoor[iat][2] - ReRadOut[iat] - Min.y) / GrSiSo + 1 );
     izmin = ( (ReCoor[iat][3] - ReRadOut[iat] - Min.z) / GrSiSo + 1 );
@@ -1823,17 +1830,20 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
             ztemp += GrSiSo;
             r2 = ztemp * ztemp + xy2temp;
             if (ReRadOut2[iat] > r2) {
-              if (GridMat[ix][iy][iz] == 's') {
+              if (GridMat[ix][iy][iz] == 's') { // 's'
                 r4 = r2 * r2;
                 SelfVol[iat] -= UnitVol/r4;
-		if (EmpCorrB[0]=='y')
-		  SelfVol_corrB[iat] -= UnitVol/(r4*sqrt(r2));
+		            if (EmpCorrB[0]=='y')
+		              SelfVol_corrB[iat] -= UnitVol/(r4*sqrt(r2));
+                /*std::cout << "here subtracting volume for atom " << iat << "\n";*/
+                //jumppoint++;
               }
             }
           }
         }
       }
     }
+    //std::cout << "Subtracted surf point for atom " << iat << " = " << jumppoint <<"\n";
   }
   if (iat == ReAtNu+1 )
     return 1;
@@ -1846,7 +1856,7 @@ int Get_Self_Vol(int ReAtNu,double **ReCoor,double *ReRadOut2,
                  int NStartGridx,int NStartGridy,int NStartGridz,
                  int NGridx,int NGridy,int NGridz,
                  double UnitVol,char ***GridMat,double *SelfVol,
-		 double *SelfVol_corrB,char *EmpCorrB)
+		             double *SelfVol_corrB,char *EmpCorrB)
 /*##########################################
 Calculate the integral of 1/r^4 for each atom over the
 solute volume defined by GridMat
@@ -1898,9 +1908,9 @@ point or not.
  NeighList gives the list af atoms that are close to a 27-element cube */
 
 /* Loop over the centers of the cubes of 27 elements */
-  for (ix=NStartGridx+1;ix<=NGridx;ix+=3) {
-    for (iy=NStartGridy+1;iy<=NGridy;iy+=3) {
-      for (iz=NStartGridz+1;iz<=NGridz;iz+=3) {
+  for (ix=NStartGridx+1; ix<=NGridx; ix+=3) {
+    for (iy=NStartGridy+1; iy<=NGridy; iy+=3) {
+      for (iz=NStartGridz+1; iz<=NGridz; iz+=3) {
         filled = 0;
         dolist = 0;
         if (GridMat[ix][iy][iz] == 'o') {
@@ -1914,7 +1924,7 @@ point or not.
               for (izf=iz-1;izf<=iz+1;izf++) {
                 if (GridMat[ixf][iyf][izf] == 'o') {
                   dolist = 1;
-                  goto do_neigh_list;
+                  goto do_neigh_list; // I think this goto is simply a "multiple break to get out of the nested loops. clangini
                 }
               }
             }
@@ -1932,20 +1942,18 @@ to the integral of 1/r^4 */
                  (YGrid[iy]-ReCoor[iat][2])*(YGrid[iy]-ReCoor[iat][2])+
                  (ZGrid[iz]-ReCoor[iat][3])*(ZGrid[iz]-ReCoor[iat][3]);
             if ( r2 > cutoff2_grid ) {
-              if (filled)
-	      {
+              if (filled) {
                 SelfVolTmp[iat] += UnitVol27 / (r2 * r2);
-		if (EmpCorrB[0]=='y')
-		  SelfVolTmp_corrB[iat] += UnitVol27 / (r2 * r2 * sqrt(r2));
+		            if (EmpCorrB[0]=='y')
+		              SelfVolTmp_corrB[iat] += UnitVol27 / (r2 * r2 * sqrt(r2));
               }
             }
             else if (r2 < cutoff2_grid && r2 > cutoff2) {
-              if (filled)
-	      {
+              if (filled) {
                 SelfVolTmp[iat] += UnitVol27 / (r2 * r2);
-		if (EmpCorrB[0]=='y')
-		  SelfVolTmp_corrB[iat] += UnitVol27 / (r2 * r2 * sqrt(r2));
-	      }
+		          if (EmpCorrB[0]=='y')
+		            SelfVolTmp_corrB[iat] += UnitVol27 / (r2 * r2 * sqrt(r2));
+	            }
               ++Neigh;
               NeighList[Neigh] = iat;
             }
@@ -1965,18 +1973,17 @@ to the integral of 1/r^4 */
                          (YGrid[iyf]-ReCoor[NeighList[jat]][2]) +
                          (ZGrid[izf]-ReCoor[NeighList[jat]][3]) *
                          (ZGrid[izf]-ReCoor[NeighList[jat]][3]);
-                    if ( r2 < cutoff2 && r2 > ReRadOut2[NeighList[jat]] )
-		    {
+                    if ( r2 < cutoff2 && r2 > ReRadOut2[NeighList[jat]] ) {
                       SelfVolTmp[NeighList[jat]] += UnitVol / (r2 * r2);
-		      if (EmpCorrB[0]=='y')
-		        SelfVolTmp_corrB[NeighList[jat]] += UnitVol / (r2 * r2 * sqrt(r2));
-		    }
+		                  if (EmpCorrB[0]=='y')
+		                    SelfVolTmp_corrB[NeighList[jat]] += UnitVol / (r2 * r2 * sqrt(r2));
+		                }
                   }
                 }
               }
             }
           }
-        }
+        } // end of if(dolist)
       }
     }
   }
@@ -2027,7 +2034,7 @@ double *PIntEnTot ------- Tot interaction energy
           Rij = EffRad[iat] * EffRad[jat];
 
 
-          Inte = Chiat*RePaCh[jat] / sqrtf (d2 + Rij * exp(-d2/(4.*Rij)));
+          Inte = Chiat*RePaCh[jat] / sqrtf (d2 + Rij * exp(-d2/(4.*Rij))); // eq. (15) of [Scarsi et. al 1997]. clangini
           *PIntEnTot += Inte;
         }
       }
@@ -3334,7 +3341,7 @@ double ***DeltaPrDeso --- Elec rec (frag) desolvation due to the occupation
           DeltaPrDeso[ix][iy][iz] = Kdesol *
                                   ( Dx[ix][iy][iz] * Dx[ix][iy][iz] +
                                     Dy[ix][iy][iz] * Dy[ix][iy][iz] +
-                                    Dz[ix][iy][iz] * Dz[ix][iy][iz] );
+                                    Dz[ix][iy][iz] * Dz[ix][iy][iz] ); // eq. (5) of SEED3.3.6 manual. clangini
 /* Free memory */
   free_d3tensor(Dx,nxminBS,nxmaxBS,nyminBS,nymaxBS,nzminBS,nzmaxBS);
   free_d3tensor(Dy,nxminBS,nxmaxBS,nyminBS,nymaxBS,nzminBS,nzmaxBS);

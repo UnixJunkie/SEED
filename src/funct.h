@@ -16,12 +16,15 @@
 *    You should have received a copy of the GNU General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+#ifndef _FUNCT_H
+#define _FUNCT_H
+
 #include <iostream>
 #include <cstdio>
+#include "point.h"
 #include "quaternion.h"
-#ifdef ENABLE_MPI
-#include <mpi.h>
-#endif
+#include "Parameter.h"
 #define sqrtf sqrt
 #define sinf sin
 #define cosf cos
@@ -75,8 +78,8 @@ void ReInFi(char *InpFil,char *RecFil,int *BSResN,int **BSReNu,
             char *CoGrFile,char *EvalEn,char *Solv_typ,
             char *SpPoCh_opt,double *SpPoCh_cent,double *SpPoCh_rad,
             double *SFDeso_fr,double *SFDeso_re,double *SFVWEn,double *SFIntElec,
-            int *NuClusMem,int *NuPosMem,double *RedRPV_rp,double *RedRPV_nkvDens,
-            double *ScMaBump, /*int *RedRPV_nkv, dey new*/
+            int *NuClusMem,int *NuPosMem,double *RedRPV_rp,
+            double *RedRPV_nkvDens,double *ScMaBump, /*int *RedRPV_nkv, dey new*/
             double *MuFaVdWCoff_ap,int *NuLiEnClus,char *ApPoChoi,
             double *VWGrIn,double *VWGrSi,double *BumpFaCut,char *VWGrAcc,
             char *VWGrFile,int *MaxPosClus,int *PrintLev,
@@ -87,7 +90,8 @@ void ReInFi(char *InpFil,char *RecFil,int *BSResN,int **BSReNu,
             char *gc_opt,int *gc_reprke,double *gc_cutclus,double *gc_endifclus,
             double *gc_weighneg,double *gc_weighpos,int *gc_maxwrite,
             char *write_pproc_opt,char *write_pproc_chm_opt,char *write_best_opt,
-            char *write_sumtab_opt,char *write_best_sumtab_opt,double **AtWei);
+            char *write_sumtab_opt,char *write_best_sumtab_opt,double **AtWei,
+            Parameter &seed_par);
 
 void ReReFi_mol2(char *RecFil,int *ReAtNu,int *ReBdNu,int *ReReNu,
                  char ***ReAtEl,double ***ReCoor,char ***ReAtTy,int **ReResN,
@@ -288,6 +292,11 @@ void SqDisFrRe_ps(int FrAtNu,double **RoSFCo,double **ReCoor,double *ReMinC,
             int ReAtNu,double PsSpRa,double *RePaCh,int ReReNu,int *AtReprRes,
             int *FiAtRes,int *LaAtRes,double *TotChaRes,int NuChResEn,
             int *LiChResEn,double **SDFrRe_ps_elec,double **ChFrRe_ps_elec);
+void SqDisFrRe_ps_vdW(int FrAtNu,double **RoSFCo,double **ReCoor,double *ReMinC,
+            double GrSiCu_en,int *CubNum_en,int ***CubFAI_en,int ***CubLAI_en,
+            int *CubLiA_en,int PsSpNC,int ***PsSphe,double **SDFrRe_ps,
+            int ReAtNu,double PsSpRa,int ReReNu,int *AtReprRes,
+            int *FiAtRes,int *LaAtRes); // clangini
 /* void ExtOutNam(int FragNu,char **FrFiNa,char **FrFiNa_out); clangini */
 void ExtOutNam(char *FrFiNa,char *FrFiNa_out); /* clangini */
 void ExtOutNam(char *FrFiNa,char *FrFiNa_out, char *suffix); /* clangini */
@@ -342,11 +351,7 @@ void GeomCenter_FFLD(int CurFra,char **FrFiNa_out,int FrAtNu,int *FrAtEl_nu,
 
 
 
-struct point {
-  double x;
-  double y;
-  double z;
-};
+
 void Solvation(int ReAtNu,double **ReCoor,double *ReVdWE_sr,double *ReVdWR,
                double *ReRad,double *ReRad2,double *ReRadOut,double *ReRadOut2,
                double *ReEffRad_bound,
@@ -645,3 +650,4 @@ int Fast_Desol_Receptor(int AtNu,double **Coor,double *RadOut,double *RadOut2,
 			double * minC,double *maxC, double ** xcoor,double maxrad,double WaMoRa);
 int CheckFile(char*name,char type);
 int CheckMol2File(char*name);
+#endif

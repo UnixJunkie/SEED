@@ -2,7 +2,7 @@ CXXFLAGS = -std=c++11 -O3 -pedantic -Wall -march=native -DUSE_QUATERNION_ROTATIO
 CXX = g++
 LDFLAGS = -lm -O3 -static
 
-INC_FLAGS = -I. -I../lib/
+INC_FLAGS = -I. -I/storage006/clangini/boost_1_63_0 -I../lib/
 
 # For seed MPI:
 MPICXX = /software/openmpi/Gnu/bin/mpic++

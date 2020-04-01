@@ -11,9 +11,9 @@ BUILD_DIR = $(CURR_DIR)build
 BUILD_DIR_MPI = $(CURR_DIR)build/mpi
 BUILD_DIR_DEBUG = $(CURR_DIR)build/dbg
 
-TARGET_EXEC = $(BIN_DIR)/seed_4_lb
-TARGET_EXEC_DEBUG = $(BIN_DIR)/seed_4_debug
-TARGET_EXEC_MPI = $(BIN_DIR)/seed_4_mpi_lb
+TARGET_EXEC = $(BIN_DIR)/seed_4_mc_lb
+TARGET_EXEC_MPI = $(BIN_DIR)/seed_4_mc_mpi_lb
+TARGET_EXEC_DEBUG = $(BIN_DIR)/seed_4_mc_lsb_debug
 
 # Flags:
 CXX = g++
@@ -33,8 +33,9 @@ include $(CURR_DIR)Makefile.local
 
 DEP_FLAGS = $(INC_FLAGS) -MMD -MP
 
-PRESRCLIST = align_frag assire checkresn cofren cogrep conubu convert2pp count_heavy_atom extoutnam featres fialhy findfrsym fracdo geomcent geomfu hybstat listchres main makbsatlist makspv nrutil otfunc psspee psspma reacdo reduc_polvectre refrfi_coo_mol2 refrfi_mol2_new reinfi relaic relaic_en rerefi_mol2 rosefr seedfr_ap seedfr simila solv_frag solv_frag_fast solv_lookup solv_util sort_all sort sqdisfrre_ps vwfren vwgrep write_charmm write_chm_clus write_mol2
+PRESRCLIST = align_frag assire checkresn cofren cogrep conubu convert2pp count_heavy_atom extoutnam featres fialhy findfrsym fracdo geomcent geomfu hybstat listchres main makbsatlist makspv montecarlo nrutil otfunc Parameter psspee psspma reacdo reduc_polvectre refrfi_coo_mol2 refrfi_mol2_new reinfi relaic relaic_en rerefi_mol2 rnd_namespace rosefr seedfr_ap seedfr simila solv_frag solv_frag_fast solv_lookup solv_util sort_all sort sqdisfrre_ps vwfren vwgrep write_charmm write_chm_clus write_mol2
 SRCLIST = $(PRESRCLIST:%=%.cpp)
+
 SRCS = $(SRCLIST)
 OBJS = $(SRCLIST:%.cpp=$(BUILD_DIR)/%.o)
 OBJS_DEBUG = $(SRCLIST:%.cpp=$(BUILD_DIR_DEBUG)/%.o)
