@@ -141,7 +141,7 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
   boost::char_separator<char> sep(" \t\n\r");
 
 	char **FrAtEl_L,**FrAtTy_L,**FrBdTy_L, **SubNa_L, **FrSyAtTy_L;
-  int i,**FrBdAr_L, AtCount, CuAtNu, amready, aone, mol2tag[3], mlen;
+  int i,j,**FrBdAr_L, AtCount, CuAtNu, amready, aone, mol2tag[3], mlen;
 	bool AtNu_flag, visitsecs[5];
   bool isValid_AlTySec, OverlappingMol; // is the alternative atom type section valid?
   double **FrCoor_L,*FrPaCh_L;
