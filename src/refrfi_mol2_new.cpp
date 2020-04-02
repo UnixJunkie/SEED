@@ -143,7 +143,7 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
 	char **FrAtEl_L,**FrAtTy_L,**FrBdTy_L, **SubNa_L, **FrSyAtTy_L;
   int i,**FrBdAr_L, AtCount, CuAtNu, amready, aone, mol2tag[3], mlen;
 	bool AtNu_flag, visitsecs[5];
-  bool isValid_AlTySec; // is the alternative atom type section valid?
+  bool isValid_AlTySec, OverlappingMol; // is the alternative atom type section valid?
   double **FrCoor_L,*FrPaCh_L;
   char *mpi_mess;
   std::vector<std::string> mpi_strs;
@@ -341,6 +341,29 @@ int MPI_slave_ReFrFi_mol2(int *SkiFra,int *CurFraTot,char *FragNa,
   		FrPaCh_L[seclc] = boost::lexical_cast<double> (*itItem);
       
       if (seclc == *FrAtNu) {
+        // Check for Overlapping atoms
+        OverlappingMol = false;
+        for (i = 1; i <= (*FrAtNu); i++)
+        {
+          for (j = i + 1; j <= (*FrAtNu); j++)
+          {
+            if (DistSq(FrCoor_L[i][1], FrCoor_L[i][2], FrCoor_L[i][3],
+                       FrCoor_L[j][1], FrCoor_L[j][2], FrCoor_L[j][3]) < 0.03)
+            {
+              OverlappingMol = true;
+              goto OverlapOut;
+            }
+          }
+        }
+        OverlapOut: ;
+        if (OverlappingMol){
+          std::cerr << "Fragment " << *CurFraTot
+                    << " might have overlapping atoms. Skipping!\n"
+                    << std::endl;
+          skipit = true;
+          break;
+        }
+
         insec = 0;
         seclc = 0;
       }
