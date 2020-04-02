@@ -668,7 +668,7 @@ int ReFrFi_mol2(std::istream *inStream, std::streampos *strPos,
     for (i=1; i<=(*FrAtNu); i++ ){
       for (j=i+1; j <= (*FrAtNu); j++){
         if (DistSq(FrCoor_L[i][1], FrCoor_L[i][2], FrCoor_L[i][3],
-                   FrCoor_L[j][1], FrCoor_L[j][2], FrCoor_L[j][3]) < 0.04){
+                   FrCoor_L[j][1], FrCoor_L[j][2], FrCoor_L[j][3]) < 0.03){
                     OverlappingMol = true;
                    }
       }
