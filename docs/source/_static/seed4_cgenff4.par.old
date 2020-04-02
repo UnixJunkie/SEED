@@ -99,32 +99,6 @@ w  ./scratch/desolvation.grid
 #           energies and the two clustering procedures / 
 #           Printlevel (0=lean, 1=adds sorting before postprocessing, 2=adds 2nd clustering)
 100 1
-#
-#      ----------------------------------------------------------------------
-#           Parameters for MC sampling of refined conformation
-#      ----------------------------------------------------------------------
-# 	    Perform MC refinement? y/n
-n
-# 	    Temperature of MC run
-#600
-# 	    Max rigid body translation step (in Angstrom): coarse and fine moves
-#0.7 0.1
-# 	    Max rigid body rotation step (in degrees): coarse and fine moves
-#3.0 0.5
-#           MC MOVE SET FREQUENCIES:
-#           Freq of rigid body rotation moves p (q = 1 - p is the freq of rigid body translation move)
-#0.5
-#           Relative freq. (wrt number of rot moves) of fine rotation moves:
-#0.75
-#           Relative freq. (wrt number of tran move) of fine translation moves:
-#0.75
-# 	    Number of iterations / Frequency on which to calculate elec interactions
-#500 5 
-#	    Annealing parameter (alpha)
-#0.995
-#	    Seed for pseudo-random number generator
-#98471 
-#     
 #      ----------------------------------------------------------------------
 #           Forcefield parameters from now on
 #           Forcefield parameters from now on
@@ -150,7 +124,7 @@ n
 #     Atom  element  van der Waals
 #     type  number  radius energy_min (absolute value)
 #   -----------------------------------
-225
+228
 1      H      1     0.22450 0.046000  # polar H
 2      HC     1     0.22450 0.046000  # N-ter H
 3      HA     1     1.32000 0.022000  # nonpolar H
@@ -376,6 +350,9 @@ n
 223    CT     6     2.275   0.020     # TIP3P
 224    OT     8     1.7682  0.1521    # TIP3P
 225    HT     1     0.2245  0.0460    # TIP3P
+226    SG2P1  16    2.0937  0.6308    # mono-thio S-P bond
+227    OG2S1  8     1.6796  0.1423    # mono-thio S-P bond
+228    SG2P2  16    2.0546  0.6199    # di-thio S-P bond
 #
 # Hydrogen bond distances between donor and acceptor
 #

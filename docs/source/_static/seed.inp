@@ -29,4 +29,5 @@ n
 #           energy cutoff in kcal/mol / 2nd clustering cutoff in kcal/mol
 d
 XXXX       b     0.0   0.0
+single
 end

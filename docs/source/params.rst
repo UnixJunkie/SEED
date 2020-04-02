@@ -78,9 +78,9 @@ Here we define all the parameters of the ``seed.inp`` file.
   
 **i7**
   | Fragment library specifications
-  | First line: one character specifying the running mode of SEED: 
+  | **First line**: one character specifying the running mode of SEED: 
     :ref:`dock-runmode` (``d``) or only :ref:`energy-runmode` (``e``).
-  | Following lines: the first column contains the path of the fragment mol2 file 
+  | **Second line**: the first column contains the path of the fragment mol2 file 
     and the second column allows the selection of apolar, polar docking or both 
     (``a``, ``p``, ``b``). The fragment position is accepted if the total energy 
     (according to the fast energy model) is smaller than a cutoff given in the third column. 
@@ -88,9 +88,25 @@ Here we define all the parameters of the ``seed.inp`` file.
     for which the binding energy of the cluster representative is smaller than a cutoff value
     specified in the 4th column. In summary:
   
-  | Fragment library filename / 
-    apolar docking, polar docking, or both (``a``, ``p``, ``b``) /
-    energy cutoff in kcal/mol / 2nd clustering cutoff in kcal/mol
+  | Fragment library filename - 
+    apolar docking, polar docking, or both (``a``, ``p``, ``b``) -
+    energy cutoff in kcal/mol - 2nd clustering cutoff in kcal/mol
+
+  | **Third line**: Reading mode, either ``single`` or ``multi``. This option is only relevant
+    when using the MPI parallel version and only concerns the way the input mol2 library is read. 
+    With ``single`` SEED expects a single mol2 input
+    file; molecules are read from this file by the master rank, which dispatches them to the
+    first available rank, balancing the computational load among the processes. 
+    This is especially important when running Monte Carlo minimization as the variance of the
+    running time per molecule can be large.
+    With the ``multi`` option each rank reads from a separate mol2 file. This requires the user
+    to preemptively split the library into a number of parts equal to the number of ranks. In order
+    to relieve the possible load imbalace, whe recommend shuffling the library file before splitting it
+    (scripts are provided).
+    The ``multi`` option can be useful when reanalyzing SEED output poses, as each rank writes to a 
+    separate output mol2 file, or when running with a limited number of MPI ranks, as with ``single`` 
+    the master rank only reads and dispatches molecules without doing any conmputation.
+    For the serial version the chosen reading mode is inconsequential as only one process will be started.
     
 As you do not need to modify all the parameters and in most of the cases 
 default values will give good results, we recommend not to write an input 
@@ -301,8 +317,18 @@ to eliminate fragments which are very close in space.
 Monte Carlo parameters
 ^^^^^^^^^^^^^^^^^^^^^^
 
+The following parameters are needed for running a Monte Carlo minimization of the top poses.
+This option can be enabled by setting :ref:`mc1<mc1>` to `y` (yes) and adding 
+the following parameters.
+If :ref:`mc1<mc1>` is set to `n` (no), all the additional MC parameters in this section 
+(:ref:`mc2<mc2>` through :ref:`mc10<mc10>`) have to be commented out.
+
+.. _mc1:
+
 **mc1**
   | Perform MC refinement? (y/n)
+
+.. _mc2:
 
 **mc2**
   | Starting temperature of MC run.
@@ -332,6 +358,8 @@ Monte Carlo parameters
 
 **mc9**
   | Annealing parameter :math:`\alpha`.
+
+.. _mc10:
 
 **mc10**
   | Seed for the pseudo-random number generator used by the MC sampler.

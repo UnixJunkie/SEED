@@ -51,6 +51,7 @@ Contents:
    :maxdepth: 2
 
    getstart
+   parallel
    docking
    vectors
    models
