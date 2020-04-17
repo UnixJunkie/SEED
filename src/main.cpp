@@ -3790,20 +3790,23 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
 
         /* NEW OUTPUT, fast energies not printed */
 
-        fprintf(FPaOut,"                 intermolecular        electrostat_desolv.");
-        fprintf(FPaOut,"        Total\n");
-        fprintf(FPaOut,"  Conform.     vdWaals  electrost");
-        fprintf(FPaOut,"     receptor    fragment       energy\n\n");
+        if (To_s <= FrMaEn) // write to table only if below Total energy filter.
+        {
+          fprintf(FPaOut, "                 intermolecular        electrostat_desolv.");
+          fprintf(FPaOut, "        Total\n");
+          fprintf(FPaOut, "  Conform.     vdWaals  electrost");
+          fprintf(FPaOut, "     receptor    fragment       energy\n\n");
 
-        fprintf(FPaOut,
-            "%10d%12.2f%11.2f%13.2f%12.2f%13.2f\n",
-            Ind_num_cn,VW_s,In_s,Dr_s,Df_s,
-            To_s);
-        // if energy evaluation run is requested, the energies are saved in
-        // the best output summary table. clangini
-        HeAtCo = count_heavy_atom(FrAtEl_nu, FrAtNu);
-        MolWei = molecular_weight(FrAtEl_nu, FrAtNu, AtWei);
-        if (write_best_sumtab_opt[0]=='y'){
+          fprintf(FPaOut,
+                  "%10d%12.2f%11.2f%13.2f%12.2f%13.2f\n",
+                  Ind_num_cn, VW_s, In_s, Dr_s, Df_s,
+                  To_s);
+          // if energy evaluation run is requested, the energies are saved in
+          // the best output summary table. clangini
+          HeAtCo = count_heavy_atom(FrAtEl_nu, FrAtNu);
+          MolWei = molecular_weight(FrAtEl_nu, FrAtNu, AtWei);
+          if (write_best_sumtab_opt[0] == 'y')
+          {
           // append to _best_pproc summary table
           #ifdef ENABLE_MPI
           sprintf(dummyStr, "./outputs/seed_best_part%d.dat", myrank);
@@ -3833,11 +3836,13 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           } else {
             std::cerr << "Unable to write to file "<< TabFil << std::endl;
           }
-          TabOutStream.close();
+            TabOutStream.close();
+          }
+        } else {
+          fprintf(FPaOut,"Fragment %s with total energy %.2f did not pass the total energy cutoff\n",FragNa, To_s);
         }
         free_dmatrix(FrCoor_NoAlign,1,FrAtNu,1,3);//clangini
-      }
-      else {
+      } else {
         /* --------------------- */
         /* Situation of conflict */
         /* --------------------- */
@@ -3943,6 +3948,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
       fprintf(FPaOut,"\n");
     }
     /* !!! From here, the value of SFWrNu might change */
+    // note that if EvalEn == 'e' SFWrNu is 0 // clangini
     SFWrNu_init=SFWrNu;
     SFWrNu=((SFWrNu<MaxPosClus)?SFWrNu:MaxPosClus);
 
