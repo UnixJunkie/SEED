@@ -15,7 +15,7 @@ Parameter::Parameter() :
   mc_niter_out(0),
   mc_niter_in(0),
   sa_alpha(1.0),
-  mc_rand_seed(-1)
+  mc_rand_seed(-1),
   // Rigid body minimization
   do_rbmin('n')
   { } // default constructor

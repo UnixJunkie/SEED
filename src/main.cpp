@@ -4078,6 +4078,15 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                     ((time_mc_end.tv_sec - time_mc_start.tv_sec) * 1000000u +
                      time_mc_end.tv_usec - time_mc_start.tv_usec) / 1.e6);
           } // end of if (seed_par.do_mc == 'y')
+          /* ----- Rigid Body Minimization ----- */
+          if (seed_par.do_rbmin == 'y')
+          {
+            double COM[4];
+            // COM coords:
+            CenterOfMass(COM, RoSFCo, FrAtNu, AtWei, FrAtEl_nu);
+            //std::cerr << "COM: " << COM[1] << " " << COM[2] << " " << COM[3] << std::endl;
+
+          } // end of if (seed_par.do_mc == 'y')
         }
 
         /* ----- FAST or BOTH methods ----- */

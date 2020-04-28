@@ -275,8 +275,10 @@ void MakBSAtList(int ReAtNu,int *ReResN,int BSResN,int *BSReNu,int *BSAtNu,
                  int **BSAtLi);
 double TrProd(double ox,double oy,double oz,double ax,double ay,double az,
              double bx,double by,double bz,double cx,double cy,double cz);
-void HybStAt(int xxAtNu,int *xxAtEl_nu,double **xxCoor,int xxBdNu,int **xxBdAr,
-             int *HybxxAt,FILE *FPaOut);
+void CenterOfMass(double *COM, double **coords, int FrAtNu,
+                  double *AtWei, int *FrAtEl_nu);
+void HybStAt(int xxAtNu, int *xxAtEl_nu, double **xxCoor, int xxBdNu, int **xxBdAr,
+             int *HybxxAt, FILE *FPaOut);
 void FrAcDo(int FrAtNu,int *FrAtEl_nu,double **FrCoor,int *HybFrAt,int FrBdNu,
             int **FrBdAr,int *FrAcNu,int *FrDoNu,int **FrDATy,int **FrDAAt,
             int **FrHydN,double ***FrVeCo,FILE *FPaOut,char *OutFil);

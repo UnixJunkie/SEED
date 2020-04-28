@@ -273,3 +273,28 @@ double TrProd(double ox,double oy,double oz,double ax,double ay,double az,
   return fabsf(TripPr);
 
 }
+
+void CenterOfMass(double *COM, double **coords, int FrAtNu, 
+                  double *AtWei, int *FrAtEl_nu)
+{
+  int i;
+  double MolWei;
+
+  // Zero COM:
+  COM[1] = 0.0;
+  COM[2] = 0.0;
+  COM[3] = 0.0;
+
+  MolWei = molecular_weight(FrAtEl_nu, FrAtNu, AtWei);
+
+  for (i=1; i <= FrAtNu; i++){
+    COM[1] = COM[1] + coords[i][1] * AtWei[FrAtEl_nu[i]];
+    COM[2] = COM[2] + coords[i][2] * AtWei[FrAtEl_nu[i]];
+    COM[3] = COM[3] + coords[i][3] * AtWei[FrAtEl_nu[i]];
+  }
+  COM[1] = COM[1]/MolWei;
+  COM[2] = COM[2]/MolWei;
+  COM[3] = COM[3]/MolWei;
+  
+  return;
+}

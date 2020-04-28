@@ -604,7 +604,7 @@ written in output file*/ //clangini
     SkipComLin(FilePa,StrLin);
     sscanf(StrLin, "%d", &(seed_par.mc_rand_seed));
   }
-  seed_par.do_rgmin = 'y';
+  seed_par.do_rbmin = 'y';
 /* CLANGINI 2016 END */
 
   /* Read NumbAT AtTyAr AtENAr VdWRad VdWEne */

@@ -28,7 +28,7 @@ class Parameter // This is much more like a POD struct than a class
   double sa_alpha;
   int mc_rand_seed;
   // Rigid Body minimization
-  char do_rgmin;
+  char do_rbmin;
 };
 
 #endif
