@@ -10,7 +10,7 @@ class Parameter // This is much more like a POD struct than a class
   public:
   Parameter();  // default constructor
   ~Parameter(); // default destructor
-
+  // Monte Carlo Simulated Annealing
   char do_mc;
   double mc_temp;
   double mc_max_tran_step;
@@ -27,6 +27,8 @@ class Parameter // This is much more like a POD struct than a class
   int mc_niter_in;
   double sa_alpha;
   int mc_rand_seed;
+  // Rigid Body minimization
+  char do_rgmin;
 };
 
 #endif

@@ -1,6 +1,10 @@
 #include "Parameter.h"
 
-Parameter::Parameter() : do_mc('n'), mc_temp(0.0), mc_max_tran_step(0.0),
+Parameter::Parameter() : 
+  // Monte Carlo Simulated Annealing
+  do_mc('n'), 
+  mc_temp(0.0), 
+  mc_max_tran_step(0.0),
   mc_max_tran_step_fine(0.0),
   mc_tran_freq(0.5),
   mc_tran_fine_freq(0.5),
@@ -11,6 +15,9 @@ Parameter::Parameter() : do_mc('n'), mc_temp(0.0), mc_max_tran_step(0.0),
   mc_niter_out(0),
   mc_niter_in(0),
   sa_alpha(1.0),
-  mc_rand_seed(-1) { } // default constructor
+  mc_rand_seed(-1)
+  // Rigid body minimization
+  do_rbmin('n')
+  { } // default constructor
 
 Parameter::~Parameter() { } // default destructor
