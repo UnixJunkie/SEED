@@ -4081,11 +4081,46 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           /* ----- Rigid Body Minimization ----- */
           if (seed_par.do_rbmin == 'y')
           {
+            int rb_iter = 10;
+            int rbi;
+            int i;
+            double alpha = 0.01;
             double COM[4];
+            double FvdW[4]; // Total vdW force
+            double **RelCOMCo;
             // COM coords:
             CenterOfMass(COM, RoSFCo, FrAtNu, AtWei, FrAtEl_nu);
             //std::cerr << "COM: " << COM[1] << " " << COM[2] << " " << COM[3] << std::endl;
+            RelCOMCo = dmatrix(1,FrAtNu,1,3);
+            for (i=1; i <= FrAtNu; i++){
+              RelCOMCo[i][1] = RoSFCo[i][1] - COM[1];
+              RelCOMCo[i][2] = RoSFCo[i][2] - COM[2];
+              RelCOMCo[i][3] = RoSFCo[i][3] - COM[3];
+            }
 
+            for (rbi = 1; rbi <= rb_iter; rbi++){
+              // Distances for vdW
+              SqDisFrRe_ps_vdW(FrAtNu, RoSFCo, ReCoor, ReMinC, GrSiCu_en,
+                               CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
+                               PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
+                               ReReNu, AtReprRes, FiAtRes, LaAtRes);
+              // vdW forces:
+              PsSpFE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
+                     ReVdWR, FrVdWR, FvdW, SDFrRe_ps, RoSFCo, ReCoor);
+
+              COM[1] = COM[1] - alpha * FvdW[1];
+              COM[2] = COM[2] - alpha * FvdW[2];
+              COM[3] = COM[3] - alpha * FvdW[3];
+            }
+
+            for (i = 1; i <= FrAtNu; i++)
+            {
+              RoSFCo[i][1] = COM[1] + RelCOMCo[i][1];
+              RoSFCo[i][2] = COM[1] + RelCOMCo[i][2];
+              RoSFCo[i][3] = COM[1] + RelCOMCo[i][3];
+            }
+
+            free_dmatrix(RelCOMCo, 1, FrAtNu, 1, 3);
           } // end of if (seed_par.do_mc == 'y')
         }
 

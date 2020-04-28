@@ -252,11 +252,14 @@ void ReLAIC_en(int ReReNu,double **ReCoor,double GrSiCu_en,double *ReMinC,
 void PsSpMa(double PsSpRa,double GrSiCu_en,int PsSpNC,int ***PsSphe);
 void PsSpEE(int FrAtNu,int ReAtNu,double *ReVdWE_sr,double *FrVdWE_sr,
             double *ReVdWR,double *FrVdWR,double *VWEnEv_ps,double **SDFrRe_ps);
+void PsSpFE(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
+            double *ReVdWR, double *FrVdWR, double *FvdW, double **SDFrRe_ps,
+            double **RoSFCo, double **ReCoor);
 /* deprecated */
 /* void ReaOut(int CurFra,int SFWrNu,int *Index_ro,double *VW_f_ro,double *VW_s_ro, */
 /*             double *In_f_ro,double *In_s_ro,double *Dr_f_ro,double *Dr_s_ro, */
 /*             double *Df_f_ro,double *Df_s_ro,double *To_f_ro,double *To_s_ro); */
-void Sort(int N,int *IndArr,double *SorArr);
+void Sort(int N, int *IndArr, double *SorArr);
 void write_charmm(int CurFra,int SFWrNu,int FrAtNu,int *Index_ro,
                   double *Coulo_ro,double *Vande_ro,double *TotEn_ro,
                   char **FrAtTy,double ***FrCoPo,char **ResN_fr,
