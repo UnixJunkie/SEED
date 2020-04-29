@@ -4081,14 +4081,27 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           /* ----- Rigid Body Minimization ----- */
           if (seed_par.do_rbmin == 'y')
           {
-            int rb_iter = 50;
+            int rb_iter = 2000;
             int rbi;
             int i;
-            double alpha = 0.01;
+            double alpha = 0.001;
             double COM[4];
             double FvdW[4]; // Total vdW force
             double TvdW[4]; // Total vdw torque
+            double e_x[4], e_y[4], e_z[4];
             double **RelCOMCo;
+            Quaternion<double> q_x, q_y, q_z; // Three rotations -> should use conversion formulas
+            
+            e_x[1] = 1.0;
+            e_x[2] = 0.0;
+            e_x[3] = 0.0;
+            e_y[1] = 0.0;
+            e_y[2] = 1.0;
+            e_y[3] = 0.0;
+            e_z[1] = 0.0;
+            e_z[2] = 0.0;
+            e_z[3] = 1.0;
+
             // COM coords:
             CenterOfMass(COM, RoSFCo, FrAtNu, AtWei, FrAtEl_nu);
             //std::cerr << "COM: " << COM[1] << " " << COM[2] << " " << COM[3] << std::endl;
@@ -4110,12 +4123,27 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                      ReVdWR, FrVdWR, FvdW, TvdW, 
                      SDFrRe_ps, RoSFCo, ReCoor, RelCOMCo);
 
+              // applying translation:
               COM[1] = COM[1] + alpha * FvdW[1];
               COM[2] = COM[2] + alpha * FvdW[2];
               COM[3] = COM[3] + alpha * FvdW[3];
               std::cerr << rbi << std::endl;
               std::cerr << "COM: " << COM[1] << " " << COM[2] << " " << COM[3] << std::endl;
               std::cerr << "FvW: " << FvdW[1] << " " << FvdW[2] << " " << FvdW[3] << std::endl;
+
+              // applying rotation:
+              q_x.fromAngleAxis(alpha*TvdW[1], e_x);
+              q_y.fromAngleAxis(alpha*TvdW[2], e_y);
+              q_z.fromAngleAxis(alpha*TvdW[3], e_z);
+              for (i=1; i <= FrAtNu; i++){
+                q_x.quatConjugateVecRef(RelCOMCo[i], 0.0, 0.0, 0.0);
+                q_y.quatConjugateVecRef(RelCOMCo[i], 0.0, 0.0, 0.0);
+                q_z.quatConjugateVecRef(RelCOMCo[i], 0.0, 0.0, 0.0);
+              }
+
+              std::cerr << "COM: " << COM[1] << " " << COM[2] << " " << COM[3] << std::endl;
+              std::cerr << "TvW: " << TvdW[1] << " " << TvdW[2] << " " << TvdW[3] << std::endl;
+
               for (i = 1; i <= FrAtNu; i++)
               {
                 RoSFCo[i][1] = COM[1] + RelCOMCo[i][1];

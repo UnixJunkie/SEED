@@ -146,7 +146,11 @@ Quaternion<T> Quaternion<T>::inverse(void){
 
 template<class T>
 Quaternion<T> Quaternion<T>::normalize(void){
-  return (*this)/(this->norm());
+  return (*this)/(this->norm()); 
+  // this returns a new object: 
+  // when in main I do:
+  // p = q::normalize()
+  // the copy constructor will be called
 }
 template<class T>
 void Quaternion<T>::norm_inplace(void){
