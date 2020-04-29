@@ -4081,12 +4081,13 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           /* ----- Rigid Body Minimization ----- */
           if (seed_par.do_rbmin == 'y')
           {
-            int rb_iter = 10;
+            int rb_iter = 50;
             int rbi;
             int i;
             double alpha = 0.01;
             double COM[4];
             double FvdW[4]; // Total vdW force
+            double TvdW[4]; // Total vdw torque
             double **RelCOMCo;
             // COM coords:
             CenterOfMass(COM, RoSFCo, FrAtNu, AtWei, FrAtEl_nu);
@@ -4104,21 +4105,57 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                                CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
                                PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
                                ReReNu, AtReprRes, FiAtRes, LaAtRes);
-              // vdW forces:
+              // vdW forces and torques:
               PsSpFE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
-                     ReVdWR, FrVdWR, FvdW, SDFrRe_ps, RoSFCo, ReCoor);
+                     ReVdWR, FrVdWR, FvdW, TvdW, 
+                     SDFrRe_ps, RoSFCo, ReCoor, RelCOMCo);
 
-              COM[1] = COM[1] - alpha * FvdW[1];
-              COM[2] = COM[2] - alpha * FvdW[2];
-              COM[3] = COM[3] - alpha * FvdW[3];
+              COM[1] = COM[1] + alpha * FvdW[1];
+              COM[2] = COM[2] + alpha * FvdW[2];
+              COM[3] = COM[3] + alpha * FvdW[3];
+              std::cerr << rbi << std::endl;
+              std::cerr << "COM: " << COM[1] << " " << COM[2] << " " << COM[3] << std::endl;
+              std::cerr << "FvW: " << FvdW[1] << " " << FvdW[2] << " " << FvdW[3] << std::endl;
+              for (i = 1; i <= FrAtNu; i++)
+              {
+                RoSFCo[i][1] = COM[1] + RelCOMCo[i][1];
+                RoSFCo[i][2] = COM[2] + RelCOMCo[i][2];
+                RoSFCo[i][3] = COM[3] + RelCOMCo[i][3];
+              }
             }
+            // energy re-evaluation:
+            SqDisFrRe_ps(FrAtNu, RoSFCo, ReCoor, ReMinC, GrSiCu_en,
+                         CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
+                         PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
+                         RePaCh, ReReNu, AtReprRes, FiAtRes, LaAtRes,
+                         TotChaRes, NuChResEn, LiChResEn,
+                         SDFrRe_ps_elec, ChFrRe_ps_elec);
 
-            for (i = 1; i <= FrAtNu; i++)
-            {
-              RoSFCo[i][1] = COM[1] + RelCOMCo[i][1];
-              RoSFCo[i][2] = COM[1] + RelCOMCo[i][2];
-              RoSFCo[i][3] = COM[1] + RelCOMCo[i][3];
-            }
+            /* Compute vdW energy */
+            PsSpEE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
+                   ReVdWR, FrVdWR, &VWEnEv_ps, SDFrRe_ps);
+
+            /* Compute receptor desolvation, fragment desolvation and receptor-fragment
+             interaction (with screening effect) energies (slow method) */
+            ElecFrag(ReAtNu, ReCoor, RePaCh, ChFrRe_ps_elec, ReRad, ReRad2,
+                     ReRadOut, ReRadOut2, ReEffRad_bound,
+                     surfpt_re, nsurf_re,
+                     pointsrf_re, ReSelfVol, FrAtNu, RoSFCo, FrCoor,
+                     FrPaCh, FrRad, FrRad2, FrRadOut, FrRadOut2,
+                     FrEffRad_bound, Frdist2,
+                     SDFrRe_ps_elec, FrMinC, FrMaxC, &FrSolvEn, Nsurfpt_fr,
+                     surfpt_fr, nsurf_fr, pointsrf_fr, surfpt_ex, Tr, U1, U2,
+                     WaMoRa, GrSiSo, NPtSphere, Min, Max, XGrid, YGrid, ZGrid,
+                     NGridx, NGridy, NGridz, GridMat, DeltaPrDeso, Kelec, Ksolv,
+                     UnitVol, pi4, nxminBS, nyminBS, nzminBS, nxmaxBS, nymaxBS,
+                     nzmaxBS, corr_scrint, corr_fr_deso, &ReDesoElec,
+                     &ReFrIntElec, &FrDesoElec, ReSelfVol_corrB, EmpCorrB, FPaOut);
+
+            VW_s = SFVWEn * VWEnEv_ps;
+            In_s = SFIntElec * ReFrIntElec;
+            Dr_s = SFDeso_re * ReDesoElec;
+            Df_s = SFDeso_fr * FrDesoElec;
+            To_s = VW_s + In_s + Dr_s + Df_s;
 
             free_dmatrix(RelCOMCo, 1, FrAtNu, 1, 3);
           } // end of if (seed_par.do_mc == 'y')

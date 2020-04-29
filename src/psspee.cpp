@@ -18,6 +18,7 @@
 */
 #include <stdio.h>
 #include <math.h>
+#include <funct.h>
 
 void PsSpEE(int FrAtNu,int ReAtNu,double *ReVdWE_sr,double *FrVdWE_sr,
             double *ReVdWR,double *FrVdWR,double *VWEnEv_ps,double **SDFrRe_ps)
@@ -63,8 +64,8 @@ void PsSpEE(int FrAtNu,int ReAtNu,double *ReVdWE_sr,double *FrVdWE_sr,
 }
 
 void PsSpFE(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
-            double *ReVdWR, double *FrVdWR, double *FvdW, double **SDFrRe_ps, 
-            double **RoSFCo, double **ReCoor)
+            double *ReVdWR, double *FrVdWR, double *FvdW, double *TvdW, double **SDFrRe_ps, 
+            double **RoSFCo, double **ReCoor, double **RelCOMCo)
 /* This function evaluates the vdw forces using a pseudo-sphere approach as a
    cutoff :
    RFSqDi  squared distance between one atom of the receptor and one atom
@@ -75,14 +76,22 @@ void PsSpFE(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
   double SumRad, SumRad_p6, RFSqDi, RFSqDi_p3;
   double dEdr, RFDi;
   double e_ij[4]; // unit vector from i to j
+  double F_i[4]; // force on atom i
+  double T_i[4]; // torque on atom i
 
   // *VWEnEv_ps = 0.0;
   FvdW[1] = 0.0;
   FvdW[2] = 0.0;
   FvdW[3] = 0.0;
+  TvdW[1] = 0.0;
+  TvdW[2] = 0.0;
+  TvdW[3] = 0.0;
 
   for (i = 1; i <= FrAtNu; i++)
   {
+    F_i[1] = 0.0;
+    F_i[2] = 0.0;
+    F_i[3] = 0.0;
 
     for (j = 1; j <= ReAtNu; j++)
     {
@@ -94,8 +103,10 @@ void PsSpFE(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
       if (RFSqDi >= 0.0)
       {
 
-        // if (RFSqDi > (1.e-4))
+        // if (RFSqDi < (1.e-4))
         // { // is it necessary? maybe to avoid overflow. clangini.
+        //   RFSqDi = 1.e-4; // capping
+        // }
 
         RFSqDi_p3 = RFSqDi * RFSqDi * RFSqDi;
         SumRad = ReVdWR[j] + FrVdWR[i];
@@ -108,13 +119,9 @@ void PsSpFE(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
         e_ij[2] = ReCoor[j][2] - RoSFCo[i][2]; 
         e_ij[3] = ReCoor[j][3] - RoSFCo[i][3];
 
-        // e_ij[1] = e_ij[1]/RFDi; 
-        // e_ij[2] = e_ij[2]/RFDi; 
-        // e_ij[3] = e_ij[3]/RFDi;
-
-        FvdW[1] = FvdW[1] + dEdr * e_ij[1];
-        FvdW[2] = FvdW[2] + dEdr * e_ij[2];
-        FvdW[3] = FvdW[3] + dEdr * e_ij[3];
+        F_i[1] = F_i[1] + dEdr * e_ij[1];
+        F_i[2] = F_i[2] + dEdr * e_ij[2];
+        F_i[3] = F_i[3] + dEdr * e_ij[3];
 
         // *VWEnEv_ps = *VWEnEv_ps + ReVdWE_sr[j] * FrVdWE_sr[i] *
         //                               SumRad_p6 * ((SumRad_p6 / (RFSqDi_p3 * RFSqDi_p3)) - (2 / RFSqDi_p3));
@@ -124,5 +131,18 @@ void PsSpFE(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
           //*VWEnEv_ps = *VWEnEv_ps + (1.e+12);
       }
     }
+
+    FvdW[1] = FvdW[1] + F_i[1];
+    FvdW[2] = FvdW[2] + F_i[2];
+    FvdW[3] = FvdW[3] + F_i[3];
+
+    VectPr(RelCOMCo[i][1], RelCOMCo[i][2], RelCOMCo[i][3],
+           F_i[1], F_i[2], F_i[3],
+           &T_i[1], &T_i[2], &T_i[3]);
+    TvdW[1] = TvdW[1] + T_i[1];
+    TvdW[2] = TvdW[2] + T_i[2];
+    TvdW[3] = TvdW[3] + T_i[3];
   }
+
+  return;
 }
