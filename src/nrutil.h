@@ -151,6 +151,11 @@ double * dvecresize(double *,int newsize);
 double **zero_dmatrix(int rl,int rh,int cl,int ch);
 void dmm_prod(int m1,int n1,int m2,int n2,double **A,double **B,double **P);
 void dm_transpose(int m, int n, double **M, double **T);
+template <class T>
+T max_el(T *v, int l, int r);
+template <class T>
+T max_abs_el(T *v, int l, int r);
+#include "tmplt_nrutil.cpp"
 /* ------------------------- */
 
 #else /* ANSI */

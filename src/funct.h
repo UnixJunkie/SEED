@@ -253,7 +253,8 @@ void PsSpMa(double PsSpRa,double GrSiCu_en,int PsSpNC,int ***PsSphe);
 void PsSpEE(int FrAtNu,int ReAtNu,double *ReVdWE_sr,double *FrVdWE_sr,
             double *ReVdWR,double *FrVdWR,double *VWEnEv_ps,double **SDFrRe_ps);
 void PsSpFE(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
-            double *ReVdWR, double *FrVdWR, double *FvdW, double *TvdW, double **SDFrRe_ps,
+            double *ReVdWR, double *FrVdWR, double *FvdW, double *TvdW, 
+            double *maxFvdW, double *maxTvdW, double **SDFrRe_ps,
             double **RoSFCo, double **ReCoor, double **RelCOMCo);
 /* deprecated */
 /* void ReaOut(int CurFra,int SFWrNu,int *Index_ro,double *VW_f_ro,double *VW_s_ro, */

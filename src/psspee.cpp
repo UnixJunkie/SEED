@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <funct.h>
+#include <nrutil.h>
 
 void PsSpEE(int FrAtNu,int ReAtNu,double *ReVdWE_sr,double *FrVdWE_sr,
             double *ReVdWR,double *FrVdWR,double *VWEnEv_ps,double **SDFrRe_ps)
@@ -64,7 +65,8 @@ void PsSpEE(int FrAtNu,int ReAtNu,double *ReVdWE_sr,double *FrVdWE_sr,
 }
 
 void PsSpFE(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
-            double *ReVdWR, double *FrVdWR, double *FvdW, double *TvdW, double **SDFrRe_ps, 
+            double *ReVdWR, double *FrVdWR, double *FvdW, double *TvdW, 
+            double *maxFvdW, double *maxTvdW, double **SDFrRe_ps, 
             double **RoSFCo, double **ReCoor, double **RelCOMCo)
 /* This function evaluates the vdw forces using a pseudo-sphere approach as a
    cutoff :
@@ -86,6 +88,8 @@ void PsSpFE(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
   TvdW[1] = 0.0;
   TvdW[2] = 0.0;
   TvdW[3] = 0.0;
+  *maxFvdW = 0.0;
+  *maxTvdW = 0.0;
 
   for (i = 1; i <= FrAtNu; i++)
   {
@@ -103,10 +107,10 @@ void PsSpFE(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
       if (RFSqDi >= 0.0)
       {
 
-        // if (RFSqDi < (1.e-4))
-        // { // is it necessary? maybe to avoid overflow. clangini.
-        //   RFSqDi = 1.e-4; // capping
-        // }
+        if (RFSqDi < (1.e-4))
+        { // is it necessary? maybe to avoid overflow. clangini.
+          RFSqDi = 1.e-4; // capping
+        }
 
         RFSqDi_p3 = RFSqDi * RFSqDi * RFSqDi;
         SumRad = ReVdWR[j] + FrVdWR[i];
@@ -143,6 +147,9 @@ void PsSpFE(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
     TvdW[2] = TvdW[2] + T_i[2];
     TvdW[3] = TvdW[3] + T_i[3];
   }
+
+  *maxFvdW = max_abs_el(FvdW, 1, 3);
+  *maxTvdW = max_abs_el(TvdW, 1, 3);
 
   return;
 }

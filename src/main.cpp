@@ -4081,15 +4081,20 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           /* ----- Rigid Body Minimization ----- */
           if (seed_par.do_rbmin == 'y')
           {
-            int rb_iter = 2000;
+            int max_iter = 1000;
             int rbi;
             int i;
-            double alpha = 0.001;
+            double alpha_xyz = 0.1;
+            double alpha_rot = 0.01;
+            double learning_rate = 0.1;
+            
             double COM[4];
             double FvdW[4]; // Total vdW force
             double TvdW[4]; // Total vdw torque
+            double maxFvdW, maxTvdW;
             double e_x[4], e_y[4], e_z[4];
-            double **RelCOMCo;
+            double **RelCOMCo, **newRoSFCo;
+            double newVWEn;
             Quaternion<double> q_x, q_y, q_z; // Three rotations -> should use conversion formulas
             
             e_x[1] = 1.0;
@@ -4102,17 +4107,18 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
             e_z[2] = 0.0;
             e_z[3] = 1.0;
 
-            // COM coords:
-            CenterOfMass(COM, RoSFCo, FrAtNu, AtWei, FrAtEl_nu);
-            //std::cerr << "COM: " << COM[1] << " " << COM[2] << " " << COM[3] << std::endl;
             RelCOMCo = dmatrix(1,FrAtNu,1,3);
-            for (i=1; i <= FrAtNu; i++){
-              RelCOMCo[i][1] = RoSFCo[i][1] - COM[1];
-              RelCOMCo[i][2] = RoSFCo[i][2] - COM[2];
-              RelCOMCo[i][3] = RoSFCo[i][3] - COM[3];
-            }
+            newRoSFCo = dmatrix(1, FrAtNu, 1, 3);
 
-            for (rbi = 1; rbi <= rb_iter; rbi++){
+            for (rbi = 1; rbi <= max_iter; rbi++){
+              // COM coords:
+              CenterOfMass(COM, RoSFCo, FrAtNu, AtWei, FrAtEl_nu);
+              for (i = 1; i <= FrAtNu; i++)
+              {
+                RelCOMCo[i][1] = RoSFCo[i][1] - COM[1];
+                RelCOMCo[i][2] = RoSFCo[i][2] - COM[2];
+                RelCOMCo[i][3] = RoSFCo[i][3] - COM[3];
+              }
               // Distances for vdW
               SqDisFrRe_ps_vdW(FrAtNu, RoSFCo, ReCoor, ReMinC, GrSiCu_en,
                                CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
@@ -4120,29 +4126,49 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                                ReReNu, AtReprRes, FiAtRes, LaAtRes);
               // vdW forces and torques:
               PsSpFE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
-                     ReVdWR, FrVdWR, FvdW, TvdW, 
+                     ReVdWR, FrVdWR, FvdW, TvdW,
+                     &maxFvdW, &maxTvdW, 
                      SDFrRe_ps, RoSFCo, ReCoor, RelCOMCo);
+              // vdW energy:
+              PsSpEE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
+                     ReVdWR, FrVdWR, &VWEnEv_ps, SDFrRe_ps);
 
-              // applying translation:
-              COM[1] = COM[1] + alpha * FvdW[1];
-              COM[2] = COM[2] + alpha * FvdW[2];
-              COM[3] = COM[3] + alpha * FvdW[3];
+              // Coordinates update:
+              COM[1] = COM[1] + learning_rate * alpha_xyz * FvdW[1] / maxFvdW;
+              COM[2] = COM[2] + learning_rate * alpha_xyz * FvdW[2] / maxFvdW;
+              COM[3] = COM[3] + learning_rate * alpha_xyz * FvdW[3] / maxFvdW;
               std::cerr << rbi << std::endl;
               std::cerr << "COM: " << COM[1] << " " << COM[2] << " " << COM[3] << std::endl;
-              std::cerr << "FvW: " << FvdW[1] << " " << FvdW[2] << " " << FvdW[3] << std::endl;
+              std::cerr << "FvW: " << FvdW[1] << " " << FvdW[2] << " " << FvdW[3] <<
+                           " maxforce: " << maxFvdW << std::endl;
 
-              // applying rotation:
-              q_x.fromAngleAxis(alpha*TvdW[1], e_x);
-              q_y.fromAngleAxis(alpha*TvdW[2], e_y);
-              q_z.fromAngleAxis(alpha*TvdW[3], e_z);
+              q_x.fromAngleAxis(learning_rate * alpha_rot * TvdW[1] / maxTvdW, e_x);
+              q_y.fromAngleAxis(learning_rate * alpha_rot * TvdW[2] / maxTvdW, e_y);
+              q_z.fromAngleAxis(learning_rate * alpha_rot * TvdW[3] / maxTvdW, e_z);
               for (i=1; i <= FrAtNu; i++){
                 q_x.quatConjugateVecRef(RelCOMCo[i], 0.0, 0.0, 0.0);
                 q_y.quatConjugateVecRef(RelCOMCo[i], 0.0, 0.0, 0.0);
                 q_z.quatConjugateVecRef(RelCOMCo[i], 0.0, 0.0, 0.0);
               }
-
               std::cerr << "COM: " << COM[1] << " " << COM[2] << " " << COM[3] << std::endl;
-              std::cerr << "TvW: " << TvdW[1] << " " << TvdW[2] << " " << TvdW[3] << std::endl;
+              std::cerr << "TvW: " << TvdW[1] << " " << TvdW[2] << " " << TvdW[3] << 
+                           " maxtorque: " << maxTvdW << std::endl;
+
+              // try coord update:
+              for (i = 1; i <= FratNu; i++){
+                trialRoSFCo[i][1] = COM[1] + RelCOMCo[i][1];
+                trialRoSFCo[i][2] = COM[2] + RelCOMCo[i][2];
+                trialRoSFCo[i][3] = COM[3] + RelCOMCo[i][3];
+              }
+              SqDisFrRe_ps_vdW(FrAtNu, trialRoSFCo, ReCoor, ReMinC, GrSiCu_en,
+                               CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
+                               PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
+                               ReReNu, AtReprRes, FiAtRes, LaAtRes);
+              PsSpEE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
+                     ReVdWR, FrVdWR, &VWEnEv_ps, SDFrRe_ps);
+              std::cout << "New VdW energy: " << VWEnEv_ps << std::endl;
+
+              if (VWEnEv_ps)
 
               for (i = 1; i <= FrAtNu; i++)
               {
@@ -4151,17 +4177,6 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                 RoSFCo[i][3] = COM[3] + RelCOMCo[i][3];
               }
             }
-            // energy re-evaluation:
-            SqDisFrRe_ps(FrAtNu, RoSFCo, ReCoor, ReMinC, GrSiCu_en,
-                         CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
-                         PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
-                         RePaCh, ReReNu, AtReprRes, FiAtRes, LaAtRes,
-                         TotChaRes, NuChResEn, LiChResEn,
-                         SDFrRe_ps_elec, ChFrRe_ps_elec);
-
-            /* Compute vdW energy */
-            PsSpEE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
-                   ReVdWR, FrVdWR, &VWEnEv_ps, SDFrRe_ps);
 
             /* Compute receptor desolvation, fragment desolvation and receptor-fragment
              interaction (with screening effect) energies (slow method) */
