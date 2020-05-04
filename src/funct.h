@@ -38,34 +38,7 @@
 #define modff modf
 #define logf log
 
-/*void ReInFi(char *InpFil,char *RecFil,int *BSResN,int **BSReNu,
-            int *FragNu,char ***FrFiNa,char *TREFiP,double *SphAng,
-            int *SphPoN,int *NuRoAx,double *VdWFaB,double *CoDieV,int *CoDieP,
-            double *CoGrIn,double *CoGrSi,char *OutFil,double *BuEvFa,
-            double **FrMaEn,double *PsSpRa,double *GrSiCu_en,
-            int *FiNuMa,double *GrInSo,double *GrSiSo,double *WaMoRa,
-            int *NPtSphere,double *DielWa,double *DielRe,char *ReDesoAlg,
-            char *DesoMapAcc,char *DesoMapFile,char *FDexe,char *FDdir,
-            double *ReSurfDens_apol,double *PtDensFr,double *Sphere_apol,
-            double *NCutapolRatio*//*int *NCutapol*//*,double *ScaleDeso,
-            double *ScaleVDW,double **SimWei,double *SimExp,
-            double *SimCut,double **FrMaEn_sd,double *SimExp_sd,double *SimCut_sd,
-            int *BSMeNu,int **BSMeAN,double ***BSMeVE,char *CoGrAcc,
-            char *CoGrFile,char *EvalEn,char *Solv_typ,
-            char *SpPoCh_opt,double *SpPoCh_cent,double *SpPoCh_rad,
-            double *SFDeso_fr,double *SFDeso_re,double *SFVWEn,double *SFIntElec,
-            int *NuClusMem,double *RedRPV_rp,double *RedRPV_nkvDens,double *ScMaBump, *//*int *RedRPV_nkv, dey new*/
-            /*double *MuFaVdWCoff_ap,int *NuLiEnClus,char ***ApPoChoi,
-            double *VWGrIn,double *VWGrSi,double *BumpFaCut,char *VWGrAcc,
-            char *VWGrFile,int *MaxPosClus,int *PrintLev,
-            int *NumbAT,char ***AtTyAr,int **AtENAr,double **VdWRad,
-            double **VdWEne,double ***BLAtTy,int *distrPointBSNumb,
-	    double ***distrPointBS,double *angle_rmin,double *angle_rmax,
-	    double *mult_fact_rmin,double *mult_fact_rmax,char *EmpCorrB,
-            char *gc_opt,int *gc_reprke,double *gc_cutclus,double *gc_endifclus,
-            double *gc_weighneg,double *gc_weighpos,int *gc_maxwrite,
-            char *write_pproc_opt,char *write_pproc_chm_opt,int *CorrFiNumb);*/
-void ReInFi(char *InpFil,char *RecFil,int *BSResN,int **BSReNu,
+void ReInFi(char *InpFil,char *kwParFil,char *RecFil,int *BSResN,int **BSReNu,
             char *FrFiNa,char *TREFiP, char* FrFiRMode, double *SphAng,
             int *SphPoN,int *NuRoAx,double *VdWFaB,double *CoDieV,int *CoDieP,
             double *CoGrIn,double *CoGrSi,char *OutFil,double *BuEvFa,
@@ -93,8 +66,7 @@ void ReInFi(char *InpFil,char *RecFil,int *BSResN,int **BSReNu,
             char *gc_opt,int *gc_reprke,double *gc_cutclus,double *gc_endifclus,
             double *gc_weighneg,double *gc_weighpos,int *gc_maxwrite,
             char *write_pproc_opt,char *write_pproc_chm_opt,char *write_best_opt,
-            char *write_sumtab_opt,char *write_best_sumtab_opt,double **AtWei,
-            Parameter &seed_par);
+            char *write_sumtab_opt,char *write_best_sumtab_opt,double **AtWei);
 
 void ReReFi_mol2(char *RecFil,int *ReAtNu,int *ReBdNu,int *ReReNu,
                  char ***ReAtEl,double ***ReCoor,char ***ReAtTy,int **ReResN,

@@ -36,34 +36,7 @@
 
 
 
-/*void ReInFi(char *InpFil,char *RecFil,int *BSResN,int **BSReNu,
-            int *FragNu,char ***FrFiNa,char *TREFiP,double *SphAng,
-            int *SphPoN,int *NuRoAx,double *VdWFaB,double *CoDieV,int *CoDieP,
-            double *CoGrIn,double *CoGrSi,char *OutFil,double *BuEvFa,
-            double **FrMaEn,double *PsSpRa,double *GrSiCu_en,
-            int *FiNuMa,double *GrInSo,double *GrSiSo,double *WaMoRa,
-            int *NPtSphere,double *DielWa,double *DielRe,char *ReDesoAlg,
-            char *DesoMapAcc,char *DesoMapFile,char *FDexe,char *FDdir,
-            double *ReSurfDens_apol,double *PtDensFr,double *Sphere_apol,
-            double *NCutapolRatio,double *ScaleDeso,
-            double *ScaleVDW,double **SimWei,double *SimExp,
-            double *SimCut,double **FrMaEn_sd,double *SimExp_sd,double *SimCut_sd,
-            int *BSMeNu,int **BSMeAN,double ***BSMeVE,char *CoGrAcc,
-            char *CoGrFile,char *EvalEn,char *Solv_typ,
-            char *SpPoCh_opt,double *SpPoCh_cent,double *SpPoCh_rad,
-            double *SFDeso_fr,double *SFDeso_re,double *SFVWEn,double *SFIntElec,
-            int *NuClusMem,double *RedRPV_rp,double*RedRPV_nkvRatio,double *ScMaBump,
-            double *MuFaVdWCoff_ap,int *NuLiEnClus,char ***ApPoChoi,
-            double *VWGrIn,double *VWGrSi,double *BumpFaCut,char *VWGrAcc,
-            char *VWGrFile,int *MaxPosClus,int *PrintLev,
-            int *NumbAT,char ***AtTyAr,int **AtENAr,double **VdWRad,
-            double **VdWEne,double ***BLAtTy,int *distrPointBSNumb,
-	          double ***distrPointBS,double *angle_rmin,double *angle_rmax,
-	          double *mult_fact_rmin,double *mult_fact_rmax,char *EmpCorrB,
-            char *gc_opt,int *gc_reprke,double *gc_cutclus,double *gc_endifclus,
-            double *gc_weighneg,double *gc_weighpos,int *gc_maxwrite,
-            char *write_pproc_opt,char *write_pproc_chm_opt,int *CorrFiNumb)*/
-void ReInFi(char *InpFil,char *RecFil,int *BSResN,int **BSReNu,
+void ReInFi(char *InpFil, char *kwParFil, char *RecFil,int *BSResN,int **BSReNu,
             char *FrFiNa,char *TREFiP, char *FrFiRMode, double *SphAng,
             int *SphPoN,int *NuRoAx,double *VdWFaB,double *CoDieV,int *CoDieP,
             double *CoGrIn,double *CoGrSi,char *OutFil,double *BuEvFa,
@@ -91,8 +64,7 @@ void ReInFi(char *InpFil,char *RecFil,int *BSResN,int **BSReNu,
             char *gc_opt,int *gc_reprke,double *gc_cutclus,double *gc_endifclus,
             double *gc_weighneg,double *gc_weighpos,int *gc_maxwrite,
             char *write_pproc_opt,char *write_pproc_chm_opt,char *write_best_opt,
-            char *write_sumtab_opt,char *write_best_sumtab_opt,double **AtWei,
-            Parameter &seed_par)
+            char *write_sumtab_opt,char *write_best_sumtab_opt,double **AtWei)
 /* This function reads the data of the input (InpFil) and parameters (TREFiP)
    files :
    OutFil  path of the file containing the output informations
@@ -198,7 +170,8 @@ void ReInFi(char *InpFil,char *RecFil,int *BSResN,int **BSReNu,
    mult_fact_rmax  multiplicative factor for the reduction of vectors
    EmpCorrB  empirical correction term (y,n) to the Coulomb field
              approximation for the accurate screened interaction and
-	           fragment desolvation energies */
+	           fragment desolvation energies 
+   kwParFil  keyword-based parameter file */
 {
     FILE *FilePa,*FilePa2;/* unused variable : ,*FilChk;*/
   /* char StrLin[_STRLENGTH], **FrFiNa_L,**ApPoChoi_L,**AtTyAr_L; */
@@ -215,15 +188,18 @@ void ReInFi(char *InpFil,char *RecFil,int *BSResN,int **BSReNu,
 /* ----------------------------------------- */
 
   FilePa=fopen(InpFil,"r");
-
   CheckFile(InpFil,'r');
-//  std::cout << "file: " << InpFil << std::endl;
+
 /* Path of the file containing the parameters */
   SkipComLin(FilePa,StrLin);
   sscanf(StrLin,"%s",TREFiP);
-
   CheckFile(TREFiP,'r');
-//  std::cout << "file: " << TREFiP << std::endl;
+
+/* Path of the file containing the keyword-based parameters */
+  SkipComLin(FilePa, StrLin);
+  sscanf(StrLin, "%s", kwParFil);
+  CheckFile(kwParFil, 'r');
+
 /* Path of the file containing the receptor coordinates (mol2 format) */
   SkipComLin(FilePa,StrLin);
   sscanf(StrLin,"%s",RecFil);
@@ -577,34 +553,6 @@ written in output file*/ //clangini
    Printing level (0,1->preprocess,2->second clustering) */
   SkipComLin(FilePa,StrLin);
   sscanf(StrLin,"%d%d",NuLiEnClus,PrintLev);
-/* Parameters for MC run */
-  SkipComLin(FilePa, StrLin);
-  sscanf(StrLin, "%c", &(seed_par.do_mc));
-
-  if (seed_par.do_mc == 'y'){
-    SkipComLin(FilePa, StrLin);
-    sscanf(StrLin, "%lf", &(seed_par.mc_temp));
-    SkipComLin(FilePa, StrLin);
-    sscanf(StrLin, "%lf%lf", &(seed_par.mc_max_tran_step), &(seed_par.mc_max_tran_step_fine));
-    SkipComLin(FilePa, StrLin);
-    sscanf(StrLin, "%lf%lf", &dummy_double, &dummy_double_fine);
-    seed_par.mc_max_rot_step = dummy_double * M_PI/180.0;
-    seed_par.mc_max_rot_step_fine = dummy_double_fine * M_PI/180.0;
-    SkipComLin(FilePa, StrLin);
-    sscanf(StrLin, "%lf", &seed_par.mc_rot_freq);
-    seed_par.mc_tran_freq = 1.0 - seed_par.mc_rot_freq;
-    SkipComLin(FilePa, StrLin);
-    sscanf(StrLin, "%lf", &seed_par.mc_rot_fine_freq);
-    SkipComLin(FilePa, StrLin);
-    sscanf(StrLin, "%lf", &seed_par.mc_tran_fine_freq);
-    SkipComLin(FilePa, StrLin);
-    sscanf(StrLin, "%d%d", &(seed_par.mc_niter_out), &(seed_par.mc_niter_in));
-    SkipComLin(FilePa, StrLin);
-    sscanf(StrLin, "%lf", &(seed_par.sa_alpha));
-    SkipComLin(FilePa,StrLin);
-    sscanf(StrLin, "%d", &(seed_par.mc_rand_seed));
-  }
-  seed_par.do_rbmin = 'y';
 /* CLANGINI 2016 END */
 
   /* Read NumbAT AtTyAr AtENAr VdWRad VdWEne */
@@ -692,8 +640,6 @@ written in output file*/ //clangini
   fclose(FilePa);
 
 }
-
-
 
 void SkipComLin(FILE *FilePa,char *StrLin)
 /* This function skips the comment lines starting with a # */

@@ -1,4 +1,10 @@
 #include "Parameter.h"
+#include <fstream>
+#include "funct.h"
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
+
+using namespace std;
 
 Parameter::Parameter() : 
   // Monte Carlo Simulated Annealing
@@ -21,3 +27,85 @@ Parameter::Parameter() :
   { } // default constructor
 
 Parameter::~Parameter() { } // default destructor
+
+void Parameter::readKW(char *kwParFil) {
+  /* This function reads the keyword-based parameter file */
+  std::string line, key, keyval;
+  std::string delims = "=";
+  std::vector<std::string> split_line;
+
+
+  std::ifstream inStream(kwParFil);
+  if (inStream.fail()){
+    cerr << "Cannot open keyword-based parameter file. Program exits!" << endl;
+    exit(13);
+  }
+
+  while(std::getline(inStream, line)){
+    boost::trim(line);
+    if (line.length() == 0 || line.find("#") == 0){ // skip blank/comment lines
+      continue;
+    }
+    boost::split(split_line, line, boost::is_any_of(delims));
+
+    key = split_line[0];
+    boost::trim(key);
+    keyval = split_line[1];
+    keyval = keyval.substr(0, keyval.find("#")); // remove possible comments
+    boost::trim(keyval);
+
+    /* Now parsing: */
+    if (key == "do_mc"){
+      do_mc = keyval[0];
+      // cout << "do_mc = " << do_mc << endl;
+    } 
+    else if (key == "do_rbmin"){
+      do_rbmin = keyval[0];
+      // cout << "do_rbmin = " << do_rbmin << endl;
+    } 
+    else if (key == "mc_temp")
+    {
+      mc_temp = std::stod(keyval);
+      // cout << "mc_temp = " << mc_temp << endl;
+    } 
+    else if (key == "mc_max_xyz_step")
+    {
+      std::istringstream(keyval) >> mc_max_tran_step >> mc_max_tran_step_fine;
+      // cout << "xyx_step = " << mc_max_tran_step << " " << mc_max_tran_step_fine << endl;
+    } 
+    else if (key == "mc_max_rot_step")
+    {
+      std::istringstream(keyval) >> mc_max_rot_step >> mc_max_rot_step_fine;
+      mc_max_rot_step = mc_max_rot_step * M_PI/180.0;
+      mc_max_rot_step_fine = mc_max_rot_step_fine * M_PI/180.0;
+    } 
+    else if (key == "mc_rot_freq")
+    {
+      mc_rot_freq = std::stod(keyval);
+      mc_tran_freq = 1.0 - mc_rot_freq;
+    }
+    else if (key == "mc_rot_fine_freq"){
+      mc_rot_fine_freq = std::stod(keyval);
+    }
+    else if (key == "mc_xyz_fine_freq")
+    {
+      mc_tran_fine_freq = std::stod(keyval);
+    }
+    else if (key == "mc_niter")
+    {
+      std::istringstream(keyval) >> mc_niter_out >> mc_niter_out;
+    }
+    else if (key == "mc_sa_alpha")
+    {
+      sa_alpha = std::stod(keyval);
+    } 
+    else if (key == "mc_rseed")
+    {
+      mc_rand_seed = std::stoi(keyval);
+    }
+    else {
+      std::cerr << "The keyword " << key << " was not recognized by SEED. Ignoring it." << std::endl;
+    }
+  }
+  return;
+}

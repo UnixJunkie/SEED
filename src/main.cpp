@@ -78,6 +78,7 @@ int main(int argc,char *argv[])
     SFWrNu  number of written seeded fragments
     AnglRo  fragment rotation angle
     TREFiP  path of the file which contains the parameters
+    kwParFil  path of the file which contains the keyword-based parameters
     ReVdWR  receptor van der Waals radii
     ReVdWE  receptor van der Waals energies
     FrVdWR  fragment van der Waals radii
@@ -292,7 +293,7 @@ FrFiRMode reading mode for fragment input file (only relevant for MPI runs):
   /* CLANGINI 2016 */
   std::vector<int> PosToRem;
   struct stat DirExist;
-  char TabLin[_STRLENGTH], FrFiRMode[10]; //clangini
+  char TabLin[_STRLENGTH], FrFiRMode[10], kwParFil[_STRLENGTH]; //clangini
   std::ofstream TabOutStream; //clangini
   double *FrEffRad_bound, *ReEffRad_bound; // Lower bound for the Born Effective radius (frg and rec)
   int HeAtCo = 0; // HeAtCo = Heavy Atom Count clangini
@@ -439,7 +440,7 @@ FrFiRMode reading mode for fragment input file (only relevant for MPI runs):
   //SimWei=matrix(1,150,1,150); clangini
   SimWei=dmatrix(0,150,0,150); //Want to use atom element 0 for lone pair. clangini
 
-  ReInFi(InpFil,RecFil,&BSResN,&BSReNu,FrFiNa,TREFiP,FrFiRMode,
+  ReInFi(InpFil,kwParFil,RecFil,&BSResN,&BSReNu,FrFiNa,TREFiP,FrFiRMode,
       &SphAng,&SphPoN,&NuRoAx,&VdWFaB,&CoDieV,&CoDieP,&CoGrIn,&CoGrSi,
       OutFil,&BuEvFa,&FrMaEn,&PsSpRa,&GrSiCu_en,&FiNuMa,&GrInSo,
       &GrSiSo,&WaMoRa,&NPtSphere,&DielWa,&DielRe,ReDesoAlg,DesoMapAcc,
@@ -454,8 +455,10 @@ FrFiRMode reading mode for fragment input file (only relevant for MPI runs):
       &distrPointBS,&angle_rmin,&angle_rmax,&mult_fact_rmin,&mult_fact_rmax,
       EmpCorrB,gc_opt,&gc_reprke,&gc_cutclus,&gc_endifclus,&gc_weighneg,
       &gc_weighpos,&gc_maxwrite,write_pproc_opt,write_pproc_chm_opt,
-      write_best_opt,write_sumtab_opt,write_best_sumtab_opt,&AtWei,
-      seed_par);/*clangini*/
+      write_best_opt,write_sumtab_opt,write_best_sumtab_opt,&AtWei);/*clangini*/
+  std::cerr << "======== kwParFil " << kwParFil << std::endl;
+  seed_par.readKW(kwParFil); // read keyword-based parameter file
+  std::cerr << "======== kwParFil end " << std::endl;
 
 #ifdef ENABLE_MPI
   if (strcmp(FrFiRMode, "single") == 0)
@@ -4155,12 +4158,12 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                            " maxtorque: " << maxTvdW << std::endl;
 
               // try coord update:
-              for (i = 1; i <= FratNu; i++){
-                trialRoSFCo[i][1] = COM[1] + RelCOMCo[i][1];
-                trialRoSFCo[i][2] = COM[2] + RelCOMCo[i][2];
-                trialRoSFCo[i][3] = COM[3] + RelCOMCo[i][3];
+              for (i = 1; i <= FrAtNu; i++){
+                newRoSFCo[i][1] = COM[1] + RelCOMCo[i][1];
+                newRoSFCo[i][2] = COM[2] + RelCOMCo[i][2];
+                newRoSFCo[i][3] = COM[3] + RelCOMCo[i][3];
               }
-              SqDisFrRe_ps_vdW(FrAtNu, trialRoSFCo, ReCoor, ReMinC, GrSiCu_en,
+              SqDisFrRe_ps_vdW(FrAtNu, newRoSFCo, ReCoor, ReMinC, GrSiCu_en,
                                CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
                                PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
                                ReReNu, AtReprRes, FiAtRes, LaAtRes);
