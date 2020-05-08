@@ -5145,7 +5145,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                                      Dr_s_ro[ClusLi_sd[i1]]+Df_s_ro[ClusLi_sd[i1]];
 
               if (seed_par.do_mc == 'y'){
-
+                //seed_par.printKW();
                 gettimeofday(&time_mc_start,NULL);
                 /* Store starting energy */
                 // start_en.tot_en = To_s_ro[ClusLiL_sd[i1]];

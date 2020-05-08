@@ -28,6 +28,17 @@ Parameter::Parameter() :
 
 Parameter::~Parameter() { } // default destructor
 
+void Parameter::printKW(){
+  // TODO: finish or consider switching to a dictionary
+  cout << "do_mc " << do_mc << endl;
+  cout << "mc_temp " << mc_temp << endl;
+  cout << "mc_max_tran_step " << mc_max_tran_step << endl;
+  cout << "mc_max_tran_step_fine " << mc_max_tran_step_fine << endl;
+  cout << "mc_niter_out " << mc_niter_out << endl;
+  cout << "mc_niter_in " << mc_niter_in << endl;
+  cout << "sa_alpha " << sa_alpha << endl;
+}
+
 void Parameter::readKW(char *kwParFil) {
   /* This function reads the keyword-based parameter file */
   std::string line, key, keyval;
@@ -93,7 +104,7 @@ void Parameter::readKW(char *kwParFil) {
     }
     else if (key == "mc_niter")
     {
-      std::istringstream(keyval) >> mc_niter_out >> mc_niter_out;
+      std::istringstream(keyval) >> mc_niter_out >> mc_niter_in;
     }
     else if (key == "mc_sa_alpha")
     {

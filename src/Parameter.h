@@ -12,6 +12,7 @@ class Parameter // This is much more like a POD struct than a class
   ~Parameter(); // default destructor
 
   void readKW(char *kwParFil);
+  void printKW();
   // Monte Carlo Simulated Annealing
   char do_mc;
   double mc_temp;
