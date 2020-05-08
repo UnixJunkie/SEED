@@ -228,6 +228,15 @@ void PsSpFE(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
             double *ReVdWR, double *FrVdWR, double *FvdW, double *TvdW, 
             double *maxFvdW, double *maxTvdW, double **SDFrRe_ps,
             double **RoSFCo, double **ReCoor, double **RelCOMCo);
+double calc_grms(double *FvdW, double *TvdW, double alpha_xyz, double alpha_rot);
+void check_gradient_vdw(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
+                   double *ReVdWR, double *FrVdWR, double *FvdW, double *TvdW,
+                   double **RoSFCo, double **ReCoor,
+                   double *ReMinC,
+                   double GrSiCu_en, int *CubNum_en, int ***CubFAI_en, int ***CubLAI_en,
+                   int *CubLiA_en, int PsSpNC, int ***PsSphe,
+                   double PsSpRa, int ReReNu, int *AtReprRes,
+                   int *FiAtRes, int *LaAtRes);
 /* deprecated */
 /* void ReaOut(int CurFra,int SFWrNu,int *Index_ro,double *VW_f_ro,double *VW_s_ro, */
 /*             double *In_f_ro,double *In_s_ro,double *Dr_f_ro,double *Dr_s_ro, */

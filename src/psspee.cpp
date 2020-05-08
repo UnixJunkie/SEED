@@ -53,8 +53,10 @@ void PsSpEE(int FrAtNu,int ReAtNu,double *ReVdWE_sr,double *FrVdWE_sr,
                      (2/RFSqDi_p3));
         }
 
-        else
+        else{
+          std::cerr << "Two atoms are too close to each other" << std::endl;
           *VWEnEv_ps=*VWEnEv_ps+(1.e+12);
+        }
 
       }
 
@@ -76,7 +78,7 @@ void PsSpFE(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
 {
   int i, j;
   double SumRad, SumRad_p6, RFSqDi, RFSqDi_p3;
-  double dEdr, RFDi;
+  double dEdr;
   double e_ij[4]; // unit vector from i to j
   double F_i[4]; // force on atom i
   double T_i[4]; // torque on atom i
@@ -109,6 +111,7 @@ void PsSpFE(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
 
         if (RFSqDi < (1.e-4))
         { // is it necessary? maybe to avoid overflow. clangini.
+          std::cerr << "Two atoms are too close to each other" << std::endl; 
           RFSqDi = 1.e-4; // capping
         }
 
@@ -117,15 +120,15 @@ void PsSpFE(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
         SumRad_p6 = SumRad * SumRad * SumRad * SumRad * SumRad * SumRad;
 
         dEdr = - 12.0 / RFSqDi * ReVdWE_sr[j] * FrVdWE_sr[i] * 
-                SumRad_p6 * ((SumRad_p6/(RFSqDi_p3 * RFSqDi_p3) - (1.0 / RFSqDi_p3)));
+                SumRad_p6 * ((SumRad_p6/(RFSqDi_p3 * RFSqDi_p3)) - (1.0 / RFSqDi_p3));
 
         e_ij[1] = ReCoor[j][1] - RoSFCo[i][1]; 
         e_ij[2] = ReCoor[j][2] - RoSFCo[i][2]; 
         e_ij[3] = ReCoor[j][3] - RoSFCo[i][3];
 
-        F_i[1] = F_i[1] + dEdr * e_ij[1];
-        F_i[2] = F_i[2] + dEdr * e_ij[2];
-        F_i[3] = F_i[3] + dEdr * e_ij[3];
+        F_i[1] += dEdr * e_ij[1];
+        F_i[2] += dEdr * e_ij[2];
+        F_i[3] += dEdr * e_ij[3];
 
         // *VWEnEv_ps = *VWEnEv_ps + ReVdWE_sr[j] * FrVdWE_sr[i] *
         //                               SumRad_p6 * ((SumRad_p6 / (RFSqDi_p3 * RFSqDi_p3)) - (2 / RFSqDi_p3));
@@ -136,9 +139,9 @@ void PsSpFE(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
       }
     }
 
-    FvdW[1] = FvdW[1] + F_i[1];
-    FvdW[2] = FvdW[2] + F_i[2];
-    FvdW[3] = FvdW[3] + F_i[3];
+    FvdW[1] += F_i[1];
+    FvdW[2] += F_i[2];
+    FvdW[3] += F_i[3];
 
     VectPr(RelCOMCo[i][1], RelCOMCo[i][2], RelCOMCo[i][3],
            F_i[1], F_i[2], F_i[3],
@@ -153,3 +156,75 @@ void PsSpFE(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
 
   return;
 }
+
+double calc_grms(double *FvdW, double *TvdW, double alpha_xyz, double alpha_rot){
+  /* This function calculates the root mean squared gradient for vdW minimization */
+  double grms;
+  grms = sqrtf(FvdW[1] * FvdW[1] * alpha_xyz * alpha_xyz +
+               FvdW[2] * FvdW[2] * alpha_xyz * alpha_xyz +
+               FvdW[3] * FvdW[3] * alpha_xyz * alpha_xyz +
+               TvdW[1] * TvdW[1] * alpha_rot * alpha_rot +
+               TvdW[2] * TvdW[2] * alpha_rot * alpha_rot + 
+               TvdW[3] * TvdW[3] * alpha_rot * alpha_rot);
+  return grms;
+}
+
+void check_gradient_vdw(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
+                          double *ReVdWR, double *FrVdWR, double *FvdW, double *TvdW,
+                          double **RoSFCo, double **ReCoor,
+                          double *ReMinC,
+                          double GrSiCu_en, int *CubNum_en, int ***CubFAI_en, int ***CubLAI_en,
+                          int *CubLiA_en, int PsSpNC, int ***PsSphe,
+                          double PsSpRa, int ReReNu, int *AtReprRes,
+                          int *FiAtRes, int *LaAtRes)
+{
+  /* This function checks the gradients */
+  int i,j;
+  double **SDFrRe_ps;
+  double num_grad[6]; // numerical gradient
+  double eps = 0.00001;
+  double **eps_coords;
+  double vdw_plus, vdw_minus;
+
+  eps_coords = zero_dmatrix(1,FrAtNu, 1, 3);
+  copy_dmatrix(RoSFCo, eps_coords, 1, FrAtNu, 1, 3);
+  SDFrRe_ps = zero_dmatrix(1, FrAtNu, 1, ReAtNu);
+
+  for (j=1; j <= 3; j++){
+    // x + eps
+    for (i=1; i <= FrAtNu; i++)
+    {
+      eps_coords[i][j] += eps;  
+    }
+    SqDisFrRe_ps_vdW(FrAtNu, eps_coords, ReCoor, ReMinC, GrSiCu_en,
+                    CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
+                    PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
+                    ReReNu, AtReprRes, FiAtRes, LaAtRes);
+    PsSpEE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
+          ReVdWR, FrVdWR, &vdw_plus, SDFrRe_ps);
+    // copy_dmatrix(RoSFCo, eps_coords, 1, FrAtNu, 1, 3);
+    // x - eps
+    for (i = 1; i <= FrAtNu; i++)
+    {
+      eps_coords[i][j] -= 2*eps;
+    }
+    SqDisFrRe_ps_vdW(FrAtNu, eps_coords, ReCoor, ReMinC, GrSiCu_en,
+                    CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
+                    PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
+                    ReReNu, AtReprRes, FiAtRes, LaAtRes);
+    PsSpEE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
+          ReVdWR, FrVdWR, &vdw_minus, SDFrRe_ps);
+    copy_dmatrix(RoSFCo, eps_coords, 1, FrAtNu, 1, 3);
+    // numerical gradient:
+    num_grad[j] = (vdw_plus - vdw_minus) / (2 * eps);
+  }
+  std::cout << "Grad check" << std::endl;
+  std::cout << -FvdW[1] << " " << num_grad[1] << std::endl;
+  std::cout << -FvdW[2] << " " << num_grad[2] << std::endl;
+  std::cout << -FvdW[3] << " " << num_grad[3] << std::endl;
+
+  free_dmatrix(eps_coords, 1, FrAtNu, 1, 3);
+  free_dmatrix(SDFrRe_ps, 1, FrAtNu, 1, ReAtNu);
+}
+
+

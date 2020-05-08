@@ -456,9 +456,7 @@ FrFiRMode reading mode for fragment input file (only relevant for MPI runs):
       EmpCorrB,gc_opt,&gc_reprke,&gc_cutclus,&gc_endifclus,&gc_weighneg,
       &gc_weighpos,&gc_maxwrite,write_pproc_opt,write_pproc_chm_opt,
       write_best_opt,write_sumtab_opt,write_best_sumtab_opt,&AtWei);/*clangini*/
-  std::cerr << "======== kwParFil " << kwParFil << std::endl;
   seed_par.readKW(kwParFil); // read keyword-based parameter file
-  std::cerr << "======== kwParFil end " << std::endl;
 
 #ifdef ENABLE_MPI
   if (strcmp(FrFiRMode, "single") == 0)
@@ -4084,7 +4082,10 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           /* ----- Rigid Body Minimization ----- */
           if (seed_par.do_rbmin == 'y')
           {
+            bool do_gradient_check = true;
             int max_iter = 1000;
+            double eps_grms = 0.02; // minimum gradient size
+            double grms;
             int rbi;
             int i;
             double alpha_xyz = 0.1;
@@ -4113,6 +4114,15 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
             RelCOMCo = dmatrix(1,FrAtNu,1,3);
             newRoSFCo = dmatrix(1, FrAtNu, 1, 3);
 
+            // Distances for vdW
+            SqDisFrRe_ps_vdW(FrAtNu, RoSFCo, ReCoor, ReMinC, GrSiCu_en,
+                              CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
+                              PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
+                              ReReNu, AtReprRes, FiAtRes, LaAtRes);
+            // vdW energy:
+            PsSpEE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
+                    ReVdWR, FrVdWR, &VWEnEv_ps, SDFrRe_ps);
+
             for (rbi = 1; rbi <= max_iter; rbi++){
               // COM coords:
               CenterOfMass(COM, RoSFCo, FrAtNu, AtWei, FrAtEl_nu);
@@ -4122,19 +4132,27 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                 RelCOMCo[i][2] = RoSFCo[i][2] - COM[2];
                 RelCOMCo[i][3] = RoSFCo[i][3] - COM[3];
               }
-              // Distances for vdW
-              SqDisFrRe_ps_vdW(FrAtNu, RoSFCo, ReCoor, ReMinC, GrSiCu_en,
-                               CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
-                               PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
-                               ReReNu, AtReprRes, FiAtRes, LaAtRes);
               // vdW forces and torques:
               PsSpFE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
-                     ReVdWR, FrVdWR, FvdW, TvdW,
-                     &maxFvdW, &maxTvdW, 
-                     SDFrRe_ps, RoSFCo, ReCoor, RelCOMCo);
-              // vdW energy:
-              PsSpEE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
-                     ReVdWR, FrVdWR, &VWEnEv_ps, SDFrRe_ps);
+                      ReVdWR, FrVdWR, FvdW, TvdW,
+                      &maxFvdW, &maxTvdW, 
+                      SDFrRe_ps, RoSFCo, ReCoor, RelCOMCo);
+              grms = calc_grms(FvdW, TvdW, alpha_xyz, alpha_rot);
+              std::cerr << "grms: " << grms << std::endl; 
+              // check gradients:
+              if (do_gradient_check){
+                check_gradient_vdw(FrAtNu,ReAtNu,ReVdWE_sr,FrVdWE_sr,
+                                   ReVdWR, FrVdWR, FvdW, TvdW,
+                                   RoSFCo, ReCoor, ReMinC, GrSiCu_en, 
+                                   CubNum_en, CubFAI_en, CubLAI_en,
+                                   CubLiA_en, PsSpNC,PsSphe,
+                                   PsSpRa, ReReNu, AtReprRes,
+                                   FiAtRes, LaAtRes);
+              }
+              // check break condition:
+              if (grms < eps_grms){
+                break;
+              }
 
               // Coordinates update:
               COM[1] = COM[1] + learning_rate * alpha_xyz * FvdW[1] / maxFvdW;
@@ -4157,30 +4175,58 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
               std::cerr << "TvW: " << TvdW[1] << " " << TvdW[2] << " " << TvdW[3] << 
                            " maxtorque: " << maxTvdW << std::endl;
 
-              // try coord update:
               for (i = 1; i <= FrAtNu; i++){
                 newRoSFCo[i][1] = COM[1] + RelCOMCo[i][1];
                 newRoSFCo[i][2] = COM[2] + RelCOMCo[i][2];
                 newRoSFCo[i][3] = COM[3] + RelCOMCo[i][3];
               }
+              // new vdw energy
               SqDisFrRe_ps_vdW(FrAtNu, newRoSFCo, ReCoor, ReMinC, GrSiCu_en,
                                CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
                                PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
                                ReReNu, AtReprRes, FiAtRes, LaAtRes);
               PsSpEE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
-                     ReVdWR, FrVdWR, &VWEnEv_ps, SDFrRe_ps);
-              std::cout << "New VdW energy: " << VWEnEv_ps << std::endl;
+                     ReVdWR, FrVdWR, &newVWEn, SDFrRe_ps);
+              std::cout << "New VdW energy: " << newVWEn << std::endl;
 
-              if (VWEnEv_ps)
-
-              for (i = 1; i <= FrAtNu; i++)
+              if (newVWEn < VWEnEv_ps) // accept new energies
               {
-                RoSFCo[i][1] = COM[1] + RelCOMCo[i][1];
-                RoSFCo[i][2] = COM[2] + RelCOMCo[i][2];
-                RoSFCo[i][3] = COM[3] + RelCOMCo[i][3];
+                // update coords
+                for (i = 1; i <= FrAtNu; i++)
+                {
+                  RoSFCo[i][1] = newRoSFCo[i][1];
+                  RoSFCo[i][2] = newRoSFCo[i][2];
+                  RoSFCo[i][3] = newRoSFCo[i][3];
+                }
+                // extend base learning rate:
+                learning_rate *= 1.2;
+                VWEnEv_ps = newVWEn;
+              } 
+              else 
+              {
+                // shrink base learning rate:
+                learning_rate *= 0.2;
+                // recalculate energy:
+                // Distances for vdW
+                SqDisFrRe_ps_vdW(FrAtNu, RoSFCo, ReCoor, ReMinC, GrSiCu_en,
+                                 CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
+                                 PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
+                                 ReReNu, AtReprRes, FiAtRes, LaAtRes);
+                // vdW energy:
+                PsSpEE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
+                       ReVdWR, FrVdWR, &VWEnEv_ps, SDFrRe_ps);
               }
+
             }
 
+            SqDisFrRe_ps(FrAtNu, RoSFCo, ReCoor, ReMinC, GrSiCu_en,
+                         CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
+                         PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
+                         RePaCh, ReReNu, AtReprRes, FiAtRes, LaAtRes,
+                         TotChaRes, NuChResEn, LiChResEn,
+                         SDFrRe_ps_elec, ChFrRe_ps_elec);
+            PsSpEE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
+                   ReVdWR, FrVdWR, &VWEnEv_ps, SDFrRe_ps);
             /* Compute receptor desolvation, fragment desolvation and receptor-fragment
              interaction (with screening effect) energies (slow method) */
             ElecFrag(ReAtNu, ReCoor, RePaCh, ChFrRe_ps_elec, ReRad, ReRad2,
