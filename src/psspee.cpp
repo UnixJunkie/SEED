@@ -21,6 +21,8 @@
 #include <funct.h>
 #include <nrutil.h>
 
+using namespace std;
+
 void PsSpEE(int FrAtNu,int ReAtNu,double *ReVdWE_sr,double *FrVdWE_sr,
             double *ReVdWR,double *FrVdWR,double *VWEnEv_ps,double **SDFrRe_ps)
 /* This function evaluates the energy using a pseudo-sphere approach as a
@@ -170,26 +172,30 @@ double calc_grms(double *FvdW, double *TvdW, double alpha_xyz, double alpha_rot)
 }
 
 void check_gradient_vdw(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
-                          double *ReVdWR, double *FrVdWR, double *FvdW, double *TvdW,
-                          double **RoSFCo, double **ReCoor,
-                          double *ReMinC,
-                          double GrSiCu_en, int *CubNum_en, int ***CubFAI_en, int ***CubLAI_en,
-                          int *CubLiA_en, int PsSpNC, int ***PsSphe,
-                          double PsSpRa, int ReReNu, int *AtReprRes,
-                          int *FiAtRes, int *LaAtRes)
+                        double *ReVdWR, double *FrVdWR, double *FvdW, double *TvdW,
+                        double **RoSFCo, double **ReCoor,
+                        double *ReMinC,
+                        double GrSiCu_en, int *CubNum_en, int ***CubFAI_en, int ***CubLAI_en,
+                        int *CubLiA_en, int PsSpNC, int ***PsSphe,
+                        double PsSpRa, int ReReNu, int *AtReprRes,
+                        int *FiAtRes, int *LaAtRes, int *FrAtEl_nu, double *AtWei)
 {
   /* This function checks the gradients */
-  int i,j;
+  int i,j,k;
   double **SDFrRe_ps;
   double num_grad[6]; // numerical gradient
   double eps = 0.00001;
+  double eps_rot = eps * 0.0174533; 
   double **eps_coords;
   double vdw_plus, vdw_minus;
+  double COM[4];
+  Quaternion<double> q_rb;
 
   eps_coords = zero_dmatrix(1,FrAtNu, 1, 3);
   copy_dmatrix(RoSFCo, eps_coords, 1, FrAtNu, 1, 3);
   SDFrRe_ps = zero_dmatrix(1, FrAtNu, 1, ReAtNu);
 
+  // numerical forces:
   for (j=1; j <= 3; j++){
     // x + eps
     for (i=1; i <= FrAtNu; i++)
@@ -222,6 +228,64 @@ void check_gradient_vdw(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdW
   std::cout << -FvdW[1] << " " << num_grad[1] << std::endl;
   std::cout << -FvdW[2] << " " << num_grad[2] << std::endl;
   std::cout << -FvdW[3] << " " << num_grad[3] << std::endl;
+  //numerical torques:
+
+  while (k<=3){
+    vdw_plus = 0.0;
+    vdw_minus = 0.0;
+    CenterOfMass(COM, RoSFCo, FrAtNu, AtWei, FrAtEl_nu);
+    if (k == 1)
+    {
+      q_rb.fromXYZrot(eps_rot, 0.0, 0.0);
+    } 
+    else if (k == 2)
+    {
+      q_rb.fromXYZrot(0.0, eps_rot, 0.0);
+    } 
+    else if (k == 3)
+    {
+      q_rb.fromXYZrot(0.0, 0.0, eps_rot);
+    }
+    for (i = 1; i <= FrAtNu; i++)
+    {
+      q_rb.quatConjugateVecRef(eps_coords[i], COM[1], COM[2], COM[3]);
+    }
+    SqDisFrRe_ps_vdW(FrAtNu, eps_coords, ReCoor, ReMinC, GrSiCu_en,
+                     CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
+                     PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
+                     ReReNu, AtReprRes, FiAtRes, LaAtRes);
+    PsSpEE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
+           ReVdWR, FrVdWR, &vdw_plus, SDFrRe_ps);
+    if (k == 1)
+    {
+      q_rb.fromXYZrot(-2 * eps_rot, 0.0, 0.0);
+    }
+    else if (k == 2)
+    {
+      q_rb.fromXYZrot(0.0, -2 * eps_rot, 0.0);
+    }
+    else if (k == 3)
+    {
+      q_rb.fromXYZrot(0.0, 0.0, -2 * eps_rot);
+    }
+    for (i = 1; i <= FrAtNu; i++)
+    {
+      q_rb.quatConjugateVecRef(eps_coords[i], COM[1], COM[2], COM[3]);
+    }
+    SqDisFrRe_ps_vdW(FrAtNu, eps_coords, ReCoor, ReMinC, GrSiCu_en,
+                     CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
+                     PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
+                     ReReNu, AtReprRes, FiAtRes, LaAtRes);
+    PsSpEE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
+           ReVdWR, FrVdWR, &vdw_minus, SDFrRe_ps);
+    copy_dmatrix(RoSFCo, eps_coords, 1, FrAtNu, 1, 3);
+    // numerical gradient:
+    num_grad[k+3] = (vdw_plus - vdw_minus) / (2 * eps_rot);
+    k++;
+  }
+  std::cout << -TvdW[1] << " " << num_grad[4] << std::endl;
+  std::cout << -TvdW[2] << " " << num_grad[5] << std::endl;
+  std::cout << -TvdW[3] << " " << num_grad[6] << std::endl;
 
   free_dmatrix(eps_coords, 1, FrAtNu, 1, 3);
   free_dmatrix(SDFrRe_ps, 1, FrAtNu, 1, ReAtNu);

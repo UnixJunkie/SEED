@@ -94,8 +94,10 @@ class Quaternion {
     //void quatConjugateVec(V v1,V v2,V v3,V ref1,V ref2,V ref3);//Overloaded
     //Methods for setting quaternion components
     const Quaternion<T>& Set(T, T, T, T);
+    const Quaternion<T>& W(T);
     const Quaternion<T>& fromAngleAxis(T angle,const T *axis);
     const Quaternion<T>& fromAngleAxis(T angle,T ax1,T ax2,T ax3);
+    const Quaternion<T>& fromXYZrot(T w1, T w2, T w3);
 
     void get_AngleAxis(point& axis, T& theta);
 

@@ -4082,8 +4082,8 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           /* ----- Rigid Body Minimization ----- */
           if (seed_par.do_rbmin == 'y')
           {
-            bool do_gradient_check = true;
-            int max_iter = 1000;
+            bool do_gradient_check = false;
+            int max_iter = 100;
             double eps_grms = 0.02; // minimum gradient size
             double grms;
             int rbi;
@@ -4096,20 +4096,9 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
             double FvdW[4]; // Total vdW force
             double TvdW[4]; // Total vdw torque
             double maxFvdW, maxTvdW;
-            double e_x[4], e_y[4], e_z[4];
             double **RelCOMCo, **newRoSFCo;
             double newVWEn;
-            Quaternion<double> q_x, q_y, q_z; // Three rotations -> should use conversion formulas
-            
-            e_x[1] = 1.0;
-            e_x[2] = 0.0;
-            e_x[3] = 0.0;
-            e_y[1] = 0.0;
-            e_y[2] = 1.0;
-            e_y[3] = 0.0;
-            e_z[1] = 0.0;
-            e_z[2] = 0.0;
-            e_z[3] = 1.0;
+            Quaternion<double> q_rb;
 
             RelCOMCo = dmatrix(1,FrAtNu,1,3);
             newRoSFCo = dmatrix(1, FrAtNu, 1, 3);
@@ -4141,13 +4130,13 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
               std::cerr << "grms: " << grms << std::endl; 
               // check gradients:
               if (do_gradient_check){
-                check_gradient_vdw(FrAtNu,ReAtNu,ReVdWE_sr,FrVdWE_sr,
+                check_gradient_vdw(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
                                    ReVdWR, FrVdWR, FvdW, TvdW,
-                                   RoSFCo, ReCoor, ReMinC, GrSiCu_en, 
+                                   RoSFCo, ReCoor, ReMinC, GrSiCu_en,
                                    CubNum_en, CubFAI_en, CubLAI_en,
-                                   CubLiA_en, PsSpNC,PsSphe,
+                                   CubLiA_en, PsSpNC, PsSphe,
                                    PsSpRa, ReReNu, AtReprRes,
-                                   FiAtRes, LaAtRes);
+                                   FiAtRes, LaAtRes, FrAtEl_nu, AtWei);
               }
               // check break condition:
               if (grms < eps_grms){
@@ -4155,25 +4144,26 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
               }
 
               // Coordinates update:
-              COM[1] = COM[1] + learning_rate * alpha_xyz * FvdW[1] / maxFvdW;
-              COM[2] = COM[2] + learning_rate * alpha_xyz * FvdW[2] / maxFvdW;
-              COM[3] = COM[3] + learning_rate * alpha_xyz * FvdW[3] / maxFvdW;
+              COM[1] = COM[1] + learning_rate * alpha_xyz * FvdW[1] / grms; //maxFvdW;
+              COM[2] = COM[2] + learning_rate * alpha_xyz * FvdW[2] / grms; //maxFvdW;
+              COM[3] = COM[3] + learning_rate * alpha_xyz * FvdW[3] / grms; //maxFvdW;
               std::cerr << rbi << std::endl;
               std::cerr << "COM: " << COM[1] << " " << COM[2] << " " << COM[3] << std::endl;
               std::cerr << "FvW: " << FvdW[1] << " " << FvdW[2] << " " << FvdW[3] <<
                            " maxforce: " << maxFvdW << std::endl;
 
-              q_x.fromAngleAxis(learning_rate * alpha_rot * TvdW[1] / maxTvdW, e_x);
-              q_y.fromAngleAxis(learning_rate * alpha_rot * TvdW[2] / maxTvdW, e_y);
-              q_z.fromAngleAxis(learning_rate * alpha_rot * TvdW[3] / maxTvdW, e_z);
-              for (i=1; i <= FrAtNu; i++){
-                q_x.quatConjugateVecRef(RelCOMCo[i], 0.0, 0.0, 0.0);
-                q_y.quatConjugateVecRef(RelCOMCo[i], 0.0, 0.0, 0.0);
-                q_z.quatConjugateVecRef(RelCOMCo[i], 0.0, 0.0, 0.0);
+              q_rb.fromXYZrot(learning_rate * alpha_rot * TvdW[1] / grms, //maxTvdW,
+                              learning_rate * alpha_rot * TvdW[2] / grms, //maxTvdW,
+                              learning_rate * alpha_rot * TvdW[3] / grms );//maxTvdW);
+              for (i = 1; i <= FrAtNu; i++)
+              {
+                q_rb.quatConjugateVecRef(RelCOMCo[i], 0.0, 0.0, 0.0);
               }
               std::cerr << "COM: " << COM[1] << " " << COM[2] << " " << COM[3] << std::endl;
               std::cerr << "TvW: " << TvdW[1] << " " << TvdW[2] << " " << TvdW[3] << 
                            " maxtorque: " << maxTvdW << std::endl;
+              
+              std::cerr << "learning rate: " << learning_rate << std::endl;
 
               for (i = 1; i <= FrAtNu; i++){
                 newRoSFCo[i][1] = COM[1] + RelCOMCo[i][1];
@@ -4188,6 +4178,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
               PsSpEE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
                      ReVdWR, FrVdWR, &newVWEn, SDFrRe_ps);
               std::cout << "New VdW energy: " << newVWEn << std::endl;
+              std::cout << "Old VdW energy: " << VWEnEv_ps << std::endl;
 
               if (newVWEn < VWEnEv_ps) // accept new energies
               {
@@ -4216,7 +4207,6 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                 PsSpEE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
                        ReVdWR, FrVdWR, &VWEnEv_ps, SDFrRe_ps);
               }
-
             }
 
             SqDisFrRe_ps(FrAtNu, RoSFCo, ReCoor, ReMinC, GrSiCu_en,

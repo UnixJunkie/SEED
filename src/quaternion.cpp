@@ -224,6 +224,12 @@ const Quaternion<T>& Quaternion<T>::Set(T w_i, T x_i, T y_i, T z_i)
 }
 
 template<class T>
+const Quaternion<T>& Quaternion<T>::W(T w_i) {
+  w = w_i;
+  return *this;
+}
+
+template<class T>
 const Quaternion<T>& Quaternion<T>::fromAngleAxis(T angle, const T *axis){
   const T halfAngle = 0.5*angle;
   const T sin_half = sin(halfAngle);
@@ -241,6 +247,16 @@ const Quaternion<T>& Quaternion<T>::fromAngleAxis(T angle, T ax1, T ax2, T ax3){
   x = ax1*sin_half;
   y = ax2*sin_half;
   z = ax3*sin_half;
+  return (*this);
+}
+template<class T>
+const Quaternion<T>& Quaternion<T>::fromXYZrot(T w1, T w2, T w3){
+  T q_w;
+  x = sinf(w1 / 2.0);
+  y = sinf(w2 / 2.0);
+  z = sinf(w3 / 2.0);
+  q_w = x*x + y*y + z*z; 
+  w = sqrtf(1.0 - q_w);
   return (*this);
 }
 
