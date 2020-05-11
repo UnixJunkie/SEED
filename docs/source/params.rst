@@ -24,7 +24,8 @@ Here we define all the parameters of the ``seed.inp`` file.
 .. _i1:
 
 **i1**
-  name of parameter file (``seed.par``) 
+  | first line: name of parameter file (``seed.par``) 
+  | second line: name of the keyword-based parameter file (``seed_kw.par``)
   
 .. _i2:
 
@@ -72,7 +73,7 @@ Here we define all the parameters of the ``seed.inp`` file.
   | coordinates of the center and radius of a sphere in which the geometry center of
     the fragment position must be in order to be accepted. 
     This filter can be discarded by selecting ``n`` instead of ``y`` as first value.
-  | ``y``,``n`` / sphere center / sphere radius
+  | ``y``, ``n`` / sphere center / sphere radius
 
 .. _i7:
   
@@ -312,59 +313,6 @@ to eliminate fragments which are very close in space.
   | print level (``0`` = lean, ``1`` = adds sorting before postprocessing, 
     ``2`` = adds 2nd clustering).
 
-.. _MC_param:
-
-Monte Carlo parameters
-^^^^^^^^^^^^^^^^^^^^^^
-
-The following parameters are needed for running a Monte Carlo minimization of the top poses.
-This option can be enabled by setting :ref:`mc1<mc1>` to `y` (yes) and adding 
-the following parameters.
-If :ref:`mc1<mc1>` is set to `n` (no), all the additional MC parameters in this section 
-(:ref:`mc2<mc2>` through :ref:`mc10<mc10>`) have to be commented out.
-
-.. _mc1:
-
-**mc1**
-  | Perform MC refinement? (y/n)
-
-.. _mc2:
-
-**mc2**
-  | Starting temperature of MC run.
-
-**mc3**
-  | Maximum rigid body translation step (in Angstrom): coarse (1st value) 
-  | and fine (2nd value) moves.
-
-**mc4**
-  | Maximum rigid body rotation step (in degrees): coarse (1st value) 
-  | and fine (2nd value) moves.
-
-**mc5**
-  | MC move set frequencies:
-  | Frequency :math:`p` of rigid body rotation moves (the frequency of 
-  | rigid body translation move will be :math:`q = 1 - p`).
-
-**mc6**
-  | Relative frequency (w.r.t. the number of rotation moves) of fine rotation moves.
-
-**mc7**
-  | Relative frequency (w.r.t. the number of translation move) of fine translation moves.
-
-**mc8**
-  | Number of steps :math:`N_{out}` of the outer MC chain (1st value). /
-  | Number of steps :math:`N_{in}` of the inner MC chain (2nd value).
-
-**mc9**
-  | Annealing parameter :math:`\alpha`.
-
-.. _mc10:
-
-**mc10**
-  | Seed for the pseudo-random number generator used by the MC sampler.
-
-
 Force field parameters
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -399,15 +347,112 @@ Force field parameters
   | First line: number of elements (without element 0)
   | element name / element number / atomic weight
 
+.. _KW_param:
+
+Keyword-based parameter file
+----------------------------
+
+In order to allow more flexibility and easier addition of SEED parameters, 
+we have decided to move from the original sequential format of the ``seed.par`` 
+to a keyword based format. This, for legacy reasons, only involves the newly 
+added settings, so that an older ``seed.par`` can be used as it is without the need 
+of modifications or rewritings.
+The new keyword based parameters should be specified in the format 
+``<keyword> = <value>`` as for example:
+::
+
+  # Additional parameters 
+  do_mc = y # activates MCSA sampling 
+  mc_temp = 500
+  mc_max_xyz_step = 0.7 0.1
+
+Comments can be introduced by *#* and will be ignored. Note that some keywords require 
+multiple values. If the same keyword is repeated multiple times in the file, the last 
+instance will be used.
+The additional keyword-based parameter file, that we will refer to as ``seed_kw.par`` 
+should always be present (even if blank) and its path has to be specified in the second 
+line of :ref:`i1<i1>`.
+The keywords that can be set are the following:
+
+.. _MC_param:
+
+Monte Carlo parameters
+^^^^^^^^^^^^^^^^^^^^^^
+
+The following parameters are needed for running a Monte Carlo Simulated Annealing
+minimization of the top poses.
+This option can be enabled by setting :ref:`do_mc<do_mc>` to ``y`` (yes) and adding 
+the following related keywords.
+If :ref:`do_mc<do_mc>` is set to ``n`` (no), all the additional MC parameters in this section 
+play no role.
+
+.. _do_mc:
+
+**do_mc**
+  | Perform MC refinement? (``y`` / ``n``)
+
+.. _mc_temp:
+
+**mc_temp**
+  | Starting temperature of MC run.
+
+.. _mc_max_xyz_step:
+
+**mc_max_xyz_step**
+  | Maximum rigid body translation step (in Angstrom): coarse (1st value) 
+  | and fine (2nd value) moves.
+
+.. _mc_max_rot_step:
+
+**mc_max_rot_step**
+  | Maximum rigid body rotation step (in degrees): coarse (1st value) 
+  | and fine (2nd value) moves.
+
+.. _mc_rot_freq:
+
+**mc_rot_freq**
+  | MC move set frequencies:
+  | Frequency :math:`p` of rigid body rotation moves (the frequency of 
+  | rigid body translation move will be :math:`q = 1 - p`).
+
+.. _mc_xyz_fine_freq:
+
+**mc_xyz_fine_freq**
+  | Relative frequency (w.r.t. the number of translation move) of fine translation moves.
+
+.. _mc_rot_fine_freq:
+
+**mc_rot_fine_freq**
+  | Relative frequency (w.r.t. the number of rotation moves) of fine rotation moves.
+
+.. _mc_niter:
+
+**mc_niter**
+  | Number of steps :math:`N_{out}` of the outer MC chain (1st value).
+  | Number of steps :math:`N_{in}` of the inner MC chain (2nd value).
+
+.. _mc_sa_alpha:
+
+**mc_sa_alpha**
+  | Annealing parameter :math:`\alpha`.
+
+.. _mc_rseed:
+
+**mc_rseed**
+  | Seed for the pseudo-random number generator used by the MC sampler. A value of ``-1`` uses 
+    the current CPU time.
+
+
 .. _par_generator:
 
 Parameter File Generator
 ------------------------
 
 The parameter file generator helps you preparing the input parameter files 
-for a SEED run (``seed.inp`` and ``seed.par``).
+for a SEED run (``seed.inp``, ``seed.par``, and ``seed_kw.par``).
 You can load a template with predefined default values, edit the user-specific 
-information and save it.
+information and save it. The template for ``seed_kw.par`` shows example settings for 
+a run with additional MCSA minimization of the poses.
 
   .. <script>
   ..   //var filename = "./_static/seed.inp";
@@ -456,6 +501,7 @@ information and save it.
 
   <button id="btn-inp">Load default seed.inp</button>
   <button id="btn-par">Load default seed.par</button>
+  <button id="btn-kw">Load default seed_kw.par</button>
   
   <div>
     <p>Here you can edit the file with user-specific information. 
@@ -485,6 +531,10 @@ information and save it.
   jQuery("#btn-par").click( function() {
     jQuery( "#input-area" ).load("_static/seed4_cgenff4.par");
     jQuery("#input-fileName").val("seed.par")
+  });
+  jQuery("#btn-kw").click( function() {
+    jQuery( "#input-area" ).load("_static/seed4_kw.par");
+    jQuery("#input-fileName").val("seed_kw.par")
   });
   
   //jQuery(document).ready(function(){

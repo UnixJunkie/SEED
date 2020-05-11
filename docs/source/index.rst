@@ -28,6 +28,10 @@ upon binding and the screened electrostatic interaction.
 Monte Carlo simulated annealing. Beware that this new feature is experimental and
 has not been tested thoroughly yet. See :ref:`mc_minimization` for details.
 
+**NEW!** A new keyword-based parameter file has been introduced. This allows more flexibility in 
+the way settings are specified, but only involves newly added settings (e.g. the ones of :ref:`mc_minimization`),
+so that legacy ``seed.par`` files keep working as expected. See :ref:`KW_param` for details.
+
 |
 
 SEED is developed in the `Caflisch Lab <http://www.biochem-caflisch.uzh.ch/>`_ at 
