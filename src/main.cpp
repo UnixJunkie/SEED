@@ -4100,17 +4100,49 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
             double newVWEn;
             Quaternion<double> q_rb;
 
+            double E_int_elec = 0.0;
+            double **dist_elec;
+            int *NeighList3;
+            double *ReEffRad;
+            double *FrEffRad;
+            int NNeigh3;
+            int dummy;
+
             RelCOMCo = dmatrix(1,FrAtNu,1,3);
             newRoSFCo = dmatrix(1, FrAtNu, 1, 3);
 
             // Distances for vdW
-            SqDisFrRe_ps_vdW(FrAtNu, RoSFCo, ReCoor, ReMinC, GrSiCu_en,
-                              CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
-                              PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
-                              ReReNu, AtReprRes, FiAtRes, LaAtRes);
+            SqDisFrRe_ps(FrAtNu, RoSFCo, ReCoor, ReMinC, GrSiCu_en,
+                         CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
+                         PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
+                         RePaCh, ReReNu, AtReprRes, FiAtRes, LaAtRes,
+                         TotChaRes, NuChResEn, LiChResEn,
+                         SDFrRe_ps_elec, ChFrRe_ps_elec);
             // vdW energy:
             PsSpEE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
                     ReVdWR, FrVdWR, &VWEnEv_ps, SDFrRe_ps);
+            // Screened electrostatic interaction
+            // We keep R_born fixed.
+            NeighList3 = ivector(1, ReAtNu);
+            dist_elec = zero_dmatrix(1, FrAtNu, 1, ReAtNu);
+            dist2_to_dist(SDFrRe_ps_elec, dist_elec, FrAtNu, ReAtNu);
+            ReEffRad = dvector(1, ReAtNu);
+            FrEffRad = dvector(1,FrAtNu);
+            CalcEffRad(ReAtNu,ReCoor,RePaCh,ReRad,ReRad2,
+                       ReRadOut,ReRadOut2,ReEffRad_bound,
+                       surfpt_re,nsurf_re,
+                       pointsrf_re, ReSelfVol,FrAtNu,RoSFCo,FrCoor,
+                       FrPaCh,FrRad,FrRad2,FrRadOut, FrRadOut2,
+                       FrEffRad_bound,Frdist2,SDFrRe_ps_elec,
+                       FrMinC, FrMaxC, Nsurfpt_fr,surfpt_fr,
+                       nsurf_fr,pointsrf_fr,surfpt_ex,Tr,U1,U2, 
+                       WaMoRa,GrSiSo,NPtSphere,Min,Max,XGrid,YGrid,ZGrid,
+                       NGridx, NGridy, NGridz, GridMat,Kelec,Ksolv,
+                       UnitVol,pi4,ReSelfVol_corrB, EmpCorrB,FPaOut,
+                       ReEffRad, FrEffRad,NeighList3, &NNeigh3);
+            dummy = screened_int(ChFrRe_ps_elec, ReEffRad, NNeigh3,NeighList3,FrAtNu,FrPaCh,
+                                 FrEffRad,SDFrRe_ps_elec,dist_elec,Kelec,Ksolv,&E_int_elec);
+            E_int_elec *= corr_scrint;
 
             for (rbi = 1; rbi <= max_iter; rbi++){
               // COM coords:
@@ -4239,8 +4271,12 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
             Df_s = SFDeso_fr * FrDesoElec;
             To_s = VW_s + In_s + Dr_s + Df_s;
 
-            free_dmatrix(RelCOMCo, 1, FrAtNu, 1, 3);
-          } // end of if (seed_par.do_mc == 'y')
+            free_dmatrix(RelCOMCo,1,FrAtNu,1,3);
+            free_ivector(NeighList3,1,ReAtNu);
+            free_dmatrix(dist_elec,1, FrAtNu, 1, ReAtNu);
+            free_dvector(ReEffRad,1, ReAtNu);
+            free_dvector(FrEffRad,1, FrAtNu);
+          } // end of if (seed_par.do_rbmin == 'y')
         }
 
         /* ----- FAST or BOTH methods ----- */

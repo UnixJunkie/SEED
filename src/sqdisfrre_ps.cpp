@@ -154,6 +154,25 @@ void SqDisFrRe_ps(int FrAtNu,double **RoSFCo,double **ReCoor,double *ReMinC,
 
 }
 
+void dist2_to_dist(double **dist2, double **dist, 
+              int FrAtNu, int ReAtNu)
+{
+  /* From dist_squared to dist */
+  int iat,jat;
+
+  for (iat = 1; iat <= FrAtNu; iat++)
+  {
+    for (jat = 1; jat <= ReAtNu; jat++)
+    {
+      if (dist2[iat][jat] > 0.)
+      {
+        dist[iat][jat] = sqrt(dist2[iat][jat]);
+      }
+    }
+  }
+  return;
+}
+
 void SqDisFrRe_ps_vdW(int FrAtNu,double **RoSFCo,double **ReCoor,double *ReMinC,
             double GrSiCu_en,int *CubNum_en,int ***CubFAI_en,int ***CubLAI_en,
             int *CubLiA_en,int PsSpNC,int ***PsSphe,double **SDFrRe_ps,
