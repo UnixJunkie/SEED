@@ -64,3 +64,30 @@ T max_abs_el(T *v, int l, int r)
     }
     return max;
 }
+
+template <class T>
+void sum_vec(T *sum, T *a, T *b, int start, int end)
+{
+    for (auto i=start; i <= end; i++)
+    {
+        sum[i] = a[i] + b[i];
+    }
+}
+
+template <class T>
+void sub_vec(T *sub, T *a, T *b, int start, int end)
+{
+    for (auto i = start; i <= end; i++)
+    {
+        sub[i] = a[i] - b[i];
+    }
+}
+
+// template <class T, class T2>
+// void mul_vec(T alpha, T2 *vec, int start, int end)
+// {
+//     for (auto i = start; i <= end; i++)
+//     {
+//         vec[i] = vec[i] * alpha;
+//     }
+// }

@@ -155,6 +155,10 @@ template <class T>
 T max_el(T *v, int l, int r);
 template <class T>
 T max_abs_el(T *v, int l, int r);
+template <class T>
+void sum_vec(T *sum, T *a, T *b, int start, int end);
+template <class T>
+void sub_vec(T *sub, T *a, T *b, int start, int end);
 #include "tmplt_nrutil.cpp"
 /* ------------------------- */
 

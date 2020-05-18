@@ -4082,7 +4082,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           /* ----- Rigid Body Minimization ----- */
           if (seed_par.do_rbmin == 'y')
           {
-            bool do_gradient_check = false;
+            bool do_gradient_check = true;
             int max_iter = 100;
             double eps_grms = 0.02; // minimum gradient size
             double grms;
@@ -4100,7 +4100,13 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
             double newVWEn;
             Quaternion<double> q_rb;
 
-            double E_int_elec = 0.0;
+            double newIntElec = 0.0;
+            double newTotEn = 0.0;
+            double oldTotEn = 0.0;
+            double Felec[4]; // Total elec force
+            double Telec[4]; // Total elec torque
+            double Ftot[4];
+            double Ttot[4];
             double **dist_elec;
             int *NeighList3;
             double *ReEffRad;
@@ -4111,7 +4117,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
             RelCOMCo = dmatrix(1,FrAtNu,1,3);
             newRoSFCo = dmatrix(1, FrAtNu, 1, 3);
 
-            // Distances for vdW
+            // Distances for vdW and int_elec
             SqDisFrRe_ps(FrAtNu, RoSFCo, ReCoor, ReMinC, GrSiCu_en,
                          CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
                          PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
@@ -4125,9 +4131,9 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
             // We keep R_born fixed.
             NeighList3 = ivector(1, ReAtNu);
             dist_elec = zero_dmatrix(1, FrAtNu, 1, ReAtNu);
-            dist2_to_dist(SDFrRe_ps_elec, dist_elec, FrAtNu, ReAtNu);
             ReEffRad = dvector(1, ReAtNu);
             FrEffRad = dvector(1,FrAtNu);
+            dist2_to_dist(SDFrRe_ps_elec, dist_elec, FrAtNu, ReAtNu);
             CalcEffRad(ReAtNu,ReCoor,RePaCh,ReRad,ReRad2,
                        ReRadOut,ReRadOut2,ReEffRad_bound,
                        surfpt_re,nsurf_re,
@@ -4140,25 +4146,35 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                        NGridx, NGridy, NGridz, GridMat,Kelec,Ksolv,
                        UnitVol,pi4,ReSelfVol_corrB, EmpCorrB,FPaOut,
                        ReEffRad, FrEffRad,NeighList3, &NNeigh3);
-            dummy = screened_int(ChFrRe_ps_elec, ReEffRad, NNeigh3,NeighList3,FrAtNu,FrPaCh,
-                                 FrEffRad,SDFrRe_ps_elec,dist_elec,Kelec,Ksolv,&E_int_elec);
-            E_int_elec *= corr_scrint;
+            dummy = screened_int(ChFrRe_ps_elec, ReEffRad, NNeigh3, NeighList3, FrAtNu, FrPaCh,
+                                 FrEffRad, SDFrRe_ps_elec, dist_elec, Kelec, Ksolv, &ReFrIntElec);
+            ReFrIntElec *= corr_scrint;
+            oldTotEn = VWEnEv_ps + ReFrIntElec;
 
             for (rbi = 1; rbi <= max_iter; rbi++){
-              // COM coords:
+              // COM and coords relative to COM:
               CenterOfMass(COM, RoSFCo, FrAtNu, AtWei, FrAtEl_nu);
-              for (i = 1; i <= FrAtNu; i++)
-              {
-                RelCOMCo[i][1] = RoSFCo[i][1] - COM[1];
-                RelCOMCo[i][2] = RoSFCo[i][2] - COM[2];
-                RelCOMCo[i][3] = RoSFCo[i][3] - COM[3];
+              for (i = 1; i <= FrAtNu; i++){
+                for (j = 1; j <= 3; j++)
+                  RelCOMCo[i][j] = RoSFCo[i][j] - COM[j];
               }
               // vdW forces and torques:
               PsSpFE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
                       ReVdWR, FrVdWR, FvdW, TvdW,
                       &maxFvdW, &maxTvdW, 
                       SDFrRe_ps, RoSFCo, ReCoor, RelCOMCo);
-              grms = calc_grms(FvdW, TvdW, alpha_xyz, alpha_rot);
+              screened_int_forces(ChFrRe_ps_elec, ReEffRad, NNeigh3,
+                                  NeighList3, FrAtNu,
+                                  FrPaCh, FrEffRad, SDFrRe_ps_elec, dist_elec,
+                                  Kelec, Ksolv,RoSFCo, ReCoor, RelCOMCo,
+                                  Felec, Telec, corr_scrint);
+              // std::cerr << "Felec: " << Felec[1] << " " << Felec[2] << " " << Felec[3] << std::endl;
+              // std::cerr << "Telec: " << Telec[1] << " " << Telec[2] << " " << Telec[3] << std::endl;
+              sum_vec(Ftot, FvdW, Felec, 1, 3);
+              sum_vec(Ttot, TvdW, Telec, 1, 3);
+
+              grms = calc_grms(Ftot, Ttot, alpha_xyz, alpha_rot);
+              std::cerr << "ITER: " << rbi << std::endl;
               std::cerr << "grms: " << grms << std::endl; 
               // check gradients:
               if (do_gradient_check){
@@ -4169,78 +4185,96 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                                    CubLiA_en, PsSpNC, PsSphe,
                                    PsSpRa, ReReNu, AtReprRes,
                                    FiAtRes, LaAtRes, FrAtEl_nu, AtWei);
+
+                check_gradient_int_elec(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
+                                        ReVdWR, FrVdWR, Felec, Telec,
+                                        RoSFCo, ReCoor,
+                                        ReMinC, GrSiCu_en, CubNum_en, CubFAI_en, CubLAI_en,
+                                        CubLiA_en, PsSpNC, PsSphe,
+                                        PsSpRa, ReReNu, AtReprRes,
+                                        FiAtRes, LaAtRes, FrAtEl_nu, AtWei,
+                                        RePaCh, FrPaCh, TotChaRes, NuChResEn, LiChResEn,
+                                        ChFrRe_ps_elec, ReEffRad, FrEffRad,
+                                        NeighList3, NNeigh3, Kelec, Ksolv, corr_scrint);
               }
               // check break condition:
               if (grms < eps_grms){
                 break;
               }
 
-              // Coordinates update:
-              COM[1] = COM[1] + learning_rate * alpha_xyz * FvdW[1] / grms; //maxFvdW;
-              COM[2] = COM[2] + learning_rate * alpha_xyz * FvdW[2] / grms; //maxFvdW;
-              COM[3] = COM[3] + learning_rate * alpha_xyz * FvdW[3] / grms; //maxFvdW;
-              std::cerr << rbi << std::endl;
-              std::cerr << "COM: " << COM[1] << " " << COM[2] << " " << COM[3] << std::endl;
-              std::cerr << "FvW: " << FvdW[1] << " " << FvdW[2] << " " << FvdW[3] <<
-                           " maxforce: " << maxFvdW << std::endl;
-
-              q_rb.fromXYZrot(learning_rate * alpha_rot * TvdW[1] / grms, //maxTvdW,
-                              learning_rate * alpha_rot * TvdW[2] / grms, //maxTvdW,
-                              learning_rate * alpha_rot * TvdW[3] / grms );//maxTvdW);
+              // COM update:
+              COM[1] = COM[1] + learning_rate * alpha_xyz * Ftot[1] / grms; //maxFvdW;
+              COM[2] = COM[2] + learning_rate * alpha_xyz * Ftot[2] / grms; //maxFvdW;
+              COM[3] = COM[3] + learning_rate * alpha_xyz * Ftot[3] / grms; //maxFvdW;
+              std::cerr << "Ftot: " << Ftot[1] << " " << Ftot[2] << " " << Ftot[3] << std::endl;
+              // Rotation update:
+              q_rb.fromXYZrot(learning_rate * alpha_rot * Ttot[1] / grms, //maxTvdW,
+                              learning_rate * alpha_rot * Ttot[2] / grms, //maxTvdW,
+                              learning_rate * alpha_rot * Ttot[3] / grms );//maxTvdW);
               for (i = 1; i <= FrAtNu; i++)
               {
                 q_rb.quatConjugateVecRef(RelCOMCo[i], 0.0, 0.0, 0.0);
               }
-              std::cerr << "COM: " << COM[1] << " " << COM[2] << " " << COM[3] << std::endl;
-              std::cerr << "TvW: " << TvdW[1] << " " << TvdW[2] << " " << TvdW[3] << 
-                           " maxtorque: " << maxTvdW << std::endl;
-              
+              std::cerr << "TvW: " << Ttot[1] << " " << Ttot[2] << " " << Ttot[3] <<  std::endl;
               std::cerr << "learning rate: " << learning_rate << std::endl;
-
+              
+              // Looking forward: decide if to accept move or shrink the learning rate.
               for (i = 1; i <= FrAtNu; i++){
-                newRoSFCo[i][1] = COM[1] + RelCOMCo[i][1];
-                newRoSFCo[i][2] = COM[2] + RelCOMCo[i][2];
-                newRoSFCo[i][3] = COM[3] + RelCOMCo[i][3];
+                for (j=1; j <= 3; j++)
+                  newRoSFCo[i][j] = COM[j] + RelCOMCo[i][j];
               }
-              // new vdw energy
-              SqDisFrRe_ps_vdW(FrAtNu, newRoSFCo, ReCoor, ReMinC, GrSiCu_en,
-                               CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
-                               PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
-                               ReReNu, AtReprRes, FiAtRes, LaAtRes);
+              SqDisFrRe_ps(FrAtNu, newRoSFCo, ReCoor, ReMinC, GrSiCu_en,
+                           CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
+                           PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
+                           RePaCh, ReReNu, AtReprRes, FiAtRes, LaAtRes,
+                           TotChaRes, NuChResEn, LiChResEn,
+                           SDFrRe_ps_elec, ChFrRe_ps_elec);
               PsSpEE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
                      ReVdWR, FrVdWR, &newVWEn, SDFrRe_ps);
-              std::cout << "New VdW energy: " << newVWEn << std::endl;
-              std::cout << "Old VdW energy: " << VWEnEv_ps << std::endl;
+              dist2_to_dist(SDFrRe_ps_elec, dist_elec, FrAtNu, ReAtNu);
+              dummy = screened_int(ChFrRe_ps_elec, ReEffRad, NNeigh3, NeighList3, FrAtNu, FrPaCh,
+                                   FrEffRad, SDFrRe_ps_elec, dist_elec, Kelec, Ksolv, &newIntElec);
+              newIntElec *= corr_scrint;
+              newTotEn = newVWEn + newIntElec;
 
-              if (newVWEn < VWEnEv_ps) // accept new energies
+              std::cout << "New energies: " << newVWEn << " " << newIntElec << " " << 
+                           newTotEn << std::endl;
+              std::cout << "Old energies: " << VWEnEv_ps << " " << ReFrIntElec << " " <<
+                           oldTotEn <<std::endl;
+
+              if (newTotEn <= oldTotEn) // accept new energies
               {
+                std::cerr << "accept step" << std::endl;
                 // update coords
-                for (i = 1; i <= FrAtNu; i++)
-                {
-                  RoSFCo[i][1] = newRoSFCo[i][1];
-                  RoSFCo[i][2] = newRoSFCo[i][2];
-                  RoSFCo[i][3] = newRoSFCo[i][3];
-                }
+                copy_dmatrix(newRoSFCo, RoSFCo,1, FrAtNu, 1, 3);
                 // extend base learning rate:
                 learning_rate *= 1.2;
                 VWEnEv_ps = newVWEn;
+                ReFrIntElec = newIntElec;
+                oldTotEn = newTotEn;
               } 
               else 
               {
+                std::cerr << "reject step" << std::endl;
                 // shrink base learning rate:
                 learning_rate *= 0.2;
                 // recalculate energy:
-                // Distances for vdW
-                SqDisFrRe_ps_vdW(FrAtNu, RoSFCo, ReCoor, ReMinC, GrSiCu_en,
-                                 CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
-                                 PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
-                                 ReReNu, AtReprRes, FiAtRes, LaAtRes);
-                // vdW energy:
+                SqDisFrRe_ps(FrAtNu, RoSFCo, ReCoor, ReMinC, GrSiCu_en,
+                             CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
+                             PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,
+                             RePaCh, ReReNu, AtReprRes, FiAtRes, LaAtRes,
+                             TotChaRes, NuChResEn, LiChResEn,
+                             SDFrRe_ps_elec, ChFrRe_ps_elec);
                 PsSpEE(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
                        ReVdWR, FrVdWR, &VWEnEv_ps, SDFrRe_ps);
+                dist2_to_dist(SDFrRe_ps_elec, dist_elec, FrAtNu, ReAtNu);
+                dummy = screened_int(ChFrRe_ps_elec, ReEffRad, NNeigh3, NeighList3, FrAtNu, FrPaCh,
+                                     FrEffRad, SDFrRe_ps_elec, dist_elec, Kelec, Ksolv, &ReFrIntElec);
+                ReFrIntElec *= corr_scrint;
+                oldTotEn = VWEnEv_ps + ReFrIntElec;
               }
             }
-
+            // This is necessary to recalculate the final Born radii:
             SqDisFrRe_ps(FrAtNu, RoSFCo, ReCoor, ReMinC, GrSiCu_en,
                          CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
                          PsSpNC, PsSphe, SDFrRe_ps, ReAtNu, PsSpRa,

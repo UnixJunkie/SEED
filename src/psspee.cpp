@@ -159,15 +159,15 @@ void PsSpFE(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
   return;
 }
 
-double calc_grms(double *FvdW, double *TvdW, double alpha_xyz, double alpha_rot){
+double calc_grms(double *F, double *T, double alpha_xyz, double alpha_rot){
   /* This function calculates the root mean squared gradient for vdW minimization */
   double grms;
-  grms = sqrtf(FvdW[1] * FvdW[1] * alpha_xyz * alpha_xyz +
-               FvdW[2] * FvdW[2] * alpha_xyz * alpha_xyz +
-               FvdW[3] * FvdW[3] * alpha_xyz * alpha_xyz +
-               TvdW[1] * TvdW[1] * alpha_rot * alpha_rot +
-               TvdW[2] * TvdW[2] * alpha_rot * alpha_rot + 
-               TvdW[3] * TvdW[3] * alpha_rot * alpha_rot);
+  grms = sqrtf(F[1] * F[1] * alpha_xyz * alpha_xyz +
+               F[2] * F[2] * alpha_xyz * alpha_xyz +
+               F[3] * F[3] * alpha_xyz * alpha_xyz +
+               T[1] * T[1] * alpha_rot * alpha_rot +
+               T[2] * T[2] * alpha_rot * alpha_rot + 
+               T[3] * T[3] * alpha_rot * alpha_rot);
   return grms;
 }
 

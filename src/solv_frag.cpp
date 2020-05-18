@@ -2611,6 +2611,300 @@ double *PReFrIntElec ---- Rec-Frag screened interaction
     return 0;
 }
 
+int screened_int_forces(double **RePaCh_Fr, double *ReEffRad,
+                        int NNeigh3, int *NeighList3, int FrAtNu,
+                        double *FrPaCh, double *FrEffRad, double **dist2, double **dist,
+                        double Kelec, double Ksolv,
+                        double **RoSFCo, double **ReCoor, double **RelCOMCo,
+                        double *F_elec, double *T_elec, double corr_scrint)
+/*##########################################
+Calculate the forces derived from the 
+frag-rec screened interaction energy
+###########################################*/
+
+/*##########################################
+double *RePaCh_Fr -------- Modified rec partial charges (for the charged residues
+                          around the BS a unit charge is assigned to the atom
+                          closest to the charge center
+double *ReEffRad -------- ReEffRad[n] = effective radius of rec atom n
+int NNeigh3 ------------- Amount of rec atoms falling at least once
+                          in the cutoff for non-bonded interactions
+int *NeighList3 --------- NeighList3[1->NNeigh3] = rec atom # falling at least
+                          once in the cutoff for non-bonded interactions
+int FrAtNu -------------- Tot # frag atoms
+double *FrPaCh ----------- Frag partial charges
+double *FrEffRad -------- FrEffRad[n] = effective radius of frag atom n
+double **dist2 ----------- Squared interatomic rec-frag distances
+double **dist ------------ Frag-rec interatomic distances
+double Kelec ------------ Constant
+double Ksolv ------------ Constant
+double *PReFrIntElec ---- Rec-Frag screened interaction
+###########################################*/
+{
+  int iat, jat;
+  double Rij, Rij_GB;
+  double e_ij[4];
+  double F_i[4];
+  double T_i[4];
+  double dEdr;
+  // double En_i;
+
+  F_elec[1] = 0.0;
+  F_elec[2] = 0.0;
+  F_elec[3] = 0.0;
+  T_elec[1] = 0.0;
+  T_elec[2] = 0.0;
+  T_elec[3] = 0.0;
+
+  //*PIntEn = 0.;
+  for (jat = 1; jat <= FrAtNu; jat++) // loop over frag atoms
+  {
+    F_i[1] = 0.0;
+    F_i[2] = 0.0;
+    F_i[3] = 0.0;
+
+    if (FrPaCh[jat] != 0.)
+    {
+      for (iat = 1; iat <= NNeigh3; iat++) // loop over rec atoms
+      {
+        dEdr = 0.0;
+        if (dist2[jat][NeighList3[iat]] > 0.)
+        {
+
+          Rij = (double)ReEffRad[NeighList3[iat]] * FrEffRad[jat];
+          Rij_GB = sqrtf(dist2[jat][NeighList3[iat]] +
+                         Rij * expf(-dist2[jat][NeighList3[iat]] / (4. * Rij)));
+
+          // En_i = RePaCh_Fr[jat][NeighList3[iat]] * FrPaCh[jat] *
+          //       (Kelec / dist[jat][NeighList3[iat]] +
+          //         Ksolv / Rij_GB);
+          // *PIntEn += En_i;
+          // dEdr = -RePaCh_Fr[jat][NeighList3[iat]] * FrPaCh[jat] * (Kelec / dist2[jat][NeighList3[iat]]) +
+          //        RePaCh_Fr[jat][NeighList3[iat]] * FrPaCh[jat] * 0.5 * Ksolv / (Rij_GB * Rij_GB * Rij_GB) *
+          //            (2 * dist[jat][NeighList3[iat]] - 0.5 * dist[jat][NeighList3[iat]] * 
+          //            expf(-dist2[jat][NeighList3[iat]] / (4. * Rij)));
+          dEdr = -RePaCh_Fr[jat][NeighList3[iat]] * FrPaCh[jat] * ((Kelec / (dist2[jat][NeighList3[iat]] * dist[jat][NeighList3[iat]])) +
+                  Ksolv / (Rij_GB * Rij_GB * Rij_GB) *
+                     (1. - 0.25 * expf(-dist2[jat][NeighList3[iat]] / (4. * Rij))));
+          e_ij[1] = (ReCoor[NeighList3[iat]][1] - RoSFCo[jat][1]); // / dist[jat][NeighList3[iat]];
+          e_ij[2] = (ReCoor[NeighList3[iat]][2] - RoSFCo[jat][2]); // / dist[jat][NeighList3[iat]];
+          e_ij[3] = (ReCoor[NeighList3[iat]][3] - RoSFCo[jat][3]); // / dist[jat][NeighList3[iat]];
+
+          F_i[1] += dEdr * e_ij[1];
+          F_i[2] += dEdr * e_ij[2];
+          F_i[3] += dEdr * e_ij[3];
+          // *PReFrIntElec += Inte;
+        }
+      }
+
+      F_i[1] *= corr_scrint;
+      F_i[2] *= corr_scrint;
+      F_i[3] *= corr_scrint;
+
+      F_elec[1] += F_i[1];
+      F_elec[2] += F_i[2];
+      F_elec[3] += F_i[3];
+
+      VectPr(RelCOMCo[jat][1], RelCOMCo[jat][2], RelCOMCo[jat][3],
+             F_i[1], F_i[2], F_i[3],
+             &T_i[1], &T_i[2], &T_i[3]);
+      T_elec[1] += T_i[1];
+      T_elec[2] += T_i[2];
+      T_elec[3] += T_i[3];
+    }
+  }
+
+  if (iat == NNeigh3 + 1)
+    return 1;
+  else
+    return 0;
+}
+
+void check_gradient_int_elec(int FrAtNu, int ReAtNu, double *ReVdWE_sr, double *FrVdWE_sr,
+                             double *ReVdWR, double *FrVdWR,
+                             double *Felec, double *Telec,
+                             double **RoSFCo, double **ReCoor,
+                             double *ReMinC,
+                             double GrSiCu_en, int *CubNum_en, int ***CubFAI_en, int ***CubLAI_en,
+                             int *CubLiA_en, int PsSpNC, int ***PsSphe,
+                             double PsSpRa, int ReReNu, int *AtReprRes,
+                             int *FiAtRes, int *LaAtRes, int *FrAtEl_nu, double *AtWei,
+                             double *RePaCh, double *FrPaCh, double *TotChaRes, int NuChResEn, int *LiChResEn,
+                             double **ChFrRe_ps_elec, double *ReEffRad, double *FrEffRad,
+                             int *NeighList3, int NNeigh3, double Kelec, double Ksolv, double corr_scrint)
+{
+  /* This function checks the gradients of int_elec */
+  int i, j, k;
+  int iat, jat;
+  int areturn;
+  double **dist2, **dist, **dummy;
+  double num_grad[6]; // numerical gradient
+  double eps = 0.00001;
+  double eps_rot = eps * 0.0174533;
+  double **eps_coords;
+  double E_plus, E_minus;
+  double COM[4];
+  Quaternion<double> q_rb;
+  double **ChFrRe_tmp;
+
+  eps_coords = zero_dmatrix(1, FrAtNu, 1, 3);
+  copy_dmatrix(RoSFCo, eps_coords, 1, FrAtNu, 1, 3);
+  dist2 = zero_dmatrix(1, FrAtNu, 1, ReAtNu);
+  dist = zero_dmatrix(1, FrAtNu,  1, ReAtNu);
+  dummy = zero_dmatrix(1,FrAtNu, 1, ReAtNu);
+  ChFrRe_tmp = dmatrix(1, FrAtNu, 1, ReAtNu);
+  // copy_dmatrix(ChFrRe_ps_elec 1, FrAtNu, 1, ReAtNu);
+
+  // numerical forces:
+  for (j = 1; j <= 3; j++)
+  {
+    // x + eps
+    for (i = 1; i <= FrAtNu; i++)
+    {
+      eps_coords[i][j] += eps;
+    }
+    SqDisFrRe_ps(FrAtNu, eps_coords, ReCoor, ReMinC, GrSiCu_en,
+                 CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
+                 PsSpNC, PsSphe, dummy, ReAtNu, PsSpRa,
+                 RePaCh, ReReNu, AtReprRes, FiAtRes, LaAtRes,
+                 TotChaRes, NuChResEn, LiChResEn,
+                 dist2, ChFrRe_tmp);
+    dist2_to_dist(dist2, dist, FrAtNu, ReAtNu);
+    // for (iat = 1; iat <= FrAtNu; iat++)
+    // {
+    //   for (jat = 1; jat <= ReAtNu; jat++)
+    //   {
+    //     if ((distortion[iat][jat] < 0. && dist2[iat][jat] >= 0.) || 
+    //         (distortion[iat][jat] > 0. && dist2[iat][jat] <= 0.)){
+    //           std::cerr << "PROBLEM WITH DISTANCES" << std::endl;
+    //         }
+    //   }
+    // }
+    // for (iat = 1; iat <= FrAtNu; iat++)
+    // {
+    //   for (jat = 1; jat <= ReAtNu; jat++)
+    //   {
+    //     if (ChFrRe_tmp[iat][jat] != ChFrRe_ps_elec[iat][jat])
+    //       std::cerr << "PROBLEM WITH NUMERICAL GRADIENT" << std::endl;
+    //   }
+    // }
+    areturn = screened_int(ChFrRe_ps_elec, ReEffRad, NNeigh3, NeighList3, FrAtNu, FrPaCh,
+                           FrEffRad, dist2, dist, Kelec, Ksolv, &E_plus);
+    // E_plus *= corr_scrint;
+    // copy_dmatrix(RoSFCo, eps_coords, 1, FrAtNu, 1, 3);
+    // x - eps
+    for (i = 1; i <= FrAtNu; i++)
+    {
+      eps_coords[i][j] -= 2 * eps;
+    }
+    SqDisFrRe_ps(FrAtNu, eps_coords, ReCoor, ReMinC, GrSiCu_en,
+                 CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
+                 PsSpNC, PsSphe, dummy, ReAtNu, PsSpRa,
+                 RePaCh, ReReNu, AtReprRes, FiAtRes, LaAtRes,
+                 TotChaRes, NuChResEn, LiChResEn,
+                 dist2, ChFrRe_tmp);
+    dist2_to_dist(dist2, dist, FrAtNu, ReAtNu);
+    // for (iat = 1; iat <= FrAtNu; iat++)
+    // {
+    //   for (jat = 1; jat <= ReAtNu; jat++)
+    //   {
+    //     if ((distortion[iat][jat] < 0. && dist2[iat][jat] >= 0.) ||
+    //         (distortion[iat][jat] > 0. && dist2[iat][jat] <= 0.))
+    //     {
+    //       std::cerr << "PROBLEM WITH DISTANCES" << std::endl;
+    //     }
+    //   }
+    // }
+    // for (iat = 1; iat <= FrAtNu; iat++){
+    //   for (jat = 1; jat <= ReAtNu; jat++){
+    //     if (ChFrRe_tmp[iat][jat] != ChFrRe_ps_elec[iat][jat])
+    //       std::cerr << "PROBLEM WITH NUMERICALS" << std::endl;
+    //   }
+    // }
+    areturn = screened_int(ChFrRe_ps_elec, ReEffRad, NNeigh3, NeighList3, FrAtNu, FrPaCh,
+                           FrEffRad, dist2, dist, Kelec, Ksolv, &E_minus);
+    copy_dmatrix(RoSFCo, eps_coords, 1, FrAtNu, 1, 3);
+    // numerical gradient:
+    num_grad[j] = (E_plus - E_minus) / (2 * eps);
+  }
+  std::cout << "Grad check" << std::endl;
+  std::cout << -Felec[1] << " " << num_grad[1] * corr_scrint << std::endl;
+  std::cout << -Felec[2] << " " << num_grad[2] * corr_scrint << std::endl;
+  std::cout << -Felec[3] << " " << num_grad[3] * corr_scrint << std::endl;
+  //numerical torques:
+
+  while (k <= 3)
+  {
+    E_plus = 0.0;
+    E_minus = 0.0;
+    CenterOfMass(COM, RoSFCo, FrAtNu, AtWei, FrAtEl_nu);
+    if (k == 1)
+    {
+      q_rb.fromXYZrot(eps_rot, 0.0, 0.0);
+    }
+    else if (k == 2)
+    {
+      q_rb.fromXYZrot(0.0, eps_rot, 0.0);
+    }
+    else if (k == 3)
+    {
+      q_rb.fromXYZrot(0.0, 0.0, eps_rot);
+    }
+    for (i = 1; i <= FrAtNu; i++)
+    {
+      q_rb.quatConjugateVecRef(eps_coords[i], COM[1], COM[2], COM[3]);
+    }
+    SqDisFrRe_ps(FrAtNu, eps_coords, ReCoor, ReMinC, GrSiCu_en,
+                 CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
+                 PsSpNC, PsSphe, dummy, ReAtNu, PsSpRa,
+                 RePaCh, ReReNu, AtReprRes, FiAtRes, LaAtRes,
+                 TotChaRes, NuChResEn, LiChResEn,
+                 dist2, ChFrRe_tmp);
+    dist2_to_dist(dist2, dist, FrAtNu, ReAtNu);
+    areturn = screened_int(ChFrRe_ps_elec, ReEffRad, NNeigh3, NeighList3, FrAtNu, FrPaCh,
+                           FrEffRad, dist2, dist, Kelec, Ksolv, &E_plus);
+    if (k == 1)
+    {
+      q_rb.fromXYZrot(-2 * eps_rot, 0.0, 0.0);
+    }
+    else if (k == 2)
+    {
+      q_rb.fromXYZrot(0.0, -2 * eps_rot, 0.0);
+    }
+    else if (k == 3)
+    {
+      q_rb.fromXYZrot(0.0, 0.0, -2 * eps_rot);
+    }
+    for (i = 1; i <= FrAtNu; i++)
+    {
+      q_rb.quatConjugateVecRef(eps_coords[i], COM[1], COM[2], COM[3]);
+    }
+    SqDisFrRe_ps(FrAtNu, eps_coords, ReCoor, ReMinC, GrSiCu_en,
+                 CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,
+                 PsSpNC, PsSphe, dummy, ReAtNu, PsSpRa,
+                 RePaCh, ReReNu, AtReprRes, FiAtRes, LaAtRes,
+                 TotChaRes, NuChResEn, LiChResEn,
+                 dist2, ChFrRe_tmp);
+    dist2_to_dist(dist2, dist, FrAtNu, ReAtNu);
+    areturn = screened_int(ChFrRe_ps_elec, ReEffRad, NNeigh3, NeighList3, FrAtNu, FrPaCh,
+                           FrEffRad, dist2, dist, Kelec, Ksolv, &E_minus);
+    copy_dmatrix(RoSFCo, eps_coords, 1, FrAtNu, 1, 3);
+    // numerical gradient:
+    num_grad[k + 3] = (E_plus - E_minus) / (2 * eps_rot);
+    k++;
+  }
+  std::cout << -Telec[1] << " " << num_grad[4] * corr_scrint << std::endl;
+  std::cout << -Telec[2] << " " << num_grad[5] * corr_scrint << std::endl;
+  std::cout << -Telec[3] << " " << num_grad[6] * corr_scrint << std::endl;
+
+  free_dmatrix(eps_coords, 1, FrAtNu, 1, 3);
+  free_dmatrix(dist2, 1, FrAtNu, 1, ReAtNu);
+  free_dmatrix(dist, 1, FrAtNu, 1, ReAtNu);
+  free_dmatrix(dummy, 1, FrAtNu, 1, ReAtNu);
+  free_dmatrix(ChFrRe_tmp, 1, FrAtNu, 1, ReAtNu);
+  return;
+}
+
 int GB_int_fr(int FrAtNu,double **Frdist2,double *FrPaCh,
               double *EffRad,double Ksolv,double *PIntEnTot)
 /*##########################################

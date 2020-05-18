@@ -166,7 +166,7 @@ void dist2_to_dist(double **dist2, double **dist,
     {
       if (dist2[iat][jat] > 0.)
       {
-        dist[iat][jat] = sqrt(dist2[iat][jat]);
+        dist[iat][jat] = sqrtf(dist2[iat][jat]);
       }
     }
   }
