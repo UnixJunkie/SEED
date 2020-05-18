@@ -23,7 +23,13 @@ Parameter::Parameter() :
   sa_alpha(1.0),
   mc_rand_seed(-1),
   // Rigid body minimization
-  do_rbmin('n')
+  do_rbmin('n'),
+  do_gradient_check('n'),
+  max_iter(20),
+  eps_grms(0.02),
+  alpha_xyz(0.1),
+  alpha_rot(0.01),
+  learning_rate(0.1)
   { } // default constructor
 
 Parameter::~Parameter() { } // default destructor
@@ -114,7 +120,32 @@ void Parameter::readKW(char *kwParFil) {
     {
       mc_rand_seed = std::stoi(keyval);
     }
-    else {
+    else if (key == "do_gradient_check")
+    {
+      do_gradient_check = keyval[0];
+    }
+    else if (key == "min_max_iter")
+    {
+      max_iter = std::stoi(keyval);
+    }
+    else if (key == "min_eps_grms")
+    {
+      eps_grms = std::stod(keyval);
+    }
+    else if (key == "min_alpha_xyz")
+    {
+      alpha_xyz = std::stod(keyval);
+    }
+    else if (key == "min_alpha_rot")
+    {
+      alpha_rot = std::stod(keyval);
+    }
+    else if (key == "min_learning_rate")
+    {
+      learning_rate = std::stod(keyval);
+    }
+    else
+    {
       std::cerr << "The keyword " << key << " was not recognized by SEED. Ignoring it." << std::endl;
     }
   }

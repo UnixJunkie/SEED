@@ -4082,7 +4082,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
           /* ----- Rigid Body Minimization ----- */
           if (seed_par.do_rbmin == 'y')
           {
-            bool do_gradient_check = true;
+            bool do_gradient_check = false;
             int max_iter = 100;
             double eps_grms = 0.02; // minimum gradient size
             double grms;
@@ -4151,7 +4151,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
             ReFrIntElec *= corr_scrint;
             oldTotEn = VWEnEv_ps + ReFrIntElec;
 
-            for (rbi = 1; rbi <= max_iter; rbi++){
+            for (rbi = 1; rbi <= seed_par.max_iter; rbi++){
               // COM and coords relative to COM:
               CenterOfMass(COM, RoSFCo, FrAtNu, AtWei, FrAtEl_nu);
               for (i = 1; i <= FrAtNu; i++){
@@ -4173,11 +4173,12 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
               sum_vec(Ftot, FvdW, Felec, 1, 3);
               sum_vec(Ttot, TvdW, Telec, 1, 3);
 
-              grms = calc_grms(Ftot, Ttot, alpha_xyz, alpha_rot);
+              grms = calc_grms(Ftot, Ttot, seed_par.alpha_xyz, seed_par.alpha_rot);
               std::cerr << "ITER: " << rbi << std::endl;
               std::cerr << "grms: " << grms << std::endl; 
               // check gradients:
-              if (do_gradient_check){
+              if (seed_par.do_gradient_check == 'y')
+              {
                 check_gradient_vdw(FrAtNu, ReAtNu, ReVdWE_sr, FrVdWE_sr,
                                    ReVdWR, FrVdWR, FvdW, TvdW,
                                    RoSFCo, ReCoor, ReMinC, GrSiCu_en,
@@ -4198,26 +4199,27 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                                         NeighList3, NNeigh3, Kelec, Ksolv, corr_scrint);
               }
               // check break condition:
-              if (grms < eps_grms){
+              if (grms < seed_par.eps_grms)
+              {
                 break;
               }
 
               // COM update:
-              COM[1] = COM[1] + learning_rate * alpha_xyz * Ftot[1] / grms; //maxFvdW;
-              COM[2] = COM[2] + learning_rate * alpha_xyz * Ftot[2] / grms; //maxFvdW;
-              COM[3] = COM[3] + learning_rate * alpha_xyz * Ftot[3] / grms; //maxFvdW;
+              COM[1] = COM[1] + seed_par.learning_rate * seed_par.alpha_xyz * Ftot[1] / grms; //maxFvdW;
+              COM[2] = COM[2] + seed_par.learning_rate * seed_par.alpha_xyz * Ftot[2] / grms; //maxFvdW;
+              COM[3] = COM[3] + seed_par.learning_rate * seed_par.alpha_xyz * Ftot[3] / grms; //maxFvdW;
               std::cerr << "Ftot: " << Ftot[1] << " " << Ftot[2] << " " << Ftot[3] << std::endl;
               // Rotation update:
-              q_rb.fromXYZrot(learning_rate * alpha_rot * Ttot[1] / grms, //maxTvdW,
-                              learning_rate * alpha_rot * Ttot[2] / grms, //maxTvdW,
-                              learning_rate * alpha_rot * Ttot[3] / grms );//maxTvdW);
+              q_rb.fromXYZrot(seed_par.learning_rate * seed_par.alpha_rot * Ttot[1] / grms,  //maxTvdW,
+                              seed_par.learning_rate * seed_par.alpha_rot * Ttot[2] / grms,  //maxTvdW,
+                              seed_par.learning_rate * seed_par.alpha_rot * Ttot[3] / grms); //maxTvdW);
               for (i = 1; i <= FrAtNu; i++)
               {
                 q_rb.quatConjugateVecRef(RelCOMCo[i], 0.0, 0.0, 0.0);
               }
               std::cerr << "TvW: " << Ttot[1] << " " << Ttot[2] << " " << Ttot[3] <<  std::endl;
-              std::cerr << "learning rate: " << learning_rate << std::endl;
-              
+              std::cerr << "learning rate: " << seed_par.learning_rate << std::endl;
+
               // Looking forward: decide if to accept move or shrink the learning rate.
               for (i = 1; i <= FrAtNu; i++){
                 for (j=1; j <= 3; j++)
@@ -4248,7 +4250,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
                 // update coords
                 copy_dmatrix(newRoSFCo, RoSFCo,1, FrAtNu, 1, 3);
                 // extend base learning rate:
-                learning_rate *= 1.2;
+                seed_par.learning_rate *= 1.2;
                 VWEnEv_ps = newVWEn;
                 ReFrIntElec = newIntElec;
                 oldTotEn = newTotEn;
@@ -4257,7 +4259,7 @@ NPtSphereMax_Fr = (int) (SurfDens_deso * pi4 * (FrRmax+WaMoRa));
               {
                 std::cerr << "reject step" << std::endl;
                 // shrink base learning rate:
-                learning_rate *= 0.2;
+                seed_par.learning_rate *= 0.2;
                 // recalculate energy:
                 SqDisFrRe_ps(FrAtNu, RoSFCo, ReCoor, ReMinC, GrSiCu_en,
                              CubNum_en, CubFAI_en, CubLAI_en, CubLiA_en,

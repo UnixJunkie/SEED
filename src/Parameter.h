@@ -32,6 +32,12 @@ class Parameter // This is much more like a POD struct than a class
   int mc_rand_seed;
   // Rigid Body minimization
   char do_rbmin;
+  char do_gradient_check;
+  int max_iter;
+  double eps_grms;
+  double alpha_xyz;
+  double alpha_rot;
+  double learning_rate;
 };
 
 #endif
