@@ -2382,7 +2382,7 @@ double *SelfVol --------- SelfVol[iat] = integral of 1/r^4 over the solute
     // std::cout << "fragment partially out or rec elec grid box" << std::endl;
     //clangini debug end
 /* The fragment is partially out of the rec elec grid box --> you need to check
-   carefully the boundaries in order not ot go out of the box */
+   carefully the boundaries in order not to go out of the box */
     cutoff1sq = cutoff1 * cutoff1;
     boxL = (cutoff1 + 0.00001) / GrSiSo + 1;
 /* Integration with grid size GrSiSo */
