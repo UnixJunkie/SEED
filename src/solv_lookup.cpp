@@ -445,7 +445,7 @@ struct point len ----------- ReMaxC - ReMinC
                        DesoMapFile,*DeltaPrDeso);
     else if ( strcmp(ReDesoAlg,CO) == 0 ) { 
       // for the moment ReDesoAlg is hard-coded to "co" in reinfi. clangi
-/* Evaluation of the desolvation in the BS by Coulmomb approximation */
+/* Evaluation of the desolvation in the BS by Coulomb approximation */
       nn = Calc_D_Coul(ReAtNu,ReCoor,ReRad2,Min,Max,RePaCh,DielRe,DielWa,
                        GrSiSo,pi4,*PnxminBS,*PnyminBS,*PnzminBS,
                        *PnxmaxBS,*PnymaxBS,*PnzmaxBS,*XGrid,*YGrid,*ZGrid,

@@ -101,7 +101,7 @@ double VWFrEn(int FrAtNu,double **RoSFCo,double *BSMinC,double VWGrIn,double VWG
              (1-Weig_t)*Weig_u*Weig_v*VWGrRP_re[GrCo_i][GrCo_j+1][GrCo_k+1] ) ;
     }
 #ifndef NOWARN
-    else if(print==0) {
+    else if((*print)==0) {
       ++(*print);
       /* can produce a lot of output in some cases */
       /* fprintf(FPaOut,"WARNING One fragment is not completely in the "); */
