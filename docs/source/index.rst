@@ -14,7 +14,7 @@ of a rigid receptor, and ranks them according to their binding energy.
 :raw-html:`<br />`
 Polar fragments are positioned such that at least one hydrogen bond with
 optimal distance to a protein polar group is made (polar docking).
-Apolar fragments are docked are docked by matching hydrophobic regions on the
+Apolar fragments are docked by matching hydrophobic regions on the
 fragment and on the receptor (apolar docking).
 These regions are efficiently and accurately determined
 by evaluating electrostatic desolvation penalty and van der Waals
